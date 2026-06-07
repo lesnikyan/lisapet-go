@@ -114,17 +114,20 @@ type XVal[T VType] interface {
 	// GetType() dt.DType
 }
 
-type U[T VType] struct {
+type UVal[T VType] struct {
 	v T
 }
 
-func (n *U[T]) GetVal() T {
+func (n *UVal[T]) GetVal() any {
 	return n.v
 }
 
 type Int struct {
-	// v int64
-	U[int64]
+	UVal[int64]
+}
+
+func IntVal(v int64) T2Val {
+	return &Int{UVal[int64]{v}}
 }
 
 // func (n *Int) GetVal() int64 {
@@ -137,7 +140,34 @@ type Int struct {
 
 type Float struct {
 	// v float64
-	U[int64]
+	UVal[float64]
+}
+
+func FloatVal(v float64) T2Val {
+	return &Float{UVal[float64]{v}}
+}
+
+type String struct {
+	UVal[string]
+}
+
+func StringVal(v string) T2Val {
+	return &String{UVal[string]{v}}
+}
+
+type TT interface {
+}
+
+type T2Val interface {
+	GetVal() any
+	// GetType() dt.DType
+}
+
+func TestIn() {
+	v := &Int{UVal: UVal[int64]{123}}
+	ctx := NewContext(nil)
+	ctx.PutVal(v)
+
 }
 
 func put[T VType](val T, target []T) (int, []T) {
@@ -146,19 +176,85 @@ func put[T VType](val T, target []T) (int, []T) {
 	return id, target
 }
 
-func (ctx *Context) Add1(value TVal) *CVal {
+func tVal(val any) T2Val {
+	switch v := val.(type) {
+	case int64:
+		return IntVal(v)
+	case float64:
+		return FloatVal(v)
+	case string:
+		return StringVal(v)
+	}
+	return nil
+}
+
+func (ctx *Context) PutVal(value T2Val) *CVal {
 	val := value.GetVal()
 	var id int
 	var tp dt.DType
-	switch val := val.(type) {
+	switch vT := val.(type) {
 	case int64:
-		i, tg := put(val, ctx.valsInt)
+		i, tg := put(vT, ctx.valsInt)
 		ctx.valsInt = tg
 		tp, id = dt.Int, i
 	case float64:
-		i, tg := put(val, ctx.valsFloat)
+		i, tg := put(vT, ctx.valsFloat)
 		ctx.valsFloat = tg
 		tp, id = dt.Int, i
+	case string:
+		i, tg := put(vT, ctx.valsString)
+		ctx.valsString = tg
+		tp, id = dt.Int, i
 	}
+
 	return &CVal{Type: tp, Item: id}
+}
+
+func (ctx *Context) Add2(value TVal) *CVal {
+	val := value.GetVal()
+	var id int
+	var tp dt.DType
+	switch vT := val.(type) {
+	case int64:
+		i, tg := put(vT, ctx.valsInt)
+		ctx.valsInt = tg
+		tp, id = dt.Int, i
+	case float64:
+		i, tg := put(vT, ctx.valsFloat)
+		ctx.valsFloat = tg
+		tp, id = dt.Int, i
+	case string:
+		i, tg := put(vT, ctx.valsString)
+		ctx.valsString = tg
+		tp, id = dt.Int, i
+	}
+
+	return &CVal{Type: tp, Item: id}
+}
+
+func (ctx *Context) Update(value T2Val, target *CVal) bool {
+	val := value.GetVal()
+	id := target.Item
+	if id < 0 {
+		return false
+	}
+	var tp dt.DType = target.Type
+	switch vT := val.(type) {
+	case int64:
+		if tp != dt.Int || id >= len(ctx.valsInt) {
+			return false
+		}
+		ctx.valsInt[target.Item] = vT
+		return true
+	}
+	return false
+}
+
+func (ctx *Context) GetVal(vv *CVal) T2Val {
+	return IntVal(111)
+}
+
+type T2Var struct {
+	val  T2Val
+	Type dt.DType
 }
