@@ -2,29 +2,39 @@ package nodes
 
 import ob "github.com/lesnikyan/lisapet-go/objects"
 
-type TNode struct {
+type Expression interface {
+	Do(*ob.Context)
+	Get() any
 }
 
-type VarExpr struct {
-	Name string
+// super-expression, expression that can have sub-expression
+type SupExpr interface {
+	Add(sub Expression)
 }
 
-type Expr interface {
-	Do(ctx ob.Context)
-	Get() ob.TVal
-}
+// type TNode struct {
+// }
 
-type Block struct {
-	subs []Expr
-	res  ob.TVal
-}
+// type VarExpr struct {
+// 	Name string
+// }
 
-func (bb *Block) Do(ctx ob.Context) {
-	for _, expr := range bb.subs {
-		expr.Do(ctx)
-	}
-}
+// type Expr interface {
+// 	Do(ctx ob.Context)
+// 	Get() ob.Val
+// }
 
-func (bb *Block) Get() ob.TVal {
-	return bb.res
-}
+// type Block struct {
+// 	subs []Expr
+// 	res  ob.TVal
+// }
+
+// func (bb *Block) Do(ctx ob.Context) {
+// 	for _, expr := range bb.subs {
+// 		expr.Do(ctx)
+// 	}
+// }
+
+// func (bb *Block) Get() ob.TVal {
+// 	return bb.res
+// }

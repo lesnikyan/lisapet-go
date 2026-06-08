@@ -120,10 +120,10 @@ func elemType(c rune, prev Lt.Lt) Lt.Lt {
 	return Lt.None
 }
 
-func f() {
-	// lt.LtClose
-	fmt.Print(Lt.Block)
-}
+// func f() {
+// 	// lt.LtClose
+// 	fmt.Print(Lt.Block)
+// }
 
 // is string, comment, etc
 type SplitContext struct {
@@ -217,9 +217,9 @@ func nextType(ntype Lt.Lt, c rune) Lt.Lt {
 	return ntype
 }
 
-func SplitLine(src string, ctx SplitContext) []lang.Elem {
-	runes := Runes(src)
-	res := []lang.Elem{}
+func SplitLine(runes []rune, ctx SplitContext) []*lang.Elem {
+
+	res := []*lang.Elem{}
 	cur := []rune{}
 	ctype := ctx.Ltype // cur elem type
 	for _, c := range runes {
@@ -253,7 +253,7 @@ func SplitLine(src string, ctx SplitContext) []lang.Elem {
 				cur = append(cur, c)
 			}
 			text := nPart(cur)
-			elem := lang.Elem{Text: text, Type: ctype}
+			elem := &lang.Elem{Text: text, Type: ctype}
 			res = append(res, elem)
 			cur = []rune{}
 			if ctype != Lt.Text {
@@ -266,18 +266,60 @@ func SplitLine(src string, ctx SplitContext) []lang.Elem {
 		cur = append(cur, c)
 	}
 	if len(cur) > 0 {
-		res = append(res, lang.Elem{Text: nPart(cur), Type: ctype})
+		res = append(res, &lang.Elem{Text: nPart(cur), Type: ctype})
 	}
 	return res
 }
 
-func SplitCode(code string) []lang.CLine {
+var BaseIndent = 0
+
+var rrr = regexp.MustCompile(`\s`)
+var _spaces = " \t"
+
+func cutIndent(rline []rune) ([]rune, int) {
+	for i, r := range rline {
+		if !strings.ContainsRune(_spaces, r) {
+			return rline[i:], i
+		}
+	}
+	return rline, 0
+}
+
+func SplitCode(code string) []*lang.CLine {
 	ctx := SplitContext{}
 	lines := Lines(code)
-	res := make([]lang.CLine, len(lines))
+	indSize := 0
+	res := make([]*lang.CLine, len(lines))
+	if BaseIndent > 0 {
+
+	}
+	ln0 := Runes(lines[0])
+	if strings.ContainsRune(_spaces, ln0[0]) {
+		for i, r := range ln0 {
+			if !strings.ContainsRune(_spaces, r) {
+				BaseIndent = i - 1
+			}
+		}
+		// cutIndent(line)
+	}
 	for i, line := range lines {
-		lems := SplitLine(line, ctx)
-		res[i] = lang.CLine{Elems: lems, Src: line}
+		rline := Runes(line)
+		if BaseIndent > 0 {
+			rline = rline[BaseIndent:]
+		}
+		curInd := 0
+		// if strings.ContainsRune(_spaces, rline[0]) {}
+		rline, size := cutIndent(rline)
+		if size > 0 {
+			// indent detected
+			if indSize == 0 {
+				// set size of indent
+				indSize = size
+			}
+			curInd = size / indSize
+		}
+		lems := SplitLine(rline, ctx)
+		res[i] = &lang.CLine{Elems: lems, Src: line, Indent: curInd}
 	}
 	return res
 }

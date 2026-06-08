@@ -1,4 +1,4 @@
-package main
+package cases
 
 import (
 	"slices"
@@ -8,12 +8,14 @@ import (
 
 	"github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
+	"github.com/lesnikyan/lisapet-go/nodes"
+	obb "github.com/lesnikyan/lisapet-go/objects"
 )
 
 var _valLexms = []Lt.Lt{Lt.Num, Lt.Text, Lt.Word}
 var _constLex = []string{`null`, `true`, `false`}
 var _contsVals = map[string]any{
-	`null`:  Null{},
+	`null`:  obb.Null{},
 	`true`:  true,
 	`false`: false,
 }
@@ -23,11 +25,11 @@ var rxInt8 = re.MustCompile(`^0o[0-7]+$`)
 var rxInt2 = re.MustCompile((`0b[01]+`))
 var rxFloat = re.MustCompile(`[0-9]+\.[0-9]*`)
 
-func valex(v any) *ValExpr {
-	return &ValExpr{Val: v}
+func valex(v any) *nodes.ValExpr {
+	return &nodes.ValExpr{Val: v}
 }
 
-func CaseVal(ee []*lang.Elem) (Expression, bool) {
+func CaseVal(ee []*lang.Elem) (nodes.Expression, bool) {
 	if len(ee) != 1 {
 		return nil, false
 	}
@@ -47,7 +49,7 @@ func CaseVal(ee []*lang.Elem) (Expression, bool) {
 		return valex(cv), true
 	}
 
-	var res Expression = nil
+	var res nodes.Expression = nil
 	// var ok = false
 	// var val any
 	switch etype {

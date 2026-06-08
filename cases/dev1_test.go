@@ -1,4 +1,4 @@
-package main
+package cases
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
+	"github.com/lesnikyan/lisapet-go/nodes"
+	obb "github.com/lesnikyan/lisapet-go/objects"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,7 +55,7 @@ func TestCaseVal(t *testing.T) {
 		{"Hello!", "Hello!", ""},
 		{"true", true, w},
 		{"false", false, w},
-		{"null", Null{}, w},
+		{"null", obb.Null{}, w},
 		// {"", 0},
 		// {"", 0},
 		// {"", 0},
@@ -65,7 +67,7 @@ func TestCaseVal(t *testing.T) {
 			els := valEls(tt.src, tt.tm)
 			res, ok := CaseVal(els)
 			assert.True(t2, ok)
-			exp := &ValExpr{Val: tt.exp}
+			exp := &nodes.ValExpr{Val: tt.exp}
 			assert.Equal(t2, exp, res)
 		})
 	}

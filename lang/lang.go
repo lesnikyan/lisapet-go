@@ -8,6 +8,7 @@ type Elem struct {
 }
 
 type CLine struct {
-	Elems []Elem
-	Src   string
+	Elems  []*Elem
+	Src    string
+	Indent int
 }

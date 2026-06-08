@@ -115,7 +115,7 @@ func TestElemType(t *testing.T) {
 
 }
 
-type elem = lang.Elem
+type elem = *lang.Elem
 
 type tte struct {
 	s string
@@ -125,7 +125,7 @@ type tte struct {
 func telems(ees []tte) []elem {
 	var r = make([]elem, len(ees))
 	for i, ee := range ees {
-		r[i] = lang.Elem{ee.s, ee.t}
+		r[i] = &lang.Elem{ee.s, ee.t}
 	}
 	return r
 }
@@ -155,7 +155,8 @@ func TestSplitLine(t *testing.T) {
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("%s", tt.cline), func(t2 *testing.T) {
 			ctx := SplitContext{Ltype: tt.pretype, strval: tt.strval}
-			res := SplitLine(tt.cline, ctx)
+			rline := Runes(tt.cline)
+			res := SplitLine(rline, ctx)
 			exp := telems(tt.exp)
 			assert.Equal(t2, exp, res)
 		})
