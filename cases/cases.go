@@ -1,10 +1,20 @@
 package cases
 
+import (
+	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/lang"
+)
+
 // import (
 // 	"github.com/lesnikyan/lisapet-go/lang"
 // 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 // 	"github.com/lesnikyan/lisapet-go/nodes"
 // )
+
+type CaseRes struct {
+	Expr base.Expression
+	Subs [][]*lang.Elem
+}
 
 // type LangCase interface {
 // 	match(line lang.CLine) bool

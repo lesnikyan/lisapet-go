@@ -1,79 +1,225 @@
 package cases
 
 import (
+	"errors"
 	"slices"
-	"strconv"
+	"strings"
 
-	re "regexp"
-
+	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 	"github.com/lesnikyan/lisapet-go/nodes"
-	obb "github.com/lesnikyan/lisapet-go/objects"
 )
 
-var _valLexms = []Lt.Lt{Lt.Num, Lt.Text, Lt.Word}
-var _constLex = []string{`null`, `true`, `false`}
-var _contsVals = map[string]any{
-	`null`:  obb.Null{},
-	`true`:  true,
-	`false`: false,
-}
-var rxInt = re.MustCompile(`^[0-9]+$`)
-var rxInt16 = re.MustCompile(`^0x[0-9a-fA-F]+$`)
-var rxInt8 = re.MustCompile(`^0o[0-7]+$`)
-var rxInt2 = re.MustCompile((`0b[01]+`))
-var rxFloat = re.MustCompile(`[0-9]+\.[0-9]*`)
+var SubPartErr = errors.New("error in subpart of keywd case")
 
-func valex(v any) *nodes.ValExpr {
-	return &nodes.ValExpr{Val: v}
-}
-
-func CaseVal(ee []*lang.Elem) (nodes.Expression, bool) {
-	if len(ee) != 1 {
+// just simple var = val
+// (base.Expression, [][]*lang.Elem, bool)
+func CaseAssign(ee []*lang.Elem) (*CaseRes, bool) {
+	// matching part
+	spres, err := OperSplit(ee)
+	if err != nil || spres.Lowest == -1 || ee[spres.Lowest].Text != "=" {
 		return nil, false
 	}
-	etype := ee[0].Type
-	if !slices.Contains(_valLexms, ee[0].Type) {
-		return nil, false
-	}
-	// if ee[0].Type == Lt.Word && !slices.Contains(_constLex, ee[0].Text) {
+	// ind := spres.Lowest
+	// if ee[ind].Text != "=" {
 	// 	return nil, false
 	// }
-	etext := ee[0].Text
-	if ee[0].Type == Lt.Word {
-		cv, ok := _contsVals[etext]
-		if !ok {
-			return nil, false
-		}
-		return valex(cv), true
-	}
+	// parsing part
+	parts := [][]*lang.Elem{ee[:spres.Lowest], ee[spres.Lowest+1:]}
+	return &CaseRes{Expr: &nodes.OperAssign{}, Subs: parts}, true
+}
 
-	var res nodes.Expression = nil
-	// var ok = false
-	// var val any
-	switch etype {
-	case Lt.Num:
-		var err error = nil
-		var val any
-		if rxFloat.MatchString(etext) {
-			val, err = strconv.ParseFloat(etext, 64)
-		} else if rxInt.MatchString(etext) {
-			val, err = strconv.ParseInt(etext, 10, 64)
-		} else if rxInt16.MatchString(etext) {
-			val, err = strconv.ParseInt(etext[2:], 16, 64)
-		} else if rxInt8.MatchString(etext) {
-			val, err = strconv.ParseInt(etext[2:], 8, 64)
-		} else if rxInt2.MatchString(etext) {
-			val, err = strconv.ParseInt(etext[2:], 2, 64)
+func SkipSpaces(elems []*lang.Elem) []*lang.Elem {
+	res := []*lang.Elem{}
+	for _, ee := range elems {
+		if ee.Type != Lt.Space {
+			res = append(res, ee)
 		}
-		// log.Println("", etext, val, err)
-		if err == nil {
-			return valex(val), true
-		}
-	case Lt.Text:
-		return valex(etext), true
 	}
-	return res, res != nil
+	return res
+}
 
+func _AssignSubs(elems []*lang.Elem, spres *SplittedRes) {
+	if len(spres.Others) > 0 {
+		if spres.Others[0][0] < spres.Lowest {
+			// posibly multiassign
+		} else {
+			// leftEls := SkipSpaces(elems[:spres.Lowest])
+			// Interpret(leftEls)
+		}
+	}
+}
+
+var binOpers = strings.Split("+ - * / ** ^/ % | & || && == !=", " ")
+var binAssignOpers = strings.Split("+= -= *= /= %=", " ")
+
+func CaseBinOper(ee []*lang.Elem) (*CaseRes, bool) {
+	spres, err := OperSplit(ee)
+	if err != nil || spres.Lowest == -1 {
+		// no oper fount out of brackets
+		return nil, false
+	}
+	parts := [][]*lang.Elem{ee[:spres.Lowest], ee[spres.Lowest+1:]}
+	var expr base.Expression
+	foundT := ee[spres.Lowest].Text
+	switch foundT {
+	case "=":
+		expr = &nodes.OperAssign{}
+	case "->":
+		expr = &nodes.TODOExpr{}
+	case "<-":
+		expr = &nodes.TODOExpr{}
+	case "$":
+		expr = &nodes.TODOExpr{}
+	case "?:":
+		expr = &nodes.TODOExpr{}
+	// case "*","/","+","-","*","^/","|":
+	default:
+		switch {
+		case slices.Contains(binOpers, foundT):
+			expr = &nodes.OperBin{}
+		case slices.Contains(binAssignOpers, foundT):
+			expr = &nodes.TODOExpr{} // BinAssign
+		}
+
+	}
+	return &CaseRes{Expr: expr, Subs: parts}, true
+}
+
+func InterpretSpRes(elems []*lang.Elem, spres *SplittedRes) {
+
+}
+
+/*
+-- leading keywords
+if condition
+if expr; condition
+else
+else if condition
+for
+while
+match
+func name(args)
+func obj:Type name(args)
+struct name fields
+break
+continue
+return
+enum
+grup
+
+*/
+
+func List2Keys[T comparable](data []T) map[T]bool {
+	r := make(map[T]bool, len(data))
+	for _, k := range data {
+		r[k] = true
+	}
+	return r
+}
+
+var keywords = strings.Split("func|if|for|while|match|enum|grup|struct|else|import|return|const|run", "|")
+var kwMap = List2Keys(keywords)
+
+func IsLKWord(elems []*lang.Elem) bool {
+	e1 := elems[0]
+	if e1.Type != Lt.Word {
+		return false
+	}
+	_, ok := kwMap[e1.Text]
+	return ok
+}
+
+func CaseLKeyword(elems []*lang.Elem) (*CaseRes, bool) {
+	if elems[0].Type != Lt.Word || !IsLKWord((elems)) {
+
+	}
+	var expr base.Expression
+	parts := [][]*lang.Elem{elems[1:]}
+
+	return &CaseRes{Expr: expr, Subs: parts}, true
+}
+
+func ParseKWSub(elems []*lang.Elem) ([]base.Expression, error)
+
+func SubIf(elems []*lang.Elem) ([]base.Expression, error) {
+	// var err error = nil //  SubPartErr
+	// detect subs
+	spres, sperr := OperSplit(elems)
+	if sperr != nil {
+		return nil, sperr
+	}
+	if spres.Lowest == -1 {
+		// no oper, just solid expr
+		return nil, nil // fix result
+	}
+	if elems[spres.Lowest].Text == ";" {
+		// has extra expression before condition
+		// 1. split elems to sub-expressions
+		// 2. Inrerpret each sub
+		return nil, nil // TODO: fix resilt
+	}
+	expr := &nodes.IfExpr{}
+	exprs := []base.Expression{expr}
+	return exprs, nil
+}
+
+/*
+keyword: kword [others]
+bin-operator: left <oper> right
+separated-sequence: a, b, c // a ; b ; c //
+@spec-expr
+
+obj.field
+funcCall()
+in-brackets: [], (), {}
+collElem[key]
+var, val
+
+*/
+
+var caseList = []func(ee []*lang.Elem) (*CaseRes, bool){
+	CaseLKeyword, CaseBinOper,
+}
+
+func InterpretSups(supr base.SupExpr, cres *CaseRes) error {
+	// var supr base.SupExpr
+	// supr = resExp.(base.SupExpr)
+	for _, subp := range cres.Subs {
+		subExp, err := InterpretLine(subp)
+		if err != nil {
+			return err
+		}
+		supr.Add(subExp.Expr)
+	}
+	return nil
+}
+
+/*
+interpret sequence: fing case, parse, make Expression node
+*/
+func InterpretLine(elems []*lang.Elem) (*CaseRes, error) {
+	var resExp base.Expression
+	for _, cfun := range caseList {
+		cres, found := cfun(elems)
+		resExp = cres.Expr
+		if !found {
+			continue
+		}
+		if len(cres.Subs) > 0 {
+			// var supr base.SupExpr
+			// supr = resExp.(base.SupExpr)
+			// for _, subp := range cres.Subs {
+			// 	subExp, err := InterpretLine(subp)
+			// 	if err != nil {
+			// 		return nil, err
+			// 	}
+			// 	supr.Add(subExp.Expr)
+			// }
+			InterpretSups(resExp.(base.SupExpr), cres)
+		}
+		return &CaseRes{Expr: resExp}, nil
+	}
+	return nil, nil
 }

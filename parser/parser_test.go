@@ -10,21 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func crop(code string) string {
-	code = strings.ReplaceAll(code, "\r\n", "\n")
-	if code[0] == '\n' {
-		code, _ = strings.CutPrefix(code, "\n")
-	}
-	return code
-}
-
 func TestLines(t *testing.T) {
 	code := `
 	x = 1
 	y = 2
 	res = x + y
 	`
-	code = crop(code)
+	code = Crop(code)
 	lines := Lines(code)
 	xss := []string{"x = 1", "y = 2", "res = x + y", ""}
 	for i, line := range lines {
@@ -43,7 +35,7 @@ func TestSplitCode(t *testing.T) {
 	str = "Hello Vasya!"
 	r = obj.foo(bar([{1:2}]))
 	`
-	code = crop(code)
+	code = Crop(code)
 	exp := [][]string{
 		{"x?^word", " ?^space", "=?^oper", " ?^space", "1?^num"},
 		{"y?^word", " ?^space", "=?^oper", " ?^space", "2?^num"},

@@ -6,10 +6,12 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	lang "github.com/lesnikyan/lisapet-go/lang"
 	lt "github.com/lesnikyan/lisapet-go/lang/lt"
-	"github.com/lesnikyan/lisapet-go/nodes"
+
 	// par "github.com/lesnikyan/lisapet-go/parser"
+	ob "github.com/lesnikyan/lisapet-go/objects"
 )
 
 func list2Keys[T comparable](data []T) map[T]bool {
@@ -120,14 +122,15 @@ rrr = [1, 2, 3] + obj.prop1()[5] * (foo()) + data['elem'].bar().prop2[3].elem4
 
 */
 
-func elem2node(elems []*lang.Elem) (nodes.Expression, error) {
+func elem2node(elems []*lang.Elem) (base.Expression, error) {
 	return nil, noMatchErr
 }
 
-func build(code []*lang.CLine) {
+func Build(code []*lang.CLine) *ob.Module {
 	// lang.Elem{}
 	curInd := 0
-	var curParent nodes.SupExpr = nil
+	root := ob.NewModule(nil)
+	var curParent base.SupExpr = root
 	waitingChild := false
 	for _, cline := range code {
 		elems := cline.Elems

@@ -324,6 +324,14 @@ func SplitCode(code string) []*lang.CLine {
 	return res
 }
 
+func Crop(code string) string {
+	code = strings.ReplaceAll(code, "\r\n", "\n")
+	if code[0] == '\n' {
+		code, _ = strings.CutPrefix(code, "\n")
+	}
+	return code
+}
+
 func Foo() {
 	fmt.Println("parser 1")
 }

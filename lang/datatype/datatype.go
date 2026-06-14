@@ -5,32 +5,33 @@ type DType int
 const (
 	Undefined DType = iota
 	Type
+	Noval
 	Null
-	Num
+	Any
+	Num // all numeric, have operators + - * / ** ^/
 	Bool
 	Int
-	Ratio
 	Float
-	Complex
-	Byte
-	Container
+	Ratio   // (int, int) means" int/int
+	Complex // (float + float*j) or (ratio + ratio * j)
+	Byte    // int8
+	String
+	Bytes     // []byte
+	Glif      // rune
+	Container // list dict tuple maybe
 	List
 	Tuple
 	Dict
-	String
-	Bytes
-	Chan
-	Glif
+	Maybe
 	Regexp
-	Enum
-	Grup
 	Func
 	Struct
 	Property
 	Iterator
 	Generator
-	Any
-	Noval
+	Chan
+	Enum
+	Grup
 
 	Module
 )

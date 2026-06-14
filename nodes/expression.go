@@ -1,53 +1,38 @@
 package nodes
 
-import ob "github.com/lesnikyan/lisapet-go/objects"
+import "github.com/lesnikyan/lisapet-go/base"
 
-type Block interface {
-	Do(cx *ob.Context)
-	Get() any
-}
-
-type BlockExpr struct {
-	subs []Expression
-	res  any
-}
-
-func (bk *BlockExpr) Do(cx *ob.Context) {
-	var res any = nil
-	for _, exp := range bk.subs {
-		exp.Do(cx)
-	}
-	bk.res = res
-}
-func (bk *BlockExpr) Get() any {
-	return bk.res
-}
-
-// ValExpr
+// *** ValExpr
 type ValExpr struct {
 	Val any
 }
 
-func (vex *ValExpr) Do(cx *ob.Context) {
+func (vex *ValExpr) Do(cx base.Context) error {
 	// do nothing
+	return nil
 }
 func (vex *ValExpr) Get() any {
 	return vex.Val
 }
 
-// VarExpr
+// *** VarExpr
 type VarExpr struct {
 	name string
-	vr   *ob.Var
+	vr   *base.Var
 }
 
-func (ex *VarExpr) Do(cx *ob.Context) {
+func NewVarExpr(name string) *VarExpr {
+	return &VarExpr{name: name}
+}
+
+func (ex *VarExpr) Do(cx base.Context) error {
 	vr := cx.GetVar(ex.name)
 	if vr == nil {
-		vr := &ob.Var{Name: ex.name}
+		vr := &base.Var{Name: ex.name}
 		cx.AddVar(vr)
 	}
 	ex.vr = vr
+	return nil
 }
 func (ex *VarExpr) Get() any {
 	return ex.vr

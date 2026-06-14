@@ -8,6 +8,7 @@ import (
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 	"github.com/lesnikyan/lisapet-go/nodes"
 	obb "github.com/lesnikyan/lisapet-go/objects"
+	par "github.com/lesnikyan/lisapet-go/parser"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,5 +71,30 @@ func TestCaseVal(t *testing.T) {
 			exp := &nodes.ValExpr{Val: tt.exp}
 			assert.Equal(t2, exp, res)
 		})
+	}
+}
+
+func TestOperSplit(t *testing.T) {
+	tdata := []struct {
+		src    string
+		lowest int
+		others []ints2
+	}{
+		{"1 + 2", 1, []ints2{}},
+		{"1 + 3 - 10", 6, []ints2{}},
+		{"1 + 5 - 4 / 6", -1, []ints2{}},
+		{"2 + (4 - 6)", -1, []ints2{}},
+		{"(3 + 5) * (4 - 6)", -1, []ints2{}},
+		{"4 * (4 - 6) + 5", -1, []ints2{}},
+		{"5 + 6 - 17 + 22", -1, []ints2{}},
+		{"6 * 5 / 10 * 11", -1, []ints2{}},
+		{"age = 2000 - 1955", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+	}
+	for _, tt := range tdata {
+		sctx := par.SplitContext{}
+		line := par.SplitLine([]rune(tt.src), sctx)
+		res, err := OperSplit(line)
+		t.Log("tt1>", tt.src, res, err)
 	}
 }
