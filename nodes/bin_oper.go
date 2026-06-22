@@ -14,6 +14,9 @@ type OperAssign struct {
 	res   any
 }
 
+func (op *OperAssign) SetLeft(cx base.Expression)  {}
+func (op *OperAssign) SetRight(cx base.Expression) {}
+
 func (op *OperAssign) Do(cx base.Context) error {
 	err1 := op.left.Do(cx)
 	if err1 != nil {
@@ -41,14 +44,20 @@ type OperBin struct {
 	right base.Expression
 	Oper  *Oper
 	res   any
+	TODO  bool
 }
+
+func (op *OperBin) SetLeft(cx base.Expression)  {}
+func (op *OperBin) SetRight(cx base.Expression) {}
 
 func (op *OperBin) Get() any {
 	return op.res
 }
 
 func (op *OperBin) Do(ctx base.Context) error {
-
+	if op.TODO {
+		return nil
+	}
 	op.left.Do(ctx)
 	op.right.Do(ctx)
 	lop := op.left.Get()

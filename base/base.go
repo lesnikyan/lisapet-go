@@ -25,3 +25,10 @@ type Block interface {
 type SupExpr interface {
 	Add(sub Expression)
 }
+
+type BinOperExpr interface {
+	Do(Context) error
+	Get() any
+	SetLeft(Expression)
+	SetRight(Expression)
+}

@@ -2,6 +2,7 @@ package cases
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/lang"
@@ -74,27 +75,67 @@ func TestCaseVal(t *testing.T) {
 	}
 }
 
-func TestOperSplit(t *testing.T) {
+func FPrintElems(elems []*lang.Elem) string {
+	ss := make([]string, len(elems))
+	// println("lenEl", len(elems))
+	for i := 0; i < len(elems); i++ {
+		// println("?=", elems[i].Text)
+		ss[i] = elems[i].Text
+	}
+	stt := strings.Join(ss, ",")
+	return fmt.Sprintf("`%s`", stt)
+}
+
+func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {
+	if node != nil {
+		fmt.Printf(" %s %s: ", strings.Repeat(" ▵", ind), side)
+		PrintONode(node, ind)
+	} else {
+		fmt.Printf(" %s %s▷ %v\n", strings.Repeat(" .", ind), side, FPrintElems(elems))
+	}
+}
+
+func PrintONode(node *OperNode, ind int) {
+	//strings.Repeat(" ▵", ind)
+	fmt.Printf("⧐ %s %s \n", "", node.oper)
+	PrintOpArg("L", node.leftNode, node.leftElems, ind+1)
+	// if node.leftNode != nil {
+	// 	PrintONode(node.leftNode, ind+1)
+	// } else {
+	// 	fmt.Printf("  %s L▷ %v\n", strings.Repeat(" ▹", ind), FPrintElems(node.leftElems))
+	// }
+	// if node.rightNode != nil {
+	// 	PrintONode(node.rightNode, ind+1)
+	// } else {
+	// 	fmt.Printf("  %s R▷ %v\n", strings.Repeat(" ▹", ind), FPrintElems(node.rightElems))
+	// }
+	PrintOpArg("R", node.rightNode, node.rightElems, ind+1)
+}
+
+func TestOperSplit2(t *testing.T) {
 	tdata := []struct {
 		src    string
 		lowest int
 		others []ints2
 	}{
-		{"1 + 2", 1, []ints2{}},
-		{"1 + 3 - 10", 6, []ints2{}},
-		{"1 + 5 - 4 / 6", -1, []ints2{}},
-		{"2 + (4 - 6)", -1, []ints2{}},
-		{"(3 + 5) * (4 - 6)", -1, []ints2{}},
-		{"4 * (4 - 6) + 5", -1, []ints2{}},
-		{"5 + 6 - 17 + 22", -1, []ints2{}},
-		{"6 * 5 / 10 * 11", -1, []ints2{}},
-		{"age = 2000 - 1955", -1, []ints2{}},
+		// {"1 + 2", 1, []ints2{}},
+		// {"11 + 33 - 44", 6, []ints2{}},
+		// {"1 + 5 - 4 / 6", -1, []ints2{}},
+		{"1 + 5 * 6 - 8 / 2 ** 2 * 2 ^/ 49", -1, []ints2{}},
+		// {"2 + (4 - 6)", -1, []ints2{}},
+		// {"(3 + 5) * (4 - 6)", -1, []ints2{}},
+		// {"4 * (4 - 6) + 5", -1, []ints2{}},
+		// {"5 + 6 - 17 + 22", -1, []ints2{}},
+		// {"6 * 5 / 10 * 11", -1, []ints2{}},
+		// {"age = 2000 - 1955", -1, []ints2{}},
 		// {"", -1, []ints2{}},
 	}
 	for _, tt := range tdata {
 		sctx := par.SplitContext{}
 		line := par.SplitLine([]rune(tt.src), sctx)
-		res, err := OperSplit(line)
+		// res, err := OperSplit(line)
+		res, err := Line2tree(line)
 		t.Log("tt1>", tt.src, res, err)
+		PrintONode(res, 0)
 	}
 }
