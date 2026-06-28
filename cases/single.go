@@ -96,6 +96,10 @@ func CaseVar(ee []*lang.Elem) (base.Expression, bool) {
 	if etype != Lt.Word {
 		return nil, false
 	}
+	_, ok := _contsVals[ee[0].Text]
+	if ok {
+		return nil, false
+	}
 	etext := ee[0].Text
 	if !rxVar.MatchString(etext) {
 		return nil, false

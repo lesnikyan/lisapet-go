@@ -20,7 +20,7 @@ func List2Keys[T comparable](data []T) map[T]bool {
 	return r
 }
 
-var keywords = strings.Split("func|if|for|while|match|enum|grup|struct|else|import|return|const|run", "|")
+var keywords = strings.Split("func|if|for|while|match|enum|grup|struct|else|break|continue|import|return|const|run", "|")
 var maxKWlen = 7
 var kwMap = List2Keys(keywords)
 
@@ -35,6 +35,7 @@ func IsKeywd(tx string) bool {
 
 var obrs = "([{"
 var cbrs = ")]}"
+var OBRS = "([{" //
 
 // map of valid close : open brs
 var brmap = map[string]string{
@@ -97,6 +98,9 @@ func getPrior(priorNN [][]string, oper string) int {
 	return -1
 }
 
+var unaryPrior = getPrior(priors2, "...") + 1
+var solidExPrior = getPrior(priors2, "...")
+
 var badBracketsErr = errors.New("bad set of brackets")
 
 // type DDD interface {
@@ -104,18 +108,21 @@ var badBracketsErr = errors.New("bad set of brackets")
 // }
 
 type OperNode struct {
-	oper   string // if oper
-	kword  string
-	prior  int
-	IsOper bool
+	oper         string // if oper
+	kword        string
+	prior        int
+	IsOper       bool
+	IsBrackets   bool
+	BracketOpen  string
+	BracketClose string
+	bracketType  string // "(" | "[" | "{"
+	leftNode     *OperNode
+	rightNode    *OperNode
+	subNodes     []*OperNode // if sequence (,;) or keyword subs
 	// elems      []*lang.Elem // if other expr
-	bracketType string // "(" | "[" | "{"
-	leftNode    *OperNode
-	rightNode   *OperNode
-	subNodes    []*OperNode  // if sequence (,;) or keyword subs
-	elems       []*lang.Elem // should be a left part in transfer to operator
-	leftElems   []*lang.Elem // left operand
-	rightElems  []*lang.Elem //
+	// elems       []*lang.Elem // should be a left part in transfer to operator
+	leftElems  []*lang.Elem // left operand
+	rightElems []*lang.Elem //
 }
 
 /*
@@ -166,7 +173,7 @@ Brackets: [[4, 8], [10, 14]]
 3. ,;-sequence
 4. other cases: keyword, space-separated case, n|n|n-sequence, L-unary, R-unary
 */
-func Line2tree(elems []*lang.Elem) (*OperNode, error) {
+func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	opris := priors2 // here all opers, except unary
 	brC := 0         // brackets depth
 	brs := []string{}
@@ -185,6 +192,7 @@ func Line2tree(elems []*lang.Elem) (*OperNode, error) {
 	var parents []*OperNode = []*OperNode{rNode}
 	curPart := []int{} // indexes of elements
 	// left0 := true
+	var slashLambda bool = false
 	for i, el := range elems {
 		// curin = i
 		tx := el.Text
@@ -225,21 +233,46 @@ func Line2tree(elems []*lang.Elem) (*OperNode, error) {
 			continue
 		}
 
-		// closing bracket
+		// Closing bracket
+		// TODO: \ arg -> lambda, `->` as a closing oper of `\\`-opened arg-subnode
+		if slashLambda && tx == `->` {
+			// TODO: move to bracket-closing section
+		}
 		if id := strings.Index(cbrs, tx); id > -1 {
-			lastbr := brs[len(brs)-1]
+			// lastbr := brs[len(brs)-1]
 			expBr, ok := brmap[tx]
 			closeBr = true
-			log.Println("$11", tx, brC, brs, lastbr, expBr, "clM", closeBr)
-			if !ok || lastbr != expBr {
-				// incorrect closing bracket
-				return nil, badBracketsErr
+			log.Println("$11", tx, brC, brs, ok, expBr, "clM", closeBr)
+			// finding last brackets in parent
+			tInd := 0
+			for k := len(parents) - 1; k >= 0; k-- {
+				if parents[k].IsBrackets {
+					tInd = k
+					break
+				}
 			}
-			brs = brs[:len(brs)-1]
-			brC--
-			if brC == 0 {
-				brpos[len(brpos)-1][1] = i // closed br
+			if tInd == 0 {
+				// cur brackets was a root, not sure if it correct case
+				// upd1: valid case for brackets-only, but need empty root:
+				//  chain call (foo)()()
+				//  collectios or gen cases [f1, f2][1]
+
+			} else {
+				// new cur is a parent of closed brackets node
+				fParent := parents[tInd-1]
+				cNode = fParent
 			}
+			parents = parents[:tInd]
+			// if !ok || lastbr != expBr {
+			// 	// incorrect closing bracket
+			// 	return nil, badBracketsErr
+			// }
+			// brs = brs[:len(brs)-1]
+			// brC--
+			// if brC == 0 {
+			// 	brpos[len(brpos)-1][1] = i // closed br
+			// }
+
 			continue
 		}
 
@@ -253,19 +286,72 @@ func Line2tree(elems []*lang.Elem) (*OperNode, error) {
 		// foo(arg1, arg2)
 		// obj.member[key].foo(1,2,3).mem2
 		//
-		// Open brackets
+		// Open brackets,
+		// TODO: \ arg -> lambda, `\\` as a open sub-node with child commas
 		if id := strings.Index(obrs, tx); id > -1 {
 			if brC == 0 {
 				brpos = append(brpos, ints2{i, -1}) // opened br
 			}
-			cNode = &OperNode{bracketType: tx}
-			brs = append(brs, tx)
-			brC++
+			curpri := solidExPrior
+			tNode := &OperNode{BracketOpen: tx, IsBrackets: true, oper: tx, prior: curpri}
+			// TODO: func call shoud have special upper case: word, (,...,)
+			// if prevNode.Type = Lt.Word, Lt.Oper(closeBr), ~>,
+			// if call / getElem, etc expr
+			/*
+				foo(123)
+				names[ind]
+				Struct{a:1}
+				[1,2][0]
+				['f1'](123)
+				f~>(1)(2)
+				(f)(1)
+				obj.mem[1][2](3)(4)
+			*/
+			var solidEnd = strings.Split(") ] } ... ~>", " ")
+			// if prev == nil {
+			// 	cNode = tNode
+			// 	cNode.rightNode = tNode
+			// 	parents = append(parents, tNode)
+			// 	continue
+			// }
+
+			fParent := cNode
+			if prev != nil && (prev.Type == Lt.Word ||
+				(prev.Type == Lt.Oper && slices.Contains(solidEnd, prev.Text)) || // ) ] } ~>
+				(prev.Type == Lt.Num && prev.Text[0] == '0')) { // 0x[]
+				log.Println("$_if_brop1", tx)
+				// func call(), collect[elem]
+				// find solid expression in left:
+				// name | (brackets) | expr.expr |
+				// tNode := &OperNode{oper: tx, prior: unaryPrior}
+				tInd := 0
+				for k := len(parents) - 1; k >= 0; k-- {
+					log.Println("$o(pk:", k, "", len(parents), parents[k])
+					if curpri < parents[k].prior || parents[k].IsBrackets || (parents[k].IsOper && slices.Contains(unaryR, parents[k].oper)) {
+						log.Println("$_brackets-open", "tPar:", k, parents[k].prior, parents[k].oper)
+						tInd = k
+						break
+					}
+				}
+				fParent = parents[tInd]
+				if fParent.rightNode != nil {
+					tNode.leftNode = fParent.rightNode
+				} else {
+					tNode.leftElems = fParent.rightElems
+				}
+				parents = parents[:tInd+1] // cut right branch of parent
+			} else {
+				// cNode.rightNode = tNode
+			}
+			fParent.rightNode = tNode
+			// if arg of oper
+			cNode = tNode
+			parents = append(parents, tNode)
 			continue
 		}
-		if brC > 0 {
-			continue // skip sequence in brackets (thinking about 1-pass logic)
-		}
+		// if brC > 0 {
+		// 	continue // skip sequence in brackets (thinking about 1-pass logic)
+		// }
 		// if cNode.oper == "" {
 		// 	// first oper
 		// 	cNode.oper = tx
@@ -274,16 +360,48 @@ func Line2tree(elems []*lang.Elem) (*OperNode, error) {
 
 		// log.Println("$102", tx, prevCloseBr)
 
-		// Unary-Left oper
-		if prev.Type == Lt.Oper && !prevCloseBr {
+		curpri := getPrior(opris, tx)
+
+		// L-unary section
+		if prev != nil && (prev.Type == Lt.Oper && !prevCloseBr) {
 			if len(tx) == 1 && slices.Contains(unary, tx) {
 				// unary oper after another oper
-				cNode.AddRElem(el)
+				tNode := &OperNode{oper: tx, prior: unaryPrior}
+				cNode.rightNode = tNode
+				cNode = tNode
+				parents = append(parents, tNode)
+				// cNode.AddRElem(el)
 				continue
 			}
 		}
+
+		// R-unary section
+		if slices.Contains(unaryR, tx) {
+
+			curpri = getPrior(opris, tx)
+			tNode := &OperNode{oper: tx, prior: curpri}
+			tInd := 0
+			for k := len(parents) - 1; k >= 0; k-- {
+				if curpri < parents[k].prior || parents[k].IsBrackets {
+					log.Println("$_r-unary", "tPar:", parents[k].prior)
+					tInd = k
+					break
+				}
+			}
+			fParent := parents[tInd]
+			if fParent.rightNode != nil {
+				tNode.leftNode = fParent.rightNode
+			} else {
+				tNode.leftElems = fParent.rightElems
+			}
+
+			fParent.rightNode = tNode
+			parents = parents[:tInd+1]
+			parents = append(parents, tNode)
+			continue
+		}
+
 		// Bin Oper section
-		curpri := getPrior(opris, tx)
 		// log.Println("$2 pri", tx, curpri, lowest[1], curpri <= lowest[1])
 		log.Println("$2 pri", tx, curpri, cNode.oper, cNode.prior, "less?:", cNode.prior > curpri)
 		others = append(others, [2]int{i, curpri})
@@ -328,7 +446,7 @@ func Line2tree(elems []*lang.Elem) (*OperNode, error) {
 		// for k := len(ndStack) - 1; k >= 0; k-- {
 		// 	if curpri > ndStack[k].prior {
 		for k := len(parents) - 1; k >= 0; k-- {
-			if curpri < parents[k].prior {
+			if curpri < parents[k].prior || parents[k].IsBrackets {
 				lInd = k
 				break
 			}
@@ -375,7 +493,9 @@ func Line2tree(elems []*lang.Elem) (*OperNode, error) {
 		// }
 	}
 	log.Println("$_split_res:", rNode, rNode.rightNode)
-	return rNode, nil
+	finished := true // TODO
+	// return rNode, nil
+	return &LineTree{Tree: rNode, Finished: finished, Parents: parents}, nil
 }
 
 // func OperSplit(elems []*lang.Elem) (*SplittedRes, error) {

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 	"github.com/lesnikyan/lisapet-go/nodes"
@@ -75,21 +76,14 @@ func TestCaseVal(t *testing.T) {
 	}
 }
 
-func FPrintElems(elems []*lang.Elem) string {
-	ss := make([]string, len(elems))
-	// println("lenEl", len(elems))
-	for i := 0; i < len(elems); i++ {
-		// println("?=", elems[i].Text)
-		ss[i] = elems[i].Text
-	}
-	stt := strings.Join(ss, ",")
-	return fmt.Sprintf("`%s`", stt)
-}
-
 func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {
-	if node != nil {
+	if node != nil || elems == nil {
 		fmt.Printf(" %s %s: ", strings.Repeat(" ▵", ind), side)
-		PrintONode(node, ind)
+		if node != nil {
+			PrintONode(node, ind)
+		} else {
+			fmt.Println("<->")
+		}
 	} else {
 		fmt.Printf(" %s %s▷ %v\n", strings.Repeat(" .", ind), side, FPrintElems(elems))
 	}
@@ -119,23 +113,105 @@ func TestOperSplit2(t *testing.T) {
 		others []ints2
 	}{
 		// {"1 + 2", 1, []ints2{}},
+		// {"n = 0xff", -1, []ints2{}},
 		// {"11 + 33 - 44", 6, []ints2{}},
 		// {"1 + 5 - 4 / 6", -1, []ints2{}},
-		{"1 + 5 * 6 - 8 / 2 ** 2 * 2 ^/ 49", -1, []ints2{}},
+		// {"1 + 5 * 6 - 8 / 2 ** 2 * 2 ^/ 49", -1, []ints2{}},
 		// {"2 + (4 - 6)", -1, []ints2{}},
+		// {"(4 - 6) + 5", -1, []ints2{}},
 		// {"(3 + 5) * (4 - 6)", -1, []ints2{}},
 		// {"4 * (4 - 6) + 5", -1, []ints2{}},
 		// {"5 + 6 - 17 + 22", -1, []ints2{}},
 		// {"6 * 5 / 10 * 11", -1, []ints2{}},
 		// {"age = 2000 - 1955", -1, []ints2{}},
+		// {"r = (1+2)*(3-4)/(5**6)", -1, []ints2{}},
+		// {"a, b, c = 1, 2, 3", -1, []ints2{}},
+		// {"r = (a * b + c; a,b <- aa, bb ;c = a + b)", -1, []ints2{}},
+		// {"r = (: a * b + c; a,b <- aa, bb ;c = a + b)", -1, []ints2{}},
+		// {"{'a': 123, 'b':4+5, 'c':60}", -1, []ints2{}},
+		// {`[1, 2, nn..., -33, ~"{n}"]`, -1, []ints2{}},
+		// {"aaa.bbb.ccc = 123", -1, []ints2{}},
+		// {"obj.foo ~>", -1, []ints2{}},
+		// {"f1 = obj.mem.foo ~>", -1, []ints2{}},
+		// {"foo(1)", -1, []ints2{}},
+		// {"obj.foo(1, 2)", -1, []ints2{}},
+		// {"obj.foo ~> (123)", -1, []ints2{}},
+		// {"foo ~> (123)", -1, []ints2{}},
+		// {"ff ~> (1)(2)", -1, []ints2{}},
+		// {"oob.foo ~> (1)(2)", -1, []ints2{}},
+		// {"[1,2,3][4](5)", -1, []ints2{}},
+		// {"[1,2,3]...", -1, []ints2{}},
+		// {"re`[0-9]`Li", -1, []ints2{}},
+		// {"0x[1e 2f]", -1, []ints2{}},
+		// {"(x,y) -> x + y", -1, []ints2{}},
+
+		// {"\\x,y -> x + y", -1, []ints2{}}, // TODO: resolve slash-leading lambda expression
+
 		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+		// {"", -1, []ints2{}},
+
+		// Note: definitions and other Left-keywords is not a cases (fn = func(arg) - is possibly exception, not sure)
+		// {"func Name(a:int, b:string)", -1, []ints2{}},
+		// {"func inst:StrType Name(a:itn, b:list)", -1, []ints2{}},
 	}
 	for _, tt := range tdata {
 		sctx := par.SplitContext{}
 		line := par.SplitLine([]rune(tt.src), sctx)
-		// res, err := OperSplit(line)
-		res, err := Line2tree(line)
+		res, err := Line2tree(line, nil)
 		t.Log("tt1>", tt.src, res, err)
-		PrintONode(res, 0)
+		ltree := res.Tree
+		PrintONode(ltree, 0)
+	}
+}
+
+func TestCaseOfAssignSimpleVal(t *testing.T) {
+	tdata := []struct {
+		src     string
+		resCase base.Expression
+	}{
+		// {"a = 123", &nodes.OperBin{}},
+		// {"b = 'Hello1'", &nodes.OperBin{}},
+		// {"c = 12.25", &nodes.OperBin{}},
+		// {"d = x1 + 234", &nodes.OperBin{}},
+		// {"dd: int = 1 + 4", &nodes.OperBin{}},
+		{"ee:int = 2 * 5 + (a - b) / c - 3 ** 2", &nodes.OperBin{}},
+		// {"e2 = 1*2 + 2 ** 3", &nodes.OperBin{}},
+		// {"(1+11,2,3,4,)", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("%s >>", tt.src), func(t2 *testing.T) {
+			sctx := par.SplitContext{}
+			line := par.SplitLine([]rune(tt.src), sctx)
+			res, err := Line2tree(line, nil)
+			ltree := res.Tree
+			operTree := ltree.rightNode
+			t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			PrintONode(operTree, 0)
+			expr, ok := ProcExprTree(operTree)
+			assert.True(t, ok)
+			// switch exx := expr.(type) {
+			// case *nodes.OperAssign:
+
+			// rf := reflect.Indirect(reflect.ValueOf(*exx))
+			// // rt := rf.Type()
+			// rleft := rf.FieldByName("left").Addr().Interface()
+			// rright := rf.FieldByName("right").Addr().Interface()
+
+			// fmt.Printf("tt/res-expr: %v, %T, %T \n", expr, rleft, rright)
+
+			// }
+			fmt.Println("tt2>", nodes.OperArgsInfo(expr))
+		})
 	}
 }

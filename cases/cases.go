@@ -16,6 +16,12 @@ type CaseRes struct {
 	Subs [][]*lang.Elem
 }
 
+type LineTree struct {
+	Tree     *OperNode   // parsed tree of operators
+	Finished bool        // if all operators and brackates was finished
+	Parents  []*OperNode // final chain of parent nodes - right branch of tree
+}
+
 // type LangCase interface {
 // 	match(line lang.CLine) bool
 // 	expr(line lang.CLine) *nodes.TNode

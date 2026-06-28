@@ -32,3 +32,10 @@ type BinOperExpr interface {
 	SetLeft(Expression)
 	SetRight(Expression)
 }
+
+type SequenceExpr interface {
+	Get() any
+	Do(ctx Context) error
+	Add(elem Expression)
+	SetSubs([]Expression)
+}

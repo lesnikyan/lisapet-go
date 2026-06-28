@@ -11,6 +11,7 @@ const (
 	OpMinus
 	OpMult
 	OpDiv
+	OpPercent
 	OpPow
 	OpRoot
 	OpEqual
@@ -24,14 +25,26 @@ const (
 	OpAnd
 	OpOr
 	OpNot
-	OpBiAnd
-	OpBinOr
-	OpBinNot
+	OpBitAnd
+	OpBitOr
+	OpBitNot
 	OpXor
+	OpBitLShift
+	OpBitRShift
 	OpDot
 	OpComma
 	OpColon
 	OpSemicolon
+	OpLArrow
+	OpRArrow
+	OpDuoColon
+	OpAt
+	OpDollar
+	OpQMark
+	OpQmAndColon
+	OpTildLArrow
+	OpSlashColon
+	OpColonQm
 )
 
 type Oper struct {
@@ -39,6 +52,62 @@ type Oper struct {
 	Id   Opid
 }
 
+func OperIndex(s string) Opid {
+	id, ok := _operMap[s]
+	if !ok {
+		return -1
+	}
+	return id
+}
 func NewOper(sg string, id Opid) *Oper {
 	return &Oper{Sign: sg, Id: id}
 }
+
+var _operStrMap = map[Opid]string{
+	OpAssign:      "=",
+	OpPlus:        "+",
+	OpMinus:       "-",
+	OpMult:        "*",
+	OpDiv:         "/",
+	OpPow:         "**",
+	OpRoot:        "^/",
+	OpEqual:       "==",
+	OpNotEqual:    "!=",
+	OpMoreEqual:   ">=",
+	OpLessEqual:   "<=",
+	OpPlusAssign:  "+=",
+	OpMinusAssign: "-=",
+	OpMultAssign:  "*=",
+	OpDivAssign:   "/=",
+	OpAnd:         "&&",
+	OpOr:          "||",
+	OpNot:         "!",
+	OpBitAnd:      "&",
+	OpBitOr:       "|",
+	OpBitNot:      "~",
+	OpXor:         "^",
+	OpBitLShift:   "<<",
+	OpBitRShift:   ">>",
+	OpDot:         ".",
+	OpComma:       ",",
+	OpColon:       ":",
+	OpSemicolon:   ";",
+	OpLArrow:      "<-",
+	OpRArrow:      "->",
+	OpDuoColon:    "::",
+	OpAt:          "@",
+	OpDollar:      "$",
+	OpQMark:       "?",
+	OpQmAndColon:  "?:",
+	OpTildLArrow:  "~>",
+	OpSlashColon:  "/:",
+	OpColonQm:     ":?",
+}
+
+var _operMap = func() map[string]Opid {
+	res := map[string]Opid{}
+	for id, s := range _operStrMap {
+		res[s] = id
+	}
+	return res
+}()

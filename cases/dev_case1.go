@@ -2,6 +2,7 @@ package cases
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -40,6 +41,17 @@ func SkipSpaces(elems []*lang.Elem) []*lang.Elem {
 	return res
 }
 
+func FPrintElems(elems []*lang.Elem) string {
+	ss := make([]string, len(elems))
+	// println("lenEl", len(elems))
+	for i := 0; i < len(elems); i++ {
+		// println("?=", elems[i].Text)
+		ss[i] = elems[i].Text
+	}
+	stt := strings.Join(ss, ",")
+	return fmt.Sprintf("`%s`", stt)
+}
+
 func _AssignSubs(elems []*lang.Elem, spres *SplittedRes) {
 	if len(spres.Others) > 0 {
 		if spres.Others[0][0] < spres.Lowest {
@@ -51,24 +63,44 @@ func _AssignSubs(elems []*lang.Elem, spres *SplittedRes) {
 	}
 }
 
+const (
+	opSemicol = ";"
+	opDot     = "."
+	opComm    = ","
+	opColon   = ":"
+	// op = ""
+)
+
 var binOpers = strings.Split("+ - * / ** ^/ % | & || && == !=", " ")
 var binAssignOpers = strings.Split("+= -= *= /= %=", " ")
+
+// func OperIndex(s)nodes.Opid{
+
+// }
+func OperByStr(s string) *nodes.Oper {
+	return &nodes.Oper{Sign: s, Id: nodes.OperIndex(s)}
+}
 
 func ProcOperTree(rNode *OperNode) (base.BinOperExpr, bool) {
 	var expr base.BinOperExpr
 	oper := rNode.oper
+	println("$$PROP0:", oper)
 	switch oper {
 	case "=":
-		expr = &nodes.OperAssign{}
+		expr = &nodes.OperAssign{Oper: oper}
+		println("$$PROP1=:", expr)
+	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%":
+		expr = &nodes.OperBin{Oper: OperByStr(oper)}
+	case ":":
+		expr = &nodes.OperColon{Oper: OperByStr(oper)} // lambda
 	case "->":
 		expr = &nodes.OperBin{} // lambda
 	case "<-":
-		expr = &nodes.OperBin{} // Larrow
+		expr = &nodes.OperBin{} // L-arrow
 	case "$":
 		expr = &nodes.OperBin{} // func-apply
 	case "?:":
 		expr = &nodes.OperBin{} // short-triple
-	// case "*","/","+","-","*","^/","|":
 	default:
 		switch {
 		case slices.Contains(binOpers, oper):
@@ -78,16 +110,160 @@ func ProcOperTree(rNode *OperNode) (base.BinOperExpr, bool) {
 		}
 
 	}
+	lArg, lok := OperSub(rNode.leftNode, rNode.leftElems)
+	if lok {
+		expr.SetLeft(lArg)
+	}
+	rArg, rok := OperSub(rNode.rightNode, rNode.rightElems)
+	if rok {
+		expr.SetRight(rArg)
+	}
+	fmt.Println("POT#1", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
 
 	return expr, expr != nil
 }
 
+func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
+	// fmt.Println("DEB+++1", rNode.oper)
+	switch rNode.oper {
+	case "(":
+		subs, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		if !ok {
+			return nil, false
+		}
+		return &nodes.Brackets{Sub: subs}, true
+	case ",", ";":
+		return ProcSequence(rNode)
+	case "\\":
+		// lambda \ arg -> ..
+		return nil, false
+	default:
+		return ProcOperTree(rNode)
+	}
+}
+
+func ProcSequence(rNode *OperNode) (base.Expression, bool) {
+	var expr base.SequenceExpr
+	switch rNode.oper {
+	case ",":
+		expr = &nodes.SequenceComma{}
+	case ";":
+		return nil, false // TODO: SemiColon expr
+	}
+	if expr == nil {
+		return nil, false
+	}
+	// e1, ok := OperSub(rNode.leftNode, rNode.leftElems)
+	// if !ok {
+	// 	return nil, false
+	// }
+	// expr.Add(e1)
+	// node := rNode
+	// for node.leftNode != nil || len(node.leftElems) > 0 {
+	// 	sub, ok := OperSub(node.leftNode, node.leftElems)
+	// 	if !ok {
+	// 		return nil, false
+	// 	}
+	// }
+	subs, ok := SeqSubs(rNode)
+	if ok {
+		expr.SetSubs(subs)
+	}
+	return expr, true
+}
+
+// [[[1, 2], 3], 4],
+func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
+	node := rNode
+	elems := []base.Expression{}
+	// if node.leftNode == nil && len(node.leftElems) == 0 {
+	// 	//
+	// }
+	// first, ok := OperSub(node.leftNode, node.leftElems)
+	// if !ok {
+	// 	// bad first elem
+	// 	return nil, false
+	// }
+	for node.oper == rNode.oper {
+		sub, ok := OperSub(node.rightNode, node.rightElems)
+		// if !ok {
+		// 	// end of sequence
+		// }
+		if ok {
+			elems = append(elems, sub)
+		}
+		if node.leftNode == nil || node.leftNode.oper != node.oper {
+			// start of seq has found
+			first, ok := OperSub(node.leftNode, node.leftElems)
+			if ok {
+				elems = append(elems, first)
+			}
+			// TODO: do we need 1-st empty espression in sequences?
+			// ( ; a; b) ?
+			break
+		}
+		node = node.leftNode
+	}
+	// elems = append(elems, first)
+	slices.Reverse(elems)
+	fmt.Println("Seq#1:", elems)
+	// sub, ok := OperSub(node.leftNode, node.leftElems)
+	return elems, true
+}
+
+func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
+	fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
+	if node != nil {
+		return ProcExprTree(node)
+	} else if len(elems) > 0 {
+		return ProcSubElems(elems)
+	}
+	return nil, false
+}
+
+func ProcSubElems(elems []*lang.Elem) (base.Expression, bool) {
+	xpr, ok := CaseVal(elems)
+	if ok {
+		return xpr, true
+	}
+	return CaseVar(elems)
+}
+
+func ProcOperSubNode(node *OperNode) (base.Expression, bool) {
+	// possible cases: bin-oper, unary-oper,
+	// brackets, collection,
+	// func-call, collect[elem], struct-constr
+	if node.oper == "" {
+		// processing not opers
+	}
+	if strings.Contains(OBRS, node.oper) {
+		// brackets
+		switch node.oper {
+		case "(":
+			// grouping, generator
+		case "[":
+			// list, list-comprehension
+		case "{":
+			// dict
+		case "\\":
+			// lambda
+		}
+	}
+
+	return nil, false
+}
+
 func CaseBinOper(ee []*lang.Elem) (base.Expression, bool) {
-	rNode, err := Line2tree(ee) // *OperNode, error
+
+	tres, err := Line2tree(ee, nil) // *OperNode, error
 	if err != nil {
 		// no oper fount out of brackets
 		return nil, false
 	}
+	if !tres.Finished {
+		return &UnclosedExpr{Prev: ee, Tree: tres}, false
+	}
+	rNode := tres.Tree
 	// parts := [][]*lang.Elem{ee[:spres.Lowest], ee[spres.Lowest+1:]}
 	expr, ok := ProcOperTree(rNode)
 	if !ok {
@@ -243,7 +419,7 @@ func InterpretSups(supr base.SupExpr, cres *CaseRes) error {
 }
 
 /*
-interpret sequence: fing case, parse, make Expression node
+interpret sequence: find case, parse, make Expression node
 */
 func InterpretLine(elems []*lang.Elem) (*CaseRes, error) {
 	var resExp base.Expression
@@ -266,6 +442,108 @@ func InterpretLine(elems []*lang.Elem) (*CaseRes, error) {
 			InterpretSups(resExp.(base.SupExpr), cres)
 		}
 		return &CaseRes{Expr: resExp}, nil
+	}
+	return nil, nil
+}
+
+func InterpretLine2(relems []*lang.Elem) {
+	elems := SkipSpaces(relems)
+	if IsLKWord(elems) {
+		KWordExp(elems)
+	} else {
+		// operator operator expr
+		CaseBinOper(elems)
+	}
+}
+
+const (
+	kIf       = "if"
+	kFor      = "for"
+	kWhile    = "while"
+	kMatch    = "match"
+	kFunc     = "func"
+	kElse     = "else"
+	kEnum     = "enum"
+	kGrup     = "grup"
+	kStruct   = "struct"
+	kImport   = "import"
+	kReturn   = "return"
+	kBreak    = "break"
+	kContinue = "continue"
+	kConst    = "const"
+	kRun      = "run"
+)
+
+// if line have unclosed brackets || binary opers without right arg
+type UnclosedExpr struct {
+	Prev []*lang.Elem
+	Tree *LineTree
+	// Parents []*OperNode
+}
+
+func (q UnclosedExpr) Do(base.Context) error { return nil }
+func (q UnclosedExpr) Get() any              { return nil }
+
+func CaseIf(tree *LineTree) (base.Expression, error) {
+	return nil, nil
+}
+
+func CaseFunc(sig *LineTree, pref *LineTree) (base.Expression, error) {
+	return nil, nil
+}
+
+func KWordExp(elems []*lang.Elem) (base.Expression, error) {
+	var subElems []*lang.Elem
+	if len(elems) > 1 {
+		subElems = elems[1:]
+	}
+
+	kwRoot := &LineTree{Tree: &OperNode{oper: "KW", leftElems: []*lang.Elem{elems[0]}, prior: 111}}
+	switch elems[0].Text {
+	case kFunc:
+		if len(subElems) > 6 {
+			// possible mehod def: `func inst:Type Name()`
+			var prefTree *LineTree
+			var err1 error
+			sigIndex := 1
+			if elems[2].Type == Lt.Oper && elems[2].Text == opColon {
+				prefTree, err1 = Line2tree(elems[1:4], nil)
+				if err1 != nil {
+					//
+				}
+				sigIndex = 4
+				// TODO: add prefTree to kwRoot
+			}
+			sigTree, err2 := Line2tree(elems[sigIndex:], kwRoot)
+			if err2 != nil {
+				//
+			}
+			return CaseFunc(sigTree, prefTree)
+		}
+	case kIf:
+		ifRes, err := Line2tree(subElems[1:], kwRoot)
+		if err != nil {
+			// do smth
+		}
+		if !ifRes.Finished {
+			// unclosed expression, need continue on next line...
+		}
+		exp, err2 := CaseIf(ifRes)
+		return exp, err2
+	case kElse:
+		// if has inner `if`
+	case kFor:
+	case kWhile:
+	case kMatch:
+	case kEnum:
+	case kGrup:
+	case kStruct:
+	case kImport:
+	case kReturn:
+	case kBreak:
+	case kContinue:
+	case kConst:
+	case kRun:
 	}
 	return nil, nil
 }
