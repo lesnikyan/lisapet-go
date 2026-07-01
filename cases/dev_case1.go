@@ -123,15 +123,72 @@ func ProcOperTree(rNode *OperNode) (base.BinOperExpr, bool) {
 	return expr, expr != nil
 }
 
+func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
+
+	switch exx := node.(type) {
+	case *nodes.SequenceComma:
+		//collexrions
+		switch parent {
+		case "(":
+			// tuple
+			return &nodes.TupleExpr{Seq: exx}, true
+		case "[":
+			// list
+			return &nodes.ListExpr{Seq: exx}, true
+		case "{":
+			// dict
+			return &nodes.DictExpr{Seq: exx}, true
+		}
+	case *nodes.SequenceSemicolon:
+		// generators, etc
+		switch parent {
+		case "[":
+			// list comprehension
+			return &nodes.MockExpr{}, false
+		case "{":
+			// dict compr
+			return &nodes.MockExpr{}, false
+		case "(:":
+			// generator
+			return &nodes.MockExpr{}, false
+		}
+	default:
+		// single elem in sequence?
+		return nil, false
+	}
+	return nil, false
+}
+
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 	// fmt.Println("DEB+++1", rNode.oper)
+	oper := rNode.oper
+	// fmt.Printf("PET#0 %v\n", oper)
 	switch rNode.oper {
-	case "(":
+	case "(", "[", "{":
 		subs, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		// fmt.Printf("PET#1 %s  %T %v\n", oper, subs, ok)
 		if !ok {
 			return nil, false
 		}
-		return &nodes.Brackets{Sub: subs}, true
+		seq, okc := subs.(*nodes.SequenceComma)
+		if oper == "(" {
+			if !okc {
+				bt := nodes.GetBrType(rNode.oper)
+				return &nodes.Brackets{Sub: subs, Type: bt}, true
+			}
+			// sub-case of generator: `(: expr ; ..)`
+		}
+		// fmt.Printf("PET#2 %T\n", seq)
+		if !okc {
+			// other non-comma-separated cases
+			// seq, ok := subs.(*nodes.SequenceComma)
+			// possible 1-elem in sequence
+			sub1 := &nodes.SequenceComma{Subs: []base.Expression{subs}}
+			seq = sub1
+		}
+		// collection | comprehension case
+		return SubSeq(oper, seq)
+
 	case ",", ";":
 		return ProcSequence(rNode)
 	case "\\":
@@ -184,7 +241,9 @@ func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 	// 	// bad first elem
 	// 	return nil, false
 	// }
-	for node.oper == rNode.oper {
+	last := rNode
+	for node != nil && node.oper == rNode.oper {
+		last = node
 		sub, ok := OperSub(node.rightNode, node.rightElems)
 		// if !ok {
 		// 	// end of sequence
@@ -192,18 +251,27 @@ func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 		if ok {
 			elems = append(elems, sub)
 		}
-		if node.leftNode == nil || node.leftNode.oper != node.oper {
-			// start of seq has found
-			first, ok := OperSub(node.leftNode, node.leftElems)
-			if ok {
-				elems = append(elems, first)
-			}
-			// TODO: do we need 1-st empty espression in sequences?
-			// ( ; a; b) ?
-			break
-		}
+		// if node.leftNode == nil || node.leftNode.oper != node.oper {
+		// 	// start of seq has found
+		// 	first, ok := OperSub(node.leftNode, node.leftElems)
+		// 	if ok {
+		// 		elems = append(elems, first)
+		// 	}
+		// 	// TODO: do we need 1-st empty expression in sequences?
+		// 	// ( ; a; b) ?
+		// 	break
+		// }
 		node = node.leftNode
 	}
+
+	// if node.leftNode != nil ||  {
+	// start of seq has found
+	first, ok := OperSub(last.leftNode, last.leftElems)
+	// fmt.Printf("SeqSub#3 %T %v %T", last, ok, first)
+	if ok {
+		elems = append(elems, first)
+	}
+	// }
 	// elems = append(elems, first)
 	slices.Reverse(elems)
 	fmt.Println("Seq#1:", elems)

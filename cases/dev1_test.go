@@ -180,10 +180,9 @@ func TestCaseOfAssignSimpleVal(t *testing.T) {
 		// {"c = 12.25", &nodes.OperBin{}},
 		// {"d = x1 + 234", &nodes.OperBin{}},
 		// {"dd: int = 1 + 4", &nodes.OperBin{}},
-		{"ee:int = 2 * 5 + (a - b) / c - 3 ** 2", &nodes.OperBin{}},
+		// {"ee:int = 2 * 5 + (a - b) / c - 3 ** 2", &nodes.OperBin{}},
 		// {"e2 = 1*2 + 2 ** 3", &nodes.OperBin{}},
-		// {"(1+11,2,3,4,)", &nodes.OperBin{}},
-		// {"", &nodes.OperBin{}},
+		{"f = (1/(1/(1/(1/2))))", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
@@ -200,18 +199,56 @@ func TestCaseOfAssignSimpleVal(t *testing.T) {
 			PrintONode(operTree, 0)
 			expr, ok := ProcExprTree(operTree)
 			assert.True(t, ok)
-			// switch exx := expr.(type) {
-			// case *nodes.OperAssign:
-
-			// rf := reflect.Indirect(reflect.ValueOf(*exx))
-			// // rt := rf.Type()
-			// rleft := rf.FieldByName("left").Addr().Interface()
-			// rright := rf.FieldByName("right").Addr().Interface()
-
-			// fmt.Printf("tt/res-expr: %v, %T, %T \n", expr, rleft, rright)
-
-			// }
 			fmt.Println("tt2>", nodes.OperArgsInfo(expr))
+		})
+	}
+}
+
+func TestCaseSeqVal(t *testing.T) {
+	tdata := []struct {
+		src     string
+		resCase base.Expression
+	}{
+		// {"(1,2,3,4,)", &nodes.OperBin{}},
+		// {"[1,2,3,4]", &nodes.OperBin{}},
+		// {"{'a':11, 'b':22, 'c':33}", &nodes.OperBin{}},
+		// {"[[1,2,3]]", &nodes.OperBin{}},
+		{"[[1,2,3], (4,5,6), {7:'Q7', 8:'Q8'}]", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("%s >>", tt.src), func(t2 *testing.T) {
+			sctx := par.SplitContext{}
+			line := par.SplitLine([]rune(tt.src), sctx)
+			res, err := Line2tree(line, nil)
+			ltree := res.Tree
+			operTree := ltree.rightNode
+			t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			PrintONode(operTree, 0)
+			expr, ok := ProcExprTree(operTree)
+			assert.True(t, ok)
+			tp := fmt.Sprintf("%T", expr)
+			fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+		})
+	}
+}
+
+func TestCaseUnclosedBrackets(t *testing.T) {
+	tdata := []struct {
+		src     string
+		resCase base.Expression
+	}{
+		{"a + b *( 1 - ", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("Unclosed, %s >>", tt.src), func(t2 *testing.T) {
+
 		})
 	}
 }

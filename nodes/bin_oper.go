@@ -9,6 +9,13 @@ import (
 	ob "github.com/lesnikyan/lisapet-go/objects"
 )
 
+type MockExpr struct {
+}
+
+func (cs *MockExpr) Get() any { return nil }
+
+func (cs *MockExpr) Do(ctx base.Context) error { return nil }
+
 type OperAssign struct {
 	Oper  string
 	left  base.Expression
@@ -56,6 +63,15 @@ func OperArgsInfo(expr any) string {
 	case *Brackets:
 		subs := OperArgsInfo(exx.Sub)
 		return fmt.Sprintf("(%v)", subs)
+	case *TupleExpr:
+		subs := OperArgsInfo(exx.Seq)
+		return fmt.Sprintf("tuple(%v)", subs)
+	case *ListExpr:
+		subs := OperArgsInfo(exx.Seq)
+		return fmt.Sprintf("list[%v]", subs)
+	case *DictExpr:
+		subs := OperArgsInfo(exx.Seq)
+		return fmt.Sprintf("dict{%v}", subs)
 	case *SequenceComma:
 		return SeqInfo(expr)
 	case *ValExpr:
@@ -98,8 +114,32 @@ func (op *OperAssign) Get() any {
 
 // }
 
+type BrType int
+
+const (
+	UnknownBr BrType = 100
+	RoundBr   BrType = 101
+	SquareBr  BrType = 102
+	CurlyBr   BrType = 103
+)
+
+var brTypeMap = map[string]BrType{
+	"(": RoundBr,
+	"[": SquareBr,
+	"{": CurlyBr,
+}
+
+func GetBrType(s string) BrType {
+	t, ok := brTypeMap[s]
+	if ok {
+		return t
+	}
+	return UnknownBr
+}
+
 type Brackets struct {
-	Sub base.Expression
+	Type BrType
+	Sub  base.Expression
 }
 
 func (br *Brackets) Get() any {
@@ -215,6 +255,38 @@ func (cs *SequenceComma) Add(elem base.Expression) {
 func (cs *SequenceComma) SetSubs(elems []base.Expression) {
 	// subs := make([]base.Expression, len(elems))
 	// copy(subs, elems)
+	cs.Subs = elems
+}
+
+type SequenceSemicolon struct {
+	Subs []base.Expression
+	res  any
+	// TODO: res type - of collection, func def args, func call argc, struct ded, struct constr, hmm...
+	// []any ?
+}
+
+func (cs *SequenceSemicolon) Get() any {
+	// TODO
+	return cs.res
+}
+
+func (cs *SequenceSemicolon) Do(ctx base.Context) error {
+	// TODO: loop processing over subs
+	var err error
+	for _, sub := range cs.Subs {
+		err = sub.Do(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (cs *SequenceSemicolon) Add(elem base.Expression) {
+	cs.Subs = append(cs.Subs, elem)
+}
+
+func (cs *SequenceSemicolon) SetSubs(elems []base.Expression) {
 	cs.Subs = elems
 }
 

@@ -36,28 +36,28 @@ type Null struct {
 // }
 
 type ListVal struct {
-	elems []any
+	Elems []any
 }
 
 type TupleVal struct {
-	elems []any
+	Elems []any
 }
 
 type DictVal struct {
-	vmap map[any]any
+	Vmap map[any]any
 }
 
 type Function struct {
-	name  string
-	block *base.Block
+	Name  string
+	Block *base.Block
 }
 
 type StructVal struct {
-	fields []*base.Var
+	Fields []*base.Var
 }
 
 type Regexp struct {
-	pattern *regexp.Regexp
+	Pattern *regexp.Regexp
 }
 
 /**
