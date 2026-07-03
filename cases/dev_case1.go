@@ -550,7 +550,7 @@ type UnclosedExpr struct {
 }
 
 func (q UnclosedExpr) Do(base.Context) error { return nil }
-func (q UnclosedExpr) Get() any              { return nil }
+func (q UnclosedExpr) Get() *base.Val        { return nil }
 
 func CaseIf(tree *LineTree) (base.Expression, error) {
 	return nil, nil

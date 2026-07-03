@@ -12,8 +12,8 @@ type ListExpr struct {
 	res *objects.ListVal
 }
 
-func (cs *ListExpr) Get() any {
-	return cs.res
+func (cs *ListExpr) Get() *base.Val {
+	return base.NewVal(cs.res)
 }
 
 func (cs *ListExpr) Do(ctx base.Context) error {
@@ -34,8 +34,8 @@ type TupleExpr struct {
 	res *objects.TupleVal
 }
 
-func (cs *TupleExpr) Get() any {
-	return cs.res
+func (cs *TupleExpr) Get() *base.Val {
+	return base.NewVal(cs.res)
 }
 
 func (cs *TupleExpr) Do(ctx base.Context) error {
@@ -60,8 +60,8 @@ type ColonPair struct {
 	res   Pair
 }
 
-func (cp *ColonPair) Get() any {
-	return cp.res
+func (cp *ColonPair) Get() *base.Val {
+	return base.NewVal(cp.res)
 }
 
 func (cp *ColonPair) GetPair() Pair {
@@ -87,8 +87,8 @@ type DictExpr struct {
 	res *objects.DictVal
 }
 
-func (cs *DictExpr) Get() any {
-	return cs.res
+func (cs *DictExpr) Get() *base.Val {
+	return base.NewVal(cs.res)
 }
 
 func (cs *DictExpr) Do(ctx base.Context) error {

@@ -12,7 +12,7 @@ import (
 type MockExpr struct {
 }
 
-func (cs *MockExpr) Get() any { return nil }
+func (cs *MockExpr) Get() *base.Val { return nil }
 
 func (cs *MockExpr) Do(ctx base.Context) error { return nil }
 
@@ -89,21 +89,34 @@ func (op *OperAssign) Do(cx base.Context) error {
 	if err1 != nil {
 		return err1
 	}
+	var leftObj any
+	switch lexp := op.left.(type) {
+	case *VarExpr:
+		var lop *base.Var // Var, comma-sequence
+		lop = lexp.GetVar()
+		fmt.Printf("OP=#0 VarExrp: %v %v \n", lop, lop == nil)
+		if lop == nil {
+			lexp.NewVar(cx)
+			lop = lexp.GetVar()
+		}
+		leftObj = lop
+	}
 	err2 := op.right.Do(cx)
 	if err2 != nil {
 		return err2
 	}
-	lop := op.left.Get()
 	rval := op.right.Get()
-	switch target := lop.(type) {
+	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+	switch target := leftObj.(type) {
 	case *base.Var:
+		fmt.Printf("OP=#2 L: %T = R: %T \n", target, ob.GetVal(rval))
 		target.Val = ob.GetVal(rval)
 	}
 	return nil
 }
 
-func (op *OperAssign) Get() any {
-	return op.res // make sense for last expression in the Block
+func (op *OperAssign) Get() *base.Val {
+	return base.NewVal(op.res) // make sense for last expression in the Block
 }
 
 // func GetOperArgs(oper any) (base.Expression, base.Expression) {
@@ -142,7 +155,7 @@ type Brackets struct {
 	Sub  base.Expression
 }
 
-func (br *Brackets) Get() any {
+func (br *Brackets) Get() *base.Val {
 	return br.Sub.Get()
 }
 
@@ -166,8 +179,8 @@ func (op *OperColon) SetRight(xp base.Expression) {
 	op.right = xp
 }
 
-func (op *OperColon) Get() any {
-	return op.res
+func (op *OperColon) Get() *base.Val {
+	return base.NewVal(op.res)
 }
 
 func (op *OperColon) Do(ctx base.Context) error {
@@ -191,8 +204,8 @@ func (op *OperBin) SetRight(xp base.Expression) {
 	op.right = xp
 }
 
-func (op *OperBin) Get() any {
-	return op.res
+func (op *OperBin) Get() *base.Val {
+	return base.NewVal(op.res)
 }
 
 func (op *OperBin) Do(ctx base.Context) error {
@@ -231,9 +244,9 @@ type SequenceComma struct {
 	// []any ?
 }
 
-func (cs *SequenceComma) Get() any {
+func (cs *SequenceComma) Get() *base.Val {
 	// TODO
-	return cs.res
+	return base.NewVal(cs.res)
 }
 
 func (cs *SequenceComma) Do(ctx base.Context) error {
@@ -265,9 +278,9 @@ type SequenceSemicolon struct {
 	// []any ?
 }
 
-func (cs *SequenceSemicolon) Get() any {
+func (cs *SequenceSemicolon) Get() *base.Val {
 	// TODO
-	return cs.res
+	return base.NewVal(cs.res)
 }
 
 func (cs *SequenceSemicolon) Do(ctx base.Context) error {

@@ -11,8 +11,8 @@ type IfExpr struct {
 func (xp *IfExpr) Do(base.Context) error {
 	return nil
 }
-func (xp *IfExpr) Get() any {
-	return xp.res
+func (xp *IfExpr) Get() *base.Val {
+	return base.NewVal(xp.res)
 }
 
 type TODOExpr struct {
@@ -22,8 +22,8 @@ type TODOExpr struct {
 func (xp *TODOExpr) Do(base.Context) error {
 	return nil
 }
-func (xp *TODOExpr) Get() any {
-	return xp.res
+func (xp *TODOExpr) Get() *base.Val {
+	return base.NewVal(xp.res)
 }
 
 // type Expression interface {

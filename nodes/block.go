@@ -25,6 +25,6 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 	}
 	return nil
 }
-func (bk *BlockExpr) Get() any {
-	return bk.res
+func (bk *BlockExpr) Get() *base.Val {
+	return base.NewVal(bk.res)
 }

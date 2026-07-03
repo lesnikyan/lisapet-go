@@ -6,6 +6,14 @@ type Var struct {
 	Type int
 }
 
+type Val struct {
+	V any
+}
+
+func NewVal(v any) *Val {
+	return &Val{V: v}
+}
+
 type Context interface {
 	AddVar(vr *Var)
 	GetVar(name string) *Var
@@ -13,11 +21,11 @@ type Context interface {
 
 type Expression interface {
 	Do(Context) error
-	Get() any
+	Get() *Val
 }
 type Block interface {
 	Do(Context) error
-	Get() any
+	Get() *Val
 	Add(sub Expression)
 }
 
@@ -28,13 +36,13 @@ type SupExpr interface {
 
 type BinOperExpr interface {
 	Do(Context) error
-	Get() any
+	Get() *Val
 	SetLeft(Expression)
 	SetRight(Expression)
 }
 
 type SequenceExpr interface {
-	Get() any
+	Get() *Val
 	Do(ctx Context) error
 	Add(elem Expression)
 	SetSubs([]Expression)

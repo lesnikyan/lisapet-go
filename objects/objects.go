@@ -65,8 +65,10 @@ type Regexp struct {
  */
 func GetVal(v any) any {
 	switch vv := v.(type) {
-	case base.Var:
+	case *base.Var:
 		return vv.Val
+	case *base.Val:
+		return vv.V
 	default:
 		return vv
 	}
@@ -92,7 +94,7 @@ func NewModule(ctx *Context) *Module {
 func (md *Module) Do(cx *Context) error {
 	return nil
 }
-func (md *Module) Get() any {
+func (md *Module) Get() *base.Val {
 	return nil
 }
 

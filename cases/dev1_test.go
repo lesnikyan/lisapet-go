@@ -235,6 +235,43 @@ func TestCaseSeqVal(t *testing.T) {
 	}
 }
 
+func TestSimpleExpressionsDo(t *testing.T) {
+	tdata := []struct {
+		src     string
+		resCase base.Expression
+	}{
+		// {"a = 101", &nodes.OperBin{}},
+		// {"a = 2 + 3", &nodes.OperBin{}},
+		// {"a = 5 * (3 + 4)", &nodes.OperBin{}},
+		// {"a = `Hello, 1 2!`", &nodes.OperBin{}},
+		// {"a = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9", &nodes.OperBin{}},
+		{"a = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9", &nodes.OperBin{}},
+		// {"", &nodes.OperBin{}},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+
+			sctx := par.SplitContext{}
+			line := par.SplitLine([]rune(tt.src), sctx)
+			res, err := Line2tree(line, nil)
+			ltree := res.Tree
+			operTree := ltree.rightNode
+			t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			PrintONode(operTree, 0)
+
+			expr, ok := ProcExprTree(operTree)
+			assert.True(t, ok)
+			tp := fmt.Sprintf("%T", expr)
+			fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+
+			ctx := obb.NewContext(nil)
+			expr.Do(ctx)
+			vr := ctx.GetVar("a")
+			fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
 func TestCaseUnclosedBrackets(t *testing.T) {
 	tdata := []struct {
 		src     string

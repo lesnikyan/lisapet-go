@@ -1,6 +1,10 @@
 package objects
 
-import "github.com/lesnikyan/lisapet-go/base"
+import (
+	"fmt"
+
+	"github.com/lesnikyan/lisapet-go/base"
+)
 
 type Context struct {
 	parent *Context
@@ -14,6 +18,7 @@ func NewContext(parent *Context) *Context {
 
 func (cx *Context) AddVar(vr *base.Var) {
 	cx.vars[vr.Name] = vr
+	fmt.Printf("o.Ctx.AddVar %T, %v \n", cx.vars, cx.vars)
 }
 
 func (cx *Context) GetVar(name string) *base.Var {
