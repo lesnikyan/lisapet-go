@@ -21,8 +21,15 @@ type Context interface {
 
 type Expression interface {
 	Do(Context) error
+	/*
+		Get() in cases:
+		- value
+		- definition object
+		- target object (for change)
+	*/
 	Get() *Val
 }
+
 type Block interface {
 	Do(Context) error
 	Get() *Val
@@ -34,7 +41,7 @@ type SupExpr interface {
 	Add(sub Expression)
 }
 
-type BinOperExpr interface {
+type OperExpr interface {
 	Do(Context) error
 	Get() *Val
 	SetLeft(Expression)

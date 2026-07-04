@@ -81,8 +81,8 @@ func OperByStr(s string) *nodes.Oper {
 	return &nodes.Oper{Sign: s, Id: nodes.OperIndex(s)}
 }
 
-func ProcOperTree(rNode *OperNode) (base.BinOperExpr, bool) {
-	var expr base.BinOperExpr
+func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
+	var expr base.OperExpr
 	oper := rNode.oper
 	println("$$PROP0:", oper)
 	switch oper {
@@ -113,6 +113,10 @@ func ProcOperTree(rNode *OperNode) (base.BinOperExpr, bool) {
 	lArg, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	if lok {
 		expr.SetLeft(lArg)
+	} else {
+		if slices.Contains(unary, oper) {
+			expr = &nodes.UnaryLeft{Oper: OperByStr(oper)}
+		}
 	}
 	rArg, rok := OperSub(rNode.rightNode, rNode.rightElems)
 	if rok {

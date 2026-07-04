@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -22,6 +23,7 @@ func floatv(a any) float64 {
 }
 
 func binOperInt(opid Opid, a int64, b any) (any, bool) {
+	fmt.Println("binInt:", opid, a, b)
 	switch b := b.(type) {
 	case int64:
 		switch opid {

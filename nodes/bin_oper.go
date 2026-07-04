@@ -16,20 +16,6 @@ func (cs *MockExpr) Get() *base.Val { return nil }
 
 func (cs *MockExpr) Do(ctx base.Context) error { return nil }
 
-type OperAssign struct {
-	Oper  string
-	left  base.Expression
-	right base.Expression
-	res   any
-}
-
-func (op *OperAssign) SetLeft(xp base.Expression) {
-	op.left = xp
-}
-func (op *OperAssign) SetRight(xp base.Expression) {
-	op.right = xp
-}
-
 func SeqInfo(seq any) string {
 	sep := " "
 	subinf := []string{}
@@ -54,6 +40,10 @@ func OperArgsInfo(expr any) string {
 		opStr = exx.Oper
 	case *OperBin:
 		aL = OperArgsInfo(exx.left)
+		aR = OperArgsInfo(exx.right)
+		opStr = exx.Oper.Sign
+	case *UnaryLeft:
+		aL = "unar"
 		aR = OperArgsInfo(exx.right)
 		opStr = exx.Oper.Sign
 	case *OperColon:
@@ -84,6 +74,20 @@ func OperArgsInfo(expr any) string {
 	return fmt.Sprintf("<%s>{L: %s, R: %s}", opStr, aL, aR)
 }
 
+type OperAssign struct {
+	Oper  string
+	left  base.Expression
+	right base.Expression
+	res   any
+}
+
+func (op *OperAssign) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *OperAssign) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
 func (op *OperAssign) Do(cx base.Context) error {
 	err1 := op.left.Do(cx)
 	if err1 != nil {
@@ -92,31 +96,83 @@ func (op *OperAssign) Do(cx base.Context) error {
 	var leftObj any
 	switch lexp := op.left.(type) {
 	case *VarExpr:
-		var lop *base.Var // Var, comma-sequence
-		lop = lexp.GetVar()
-		fmt.Printf("OP=#0 VarExrp: %v %v \n", lop, lop == nil)
-		if lop == nil {
-			lexp.NewVar(cx)
-			lop = lexp.GetVar()
-		}
-		leftObj = lop
+		// var lop *base.Var // Var, comma-sequence
+		// lop = lexp.GetVar()
+		// fmt.Printf("OP=#0 VarExrp: %v %v \n", lop, lop == nil)
+		// if lop == nil {
+		// 	lexp.NewVar(cx)
+		// 	lop = lexp.GetVar()
+		// }
+		leftObj = GetVar(lexp, cx)
 	}
 	err2 := op.right.Do(cx)
 	if err2 != nil {
+		fmt.Println("OpAssign.R error", err2)
 		return err2
 	}
-	rval := op.right.Get()
+	rval := GetExprVal(op.right, cx)
 	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
 	switch target := leftObj.(type) {
 	case *base.Var:
-		fmt.Printf("OP=#2 L: %T = R: %T \n", target, ob.GetVal(rval))
-		target.Val = ob.GetVal(rval)
+		fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+		target.Val = rval
 	}
 	return nil
 }
 
 func (op *OperAssign) Get() *base.Val {
 	return base.NewVal(op.res) // make sense for last expression in the Block
+}
+
+// ===========
+
+type OperBin struct {
+	left  base.Expression
+	right base.Expression
+	Oper  *Oper
+	res   any
+	TODO  bool
+}
+
+func (op *OperBin) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *OperBin) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
+func (op *OperBin) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *OperBin) Do(cx base.Context) error {
+	if op.TODO {
+		return nil
+	}
+	op.left.Do(cx)
+	op.right.Do(cx)
+	// lop := op.left.Get()
+	lvv := GetExprVal(op.left, cx)
+	// rop := op.right.Get()
+	rvv := GetExprVal(op.right, cx)
+	var res any
+	var ok bool
+	fmt.Println("OperBin.Do:", op.Oper, lvv, rvv)
+	switch val := lvv.(type) {
+	case int64:
+		res, ok = binOperInt(op.Oper.Id, val, rvv)
+	case float64:
+		res, ok = binOperFloat(op.Oper.Id, val, rvv)
+	case string:
+		res, ok = binOperString(op.Oper.Id, val, rvv)
+	case *ob.ListVal:
+		res, ok = binOperList(op.Oper.Id, val, rvv)
+	}
+	if !ok {
+		return errors.New("Error in bin oper") // TODO: add more informative error
+	}
+	op.res = res
+	return nil
 }
 
 // func GetOperArgs(oper any) (base.Expression, base.Expression) {
@@ -184,56 +240,6 @@ func (op *OperColon) Get() *base.Val {
 }
 
 func (op *OperColon) Do(ctx base.Context) error {
-	return nil
-}
-
-// ===========
-
-type OperBin struct {
-	left  base.Expression
-	right base.Expression
-	Oper  *Oper
-	res   any
-	TODO  bool
-}
-
-func (op *OperBin) SetLeft(xp base.Expression) {
-	op.left = xp
-}
-func (op *OperBin) SetRight(xp base.Expression) {
-	op.right = xp
-}
-
-func (op *OperBin) Get() *base.Val {
-	return base.NewVal(op.res)
-}
-
-func (op *OperBin) Do(ctx base.Context) error {
-	if op.TODO {
-		return nil
-	}
-	op.left.Do(ctx)
-	op.right.Do(ctx)
-	lop := op.left.Get()
-	lvv := ob.GetVal(lop)
-	rop := op.right.Get()
-	rvv := ob.GetVal(rop)
-	var res any
-	var ok bool
-	switch val := lvv.(type) {
-	case int64:
-		res, ok = binOperInt(op.Oper.Id, val, rvv)
-	case float64:
-		res, ok = binOperFloat(op.Oper.Id, val, rvv)
-	case string:
-		res, ok = binOperString(op.Oper.Id, val, rvv)
-	case *ob.ListVal:
-		res, ok = binOperList(op.Oper.Id, val, rvv)
-	}
-	if !ok {
-		return errors.New("Error in bin oper") // TODO: add more informative error
-	}
-	op.res = res
 	return nil
 }
 

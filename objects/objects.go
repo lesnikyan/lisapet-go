@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 
@@ -64,10 +65,12 @@ type Regexp struct {
 * unpack variables, etc
  */
 func GetVal(v any) any {
+	fmt.Printf("GetVal#0: %T, %v\n", v, v)
 	switch vv := v.(type) {
 	case *base.Var:
 		return vv.Val
 	case *base.Val:
+		fmt.Printf("GetVal#Val: %T, %v\n", vv.V, vv.V)
 		return vv.V
 	default:
 		return vv

@@ -60,3 +60,32 @@ func (ex *VarExpr) NewVar(cx base.Context) {
 func NewVarExpr(name string) *VarExpr {
 	return &VarExpr{name: name}
 }
+
+func GetVar(expr *VarExpr, cx base.Context) *base.Var {
+	var vr *base.Var // Var, comma-sequence
+	vr = expr.GetVar()
+	// fmt.Printf("GetVar#0 VarExrp: %v %v \n", vr, vr == nil)
+	if vr == nil {
+		expr.NewVar(cx)
+		vr = expr.GetVar()
+	}
+	return vr
+}
+
+func GetExprVal(v base.Expression, cx base.Context) any {
+	fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
+	switch vv := v.(type) {
+	case *VarExpr:
+		vr := GetVar(vv, cx)
+		if vr == nil {
+			return nil
+		}
+		return vr.Val
+	case *ValExpr:
+		eVal := vv.Get()
+		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
+		return eVal.V
+	default:
+		return vv.Get().V
+	}
+}

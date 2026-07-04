@@ -245,7 +245,7 @@ func TestSimpleExpressionsDo(t *testing.T) {
 		// {"a = 5 * (3 + 4)", &nodes.OperBin{}},
 		// {"a = `Hello, 1 2!`", &nodes.OperBin{}},
 		// {"a = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9", &nodes.OperBin{}},
-		{"a = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9", &nodes.OperBin{}},
+		// {"a = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 	}
 	for _, tt := range tdata {
@@ -266,6 +266,58 @@ func TestSimpleExpressionsDo(t *testing.T) {
 
 			ctx := obb.NewContext(nil)
 			expr.Do(ctx)
+			vr := ctx.GetVar("a")
+			fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
+func TestVarInMathDo(t *testing.T) {
+	tdata := []struct {
+		src     string
+		resCase base.Expression
+	}{
+		// {`
+		// b = 1
+		// a = b + 2`, &nodes.OperBin{}},
+		// {`
+		// b = 1
+		// c = 3
+		// d = 5
+		// a = b + c * d`, &nodes.OperBin{}},
+		// {`
+		// b = 7
+		// c = 4
+		// a = (2 + 3) * (b - c) * -2
+		// `, &nodes.OperBin{}},
+		{` a = -2 * (-3) * -(3 - - 2)`, &nodes.OperBin{}},
+		// {``, &nodes.OperBin{}},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			ctx := obb.NewContext(nil)
+			block := nodes.NewBlock()
+			for _, cline := range clines {
+				if len(cline.Elems) == 0 {
+					continue
+				}
+				res, err := Line2tree(cline.Elems, nil)
+				if err != nil {
+					fmt.Println("Error!", err)
+				}
+				ltree := res.Tree
+				operTree := ltree.rightNode
+				// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+				PrintONode(operTree, 0)
+				expr, ok := ProcExprTree(operTree)
+
+				assert.True(t, ok)
+				// tp := fmt.Sprintf("%T", expr)
+				// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+				block.Add(expr)
+			}
+			block.Do(ctx)
 			vr := ctx.GetVar("a")
 			fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
