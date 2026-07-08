@@ -54,6 +54,8 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return math.Pow(float64(a), b), true
 		case OpEqual:
 			return float64(a) == b, true
+		case OpNot:
+			return float64(a) != b, true
 		}
 	}
 	return nil, false
@@ -75,6 +77,8 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return math.Pow(a, float64(b)), true
 		case OpEqual:
 			return a == float64(b), true
+		case OpNot:
+			return a != float64(b), true
 		}
 	case float64:
 		switch opid {
@@ -90,6 +94,8 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return math.Pow(float64(a), float64(b)), true
 		case OpEqual:
 			return a == b, true
+		case OpNot:
+			return a != b, true
 		}
 	}
 	return nil, false
@@ -103,22 +109,39 @@ func binOperString(opid Opid, a string, b any) (any, bool) {
 			return a + b, true
 		case OpEqual:
 			return strings.Compare(a, b) == 0, true
+		case OpNot:
+			return a != b, true
 		}
 	}
 	return nil, false
 }
 
+func binOperBool(opid Opid, a bool, b any) (any, bool) {
+	switch b := b.(type) {
+	case bool:
+		switch opid {
+		case OpEqual:
+			return a == b, true
+		case OpNot:
+			return a != b, true
+		}
+
+	}
+	return nil, false
+}
+
+func binOperByte(opid Opid, a byte, b any) (any, bool) { return nil, false }
+
+func binOperGlyf(opid Opid, a rune, b any) (any, bool) { return nil, false }
+
 func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool)    { return nil, false }
 func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool)  { return nil, false }
 func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool)    { return nil, false }
-func binOperBool(opid Opid, a bool, b any) (any, bool)           { return nil, false }
-func binOperAny(opid Opid, a any, b any) (any, bool)             { return nil, false }
 func binOperType(opid Opid, a any, b any) (any, bool)            { return nil, false }
 func binOperFunc(opid Opid, a ob.Function, b any) (any, bool)    { return nil, false }
 func binOperStruct(opid Opid, a ob.StructVal, b any) (any, bool) { return nil, false }
 func binOperRegext(opid Opid, a ob.Regexp, b any) (any, bool)    { return nil, false }
-func binOperByte(opid Opid, a byte, b any) (any, bool)           { return nil, false }
-func binOperGlyf(opid Opid, a rune, b any) (any, bool)           { return nil, false }
+func binOperAny(opid Opid, a any, b any) (any, bool)             { return nil, false }
 
 // func plusIntN(a int64, b any) (any, bool) {
 // 	switch b := b.(type) {

@@ -84,15 +84,17 @@ func OperByStr(s string) *nodes.Oper {
 func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 	var expr base.OperExpr
 	oper := rNode.oper
-	println("$$PROP0:", oper)
+	println("$$PROP#0:", oper)
 	switch oper {
 	case "=":
 		expr = &nodes.OperAssign{Oper: oper}
-		println("$$PROP1=:", expr)
+
 	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)} // lambda
+	case "==", "!=":
+		expr = &nodes.OperBin{Oper: OperByStr(oper)} // lambda
 	case "->":
 		expr = &nodes.OperBin{} // lambda
 	case "<-":
@@ -110,6 +112,8 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 		}
 
 	}
+	// println("$$PROP#1=:", expr)
+	fmt.Printf("POT#2 %v (%T: %v) \n", oper, expr, expr)
 	lArg, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	if lok {
 		expr.SetLeft(lArg)
@@ -122,7 +126,7 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 	if rok {
 		expr.SetRight(rArg)
 	}
-	fmt.Println("POT#1", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
+	fmt.Println("POT#10:", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
 
 	return expr, expr != nil
 }
@@ -166,7 +170,7 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 	// fmt.Println("DEB+++1", rNode.oper)
 	oper := rNode.oper
-	// fmt.Printf("PET#0 %v\n", oper)
+	fmt.Printf("PET#0 %v\n", oper)
 	switch rNode.oper {
 	case "(", "[", "{":
 		subs, ok := OperSub(rNode.rightNode, rNode.rightElems)
@@ -437,27 +441,27 @@ func ParseKWSub(elems []*lang.Elem) ([]base.Expression, error) {
 	return nil, nil
 }
 
-func SubIf(elems []*lang.Elem) ([]base.Expression, error) {
-	// var err error = nil //  SubPartErr
-	// detect subs
-	// spres, sperr := Line2tree(elems)
-	// if sperr != nil {
-	// 	return nil, sperr
-	// }
-	// if spres.Lowest == -1 {
-	// 	// no oper, just solid expr
-	// 	return nil, nil // fix result
-	// }
-	// if elems[spres.Lowest].Text == ";" {
-	// 	// has extra expression before condition
-	// 	// 1. split elems to sub-expressions
-	// 	// 2. Inrerpret each sub
-	// 	return nil, nil // TODO: fix resilt
-	// }
-	expr := &nodes.IfExpr{}
-	exprs := []base.Expression{expr}
-	return exprs, nil
-}
+// func SubIf(elems []*lang.Elem) ([]base.Expression, error) {
+// 	// var err error = nil //  SubPartErr
+// 	// detect subs
+// 	// spres, sperr := Line2tree(elems)
+// 	// if sperr != nil {
+// 	// 	return nil, sperr
+// 	// }
+// 	// if spres.Lowest == -1 {
+// 	// 	// no oper, just solid expr
+// 	// 	return nil, nil // fix result
+// 	// }
+// 	// if elems[spres.Lowest].Text == ";" {
+// 	// 	// has extra expression before condition
+// 	// 	// 1. split elems to sub-expressions
+// 	// 	// 2. Inrerpret each sub
+// 	// 	return nil, nil // TODO: fix resilt
+// 	// }
+// 	expr := &nodes.IfExpr{}
+// 	exprs := []base.Expression{expr}
+// 	return exprs, nil
+// }
 
 /*
 keyword: kword [others]
@@ -564,6 +568,8 @@ func CaseFunc(sig *LineTree, pref *LineTree) (base.Expression, error) {
 	return nil, nil
 }
 
+var mockErr = errors.New("case mock error")
+
 func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 	var subElems []*lang.Elem
 	if len(elems) > 1 {
@@ -593,15 +599,21 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			return CaseFunc(sigTree, prefTree)
 		}
 	case kIf:
-		ifRes, err := Line2tree(subElems[1:], kwRoot)
+		ifTree, err := Line2tree(subElems[1:], kwRoot)
 		if err != nil {
 			// do smth
 		}
-		if !ifRes.Finished {
+		if !ifTree.Finished {
 			// unclosed expression, need continue on next line...
 		}
-		exp, err2 := CaseIf(ifRes)
-		return exp, err2
+		// exp, err2 := CaseIf(ifRes)
+		subNode := ifTree.Tree
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		if !ok {
+			return nil, mockErr
+		}
+		exp := nodes.NewIf(subExp)
+		return exp, nil
 	case kElse:
 		// if has inner `if`
 	case kFor:

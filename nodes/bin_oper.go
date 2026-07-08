@@ -149,6 +149,7 @@ func (op *OperBin) Do(cx base.Context) error {
 	if op.TODO {
 		return nil
 	}
+	fmt.Printf("OperBin.Do#0: oper:%v (%T:%v) (%T:%v)", op.Oper, op.left, op.left, op.right, op.right)
 	op.left.Do(cx)
 	op.right.Do(cx)
 	// lop := op.left.Get()
@@ -157,12 +158,14 @@ func (op *OperBin) Do(cx base.Context) error {
 	rvv := GetExprVal(op.right, cx)
 	var res any
 	var ok bool
-	fmt.Println("OperBin.Do:", op.Oper, lvv, rvv)
+	fmt.Println("OperBin.Do#2:", op.Oper, lvv, rvv)
 	switch val := lvv.(type) {
 	case int64:
 		res, ok = binOperInt(op.Oper.Id, val, rvv)
 	case float64:
 		res, ok = binOperFloat(op.Oper.Id, val, rvv)
+	case bool:
+		res, ok = binOperBool(op.Oper.Id, val, rvv)
 	case string:
 		res, ok = binOperString(op.Oper.Id, val, rvv)
 	case *ob.ListVal:

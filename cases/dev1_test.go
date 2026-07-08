@@ -1,6 +1,7 @@
 package cases
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -274,56 +275,124 @@ func TestSimpleExpressionsDo(t *testing.T) {
 
 func TestVarInMathDo(t *testing.T) {
 	tdata := []struct {
-		src     string
-		resCase base.Expression
+		src string
+		res any
 	}{
-		// {`
-		// b = 1
-		// a = b + 2`, &nodes.OperBin{}},
-		// {`
-		// b = 1
-		// c = 3
-		// d = 5
-		// a = b + c * d`, &nodes.OperBin{}},
-		// {`
-		// b = 7
-		// c = 4
-		// a = (2 + 3) * (b - c) * -2
-		// `, &nodes.OperBin{}},
-		{` a = -2 * (-3) * -(3 - - 2)`, &nodes.OperBin{}},
+		{`
+		b = 1
+		a = b + 2`, int64(3)},
+		{`
+		b = 1
+		c = 3
+		d = 5
+		a = b + c * d`, int64(16)},
+		{`
+		b = 7
+		c = 4
+		a = (2 + 3) * (b - c) * -2
+		`, int64(-30)},
+		{` a = -2 * (-3) * -(3 - - 1)`, int64(-24)},
+		{`
+		n = "Hello "
+		m = 'example'
+		a = n + m + '!'
+		`, "Hello example!"},
 		// {``, &nodes.OperBin{}},
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			ctx := obb.NewContext(nil)
-			block := nodes.NewBlock()
-			for _, cline := range clines {
-				if len(cline.Elems) == 0 {
-					continue
-				}
-				res, err := Line2tree(cline.Elems, nil)
-				if err != nil {
-					fmt.Println("Error!", err)
-				}
-				ltree := res.Tree
-				operTree := ltree.rightNode
-				// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
-				PrintONode(operTree, 0)
-				expr, ok := ProcExprTree(operTree)
-
-				assert.True(t, ok)
-				// tp := fmt.Sprintf("%T", expr)
-				// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
-				block.Add(expr)
-			}
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
 			block.Do(ctx)
 			vr := ctx.GetVar("a")
+			assert.Equal(t2, tt.res, vr.Val)
 			fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
 }
 
+func TestIfElseCase(t *testing.T) {
+	tdata := []struct {
+		src string
+		res any
+	}{
+		// {`
+		// n = 12
+		// a = 5
+		// if n == 13
+		// 	a = 3
+		// `, 3},
+		{`
+		a = 1
+		if a == 1
+			a = 5
+		`, int64(5)},
+		// {``, nil},
+		// {``, nil},
+		// {``, nil},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			ctx := obb.NewContext(nil)
+			block.Do(ctx)
+			vr := ctx.GetVar("a")
+			assert.Equal(t2, tt.res, vr.Val)
+			fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
+var lineInterpretErr = errors.New("Incorrect interpretation of line")
+
+// make executable block of expressions by parsed lines
+func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
+	block := nodes.NewBlock()
+	for _, cline := range clines {
+		if len(cline.Elems) == 0 {
+			continue
+		}
+		var res *LineTree
+		var err error
+		var expr base.Expression
+		var ok bool
+		if IsLKWord(cline.Elems) {
+			// control or definition expression
+			expr, err = KWordExp(cline.Elems)
+			if err != nil {
+				fmt.Println("Error LKWord!", err)
+				return nil, err
+			}
+		} else {
+			res, err = Line2tree(cline.Elems, nil)
+			if err != nil {
+				fmt.Println("Error!", err)
+				return nil, err
+			}
+			ltree := res.Tree
+			operTree := ltree.rightNode
+			// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			PrintONode(operTree, 0)
+			expr, ok = ProcExprTree(operTree)
+			if !ok {
+				return nil, lineInterpretErr
+			}
+
+		}
+		// tp := fmt.Sprintf("%T", expr)
+		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+		block.Add(expr)
+	}
+	return block, nil
+}
+
+/*
+Case in feature of multi-line expressions
+*/
 func TestCaseUnclosedBrackets(t *testing.T) {
 	tdata := []struct {
 		src     string

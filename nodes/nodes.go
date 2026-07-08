@@ -4,16 +4,16 @@ import "github.com/lesnikyan/lisapet-go/base"
 
 // import ob "github.com/lesnikyan/lisapet-go/objects"
 
-type IfExpr struct {
-	res any
-}
+// type IfExpr struct {
+// 	res any
+// }
 
-func (xp *IfExpr) Do(base.Context) error {
-	return nil
-}
-func (xp *IfExpr) Get() *base.Val {
-	return base.NewVal(xp.res)
-}
+// func (xp *IfExpr) Do(base.Context) error {
+// 	return nil
+// }
+// func (xp *IfExpr) Get() *base.Val {
+// 	return base.NewVal(xp.res)
+// }
 
 type TODOExpr struct {
 	res any

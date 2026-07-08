@@ -186,10 +186,17 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	var prev *lang.Elem
 	// var rprev *lang.Elem // real prev
 	var closeBr = false
-	var rNode *OperNode = &OperNode{prior: 10000, oper: "ЫХ"} // root node
-	var cNode *OperNode = rNode                               // curent node
+	var rNode *OperNode
+	var parents []*OperNode
+	if prevTree != nil {
+		rNode = prevTree.Tree
+		parents = prevTree.Parents
+	} else {
+		rNode = &OperNode{prior: 10000, oper: "ЫХ"} // root node
+		parents = []*OperNode{rNode}
+	}
+	var cNode *OperNode = rNode // curent node
 	// var ndStack []*OperNode = []*OperNode{rNode}
-	var parents []*OperNode = []*OperNode{rNode}
 	curPart := []int{} // indexes of elements
 	// left0 := true
 	var slashLambda bool = false

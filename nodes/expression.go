@@ -16,7 +16,14 @@ func (vex *ValExpr) Do(cx base.Context) error {
 	return nil
 }
 func (vex *ValExpr) Get() *base.Val {
-	return base.NewVal(vex.Val)
+	v := vex.Val
+	switch val := v.(type) {
+	case string:
+		v = val[1 : len(val)-1]
+	default:
+		v = val
+	}
+	return base.NewVal(v)
 }
 
 // *** VarExpr
