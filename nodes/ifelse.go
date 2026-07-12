@@ -137,10 +137,7 @@ func (nd *ElseNode) Do(cx base.Context) error {
 func (nd *ElseNode) Add(sub base.Expression) {
 	if nd.Slided {
 		nd.SlideIf.Add(sub)
-		// fst := nd.Block.First()
-		// if exif, ok := fst.(*IfNode); ok {
-		// 	exif.Add(sub)
-		// }
+		return
 	}
 	nd.Block.Add(sub)
 }

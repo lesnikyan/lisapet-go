@@ -74,16 +74,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		// tp := fmt.Sprintf("%T", expr)
 		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
 		cind = cline.Indent
-		/*
-			if a == 1
-				a = 2
-			a = 3
-			if a == 3
-				a = 4
-			else
-				a = 5
-		*/
-
 		elseInd := false // if expr is `else`
 		if cind <= nblock.indent {
 			// end of prev block
@@ -94,15 +84,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			}
 			pfound := false
 			for i := len(parents) - 1; i >= 0; i-- {
-				// if elseInd {
-				// 	if parents[i].indent == cind {
-				// 		pfound = true
-				// 	}
-				// } else {
-				// 	if parents[i].indent <= cind {
-				// 		pfound = true
-				// 	}
-				// }
 				pfound = (elseInd && parents[i].indent == cind) || (!elseInd && parents[i].indent <= cind)
 				if pfound {
 					// TODO: resolve cases: else, else if
@@ -129,11 +110,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			default:
 				return nil, errors.New("Bad if-else structure")
 			}
-			// ifbl, ok := (nblock.elem).(*nodes.IfNode)
-			// if !ok {
-			// 	return nil, errors.New("Bad if-else structure")
-			// }
-			// ifbl.SetElse(texp)
 			bl := &BlockLink{elem: texp, indent: cind}
 			// next `else` will be parent in chain
 			parents = parents[:len(parents)-1]

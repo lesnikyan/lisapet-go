@@ -603,7 +603,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		}
 		// exp, err2 := CaseIf(ifRes)
 		subNode := ifTree.Tree
-		PrintONode(subNode, 0)
+		// PrintONode(subNode, 0)
 		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
 		if !ok {
 			return nil, mockErr
@@ -625,18 +625,26 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		if !ok {
 			// do smth
 		}
-		// if !elsTree.Finished {
-		// 	// unclosed expression, need continue on next line...
-		// }
-		// exp, err2 := CaseIf(ifRes)
-		// subNode := elsTree.Tree
-		// subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
-		// if !ok {
-		// 	return nil, mockErr
-		// }
-		// sub := nodes.NewIf(subExp)
 		exp.SetSlide(sub)
 		return exp, nil
+
+	case kFor:
+		forTree, err := Line2tree(subElems[1:], kwRoot)
+		if err != nil {
+			// do smth
+		}
+		if !forTree.Finished {
+			// unclosed expression, need continue on next line...
+		}
+		subNode := forTree.Tree
+		// PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		if !ok {
+			return nil, mockErr
+		}
+		exp := nodes.NewIf(subExp)
+		return exp, nil
+
 	case kFunc:
 		if len(subElems) > 6 {
 			// possible mehod def: `func inst:Type Name()`
@@ -657,7 +665,6 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			}
 			return CaseFunc(sigTree, prefTree)
 		}
-	case kFor:
 	case kWhile:
 	case kMatch:
 	case kEnum:

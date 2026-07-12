@@ -81,48 +81,41 @@ func TestOperSplit2(t *testing.T) {
 		lowest int
 		others []ints2
 	}{
-		// {"1 + 2", 1, []ints2{}},
-		// {"n = 0xff", -1, []ints2{}},
-		// {"11 + 33 - 44", 6, []ints2{}},
-		// {"1 + 5 - 4 / 6", -1, []ints2{}},
-		// {"1 + 5 * 6 - 8 / 2 ** 2 * 2 ^/ 49", -1, []ints2{}},
-		// {"2 + (4 - 6)", -1, []ints2{}},
-		// {"(4 - 6) + 5", -1, []ints2{}},
-		// {"(3 + 5) * (4 - 6)", -1, []ints2{}},
-		// {"4 * (4 - 6) + 5", -1, []ints2{}},
-		// {"5 + 6 - 17 + 22", -1, []ints2{}},
-		// {"6 * 5 / 10 * 11", -1, []ints2{}},
-		// {"age = 2000 - 1955", -1, []ints2{}},
-		// {"r = (1+2)*(3-4)/(5**6)", -1, []ints2{}},
-		// {"a, b, c = 1, 2, 3", -1, []ints2{}},
-		// {"r = (a * b + c; a,b <- aa, bb ;c = a + b)", -1, []ints2{}},
-		// {"r = (: a * b + c; a,b <- aa, bb ;c = a + b)", -1, []ints2{}},
-		// {"{'a': 123, 'b':4+5, 'c':60}", -1, []ints2{}},
-		// {`[1, 2, nn..., -33, ~"{n}"]`, -1, []ints2{}},
-		// {"aaa.bbb.ccc = 123", -1, []ints2{}},
-		// {"obj.foo ~>", -1, []ints2{}},
-		// {"f1 = obj.mem.foo ~>", -1, []ints2{}},
-		// {"foo(1)", -1, []ints2{}},
-		// {"obj.foo(1, 2)", -1, []ints2{}},
-		// {"obj.foo ~> (123)", -1, []ints2{}},
-		// {"foo ~> (123)", -1, []ints2{}},
-		// {"ff ~> (1)(2)", -1, []ints2{}},
-		// {"oob.foo ~> (1)(2)", -1, []ints2{}},
-		// {"[1,2,3][4](5)", -1, []ints2{}},
-		// {"[1,2,3]...", -1, []ints2{}},
-		// {"re`[0-9]`Li", -1, []ints2{}},
-		// {"0x[1e 2f]", -1, []ints2{}},
-		// {"(x,y) -> x + y", -1, []ints2{}},
+		{"1 + 2", 1, []ints2{}},
+		{"n = 0xff", -1, []ints2{}},
+		{"11 + 33 - 44", 6, []ints2{}},
+		{"1 + 5 - 4 / 6", -1, []ints2{}},
+		{"1 + 5 * 6 - 8 / 2 ** 2 * 2 ^/ 49", -1, []ints2{}},
+		{"2 + (4 - 6)", -1, []ints2{}},
+		{"(4 - 6) + 5", -1, []ints2{}},
+		{"(3 + 5) * (4 - 6)", -1, []ints2{}},
+		{"4 * (4 - 6) + 5", -1, []ints2{}},
+		{"5 + 6 - 17 + 22", -1, []ints2{}},
+		{"6 * 5 / 10 * 11", -1, []ints2{}},
+		{"age = 2000 - 1955", -1, []ints2{}},
+		{"r = (1+2)*(3-4)/(5**6)", -1, []ints2{}},
+		{"a, b, c = 1, 2, 3", -1, []ints2{}},
+		{"r = (a * b + c; a,b <- aa, bb ;c = a + b)", -1, []ints2{}},
+		{"r = (: a * b + c; a,b <- aa, bb ;c = a + b)", -1, []ints2{}},
+		{"{'a': 123, 'b':4+5, 'c':60}", -1, []ints2{}},
+		{`[1, 2, nn..., -33, ~"{n}"]`, -1, []ints2{}},
+		{"aaa.bbb.ccc = 123", -1, []ints2{}},
+		{"obj.foo ~>", -1, []ints2{}},
+		{"f1 = obj.mem.foo ~>", -1, []ints2{}},
+		{"foo(1)", -1, []ints2{}},
+		{"obj.foo(1, 2)", -1, []ints2{}},
+		{"obj.foo ~> (123)", -1, []ints2{}},
+		{"foo ~> (123)", -1, []ints2{}},
+		{"ff ~> (1)(2)", -1, []ints2{}},
+		{"oob.foo ~> (1)(2)", -1, []ints2{}},
+		{"[1,2,3][4](5)", -1, []ints2{}},
+		{"[1,2,3]...", -1, []ints2{}},
+		{"re`[0-9]`Li", -1, []ints2{}},
+		{"0x[1e 2f]", -1, []ints2{}},
+		{"(x,y) -> x + y", -1, []ints2{}},
 
 		// {"\\x,y -> x + y", -1, []ints2{}}, // TODO: resolve slash-leading lambda expression
 
-		// {"", -1, []ints2{}},
-		// {"", -1, []ints2{}},
-		// {"", -1, []ints2{}},
-		// {"", -1, []ints2{}},
-		// {"", -1, []ints2{}},
-		// {"", -1, []ints2{}},
-		// {"", -1, []ints2{}},
 		// {"", -1, []ints2{}},
 
 		// Note: definitions and other Left-keywords is not a cases (fn = func(arg) - is possibly exception, not sure)
@@ -133,9 +126,12 @@ func TestOperSplit2(t *testing.T) {
 		sctx := par.SplitContext{}
 		line := par.SplitLine([]rune(tt.src), sctx)
 		res, err := Line2tree(line, nil)
-		t.Log("tt1>", tt.src, res, err)
+		assert.Nil(t, err)
+		// t.Log("tt1>", tt.src, res, err)
 		ltree := res.Tree
-		PrintONode(ltree, 0)
+		assert.NotNil(t, ltree)
+
+		// PrintONode(ltree, 0)
 	}
 }
 
@@ -144,16 +140,14 @@ func TestCaseOfAssignSimpleVal(t *testing.T) {
 		src     string
 		resCase base.Expression
 	}{
-		// {"a = 123", &nodes.OperBin{}},
-		// {"b = 'Hello1'", &nodes.OperBin{}},
-		// {"c = 12.25", &nodes.OperBin{}},
-		// {"d = x1 + 234", &nodes.OperBin{}},
-		// {"dd: int = 1 + 4", &nodes.OperBin{}},
-		// {"ee:int = 2 * 5 + (a - b) / c - 3 ** 2", &nodes.OperBin{}},
-		// {"e2 = 1*2 + 2 ** 3", &nodes.OperBin{}},
+		{"a = 123", &nodes.OperBin{}},
+		{"b = 'Hello1'", &nodes.OperBin{}},
+		{"c = 12.25", &nodes.OperBin{}},
+		{"d = x1 + 234", &nodes.OperBin{}},
+		{"dd: int = 1 + 4", &nodes.OperBin{}},
+		{"ee:int = 2 * 5 + (a - b) / c - 3 ** 2", &nodes.OperBin{}},
+		{"e2 = 1*2 + 2 ** 3", &nodes.OperBin{}},
 		{"f = (1/(1/(1/(1/2))))", &nodes.OperBin{}},
-		// {"", &nodes.OperBin{}},
-		// {"", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 	}
@@ -162,13 +156,15 @@ func TestCaseOfAssignSimpleVal(t *testing.T) {
 			sctx := par.SplitContext{}
 			line := par.SplitLine([]rune(tt.src), sctx)
 			res, err := Line2tree(line, nil)
+			assert.Nil(t, err)
 			ltree := res.Tree
 			operTree := ltree.rightNode
-			t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
-			PrintONode(operTree, 0)
+			// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			// PrintONode(operTree, 0)
 			expr, ok := ProcExprTree(operTree)
+			assert.IsType(t, &nodes.OperAssign{}, expr)
 			assert.True(t, ok)
-			fmt.Println("tt2>", nodes.OperArgsInfo(expr))
+			// fmt.Println("tt2>", nodes.OperArgsInfo(expr))
 		})
 	}
 }
@@ -178,12 +174,12 @@ func TestCaseSeqVal(t *testing.T) {
 		src     string
 		resCase base.Expression
 	}{
-		// {"(1,2,3,4,)", &nodes.OperBin{}},
-		// {"[1,2,3,4]", &nodes.OperBin{}},
-		// {"{'a':11, 'b':22, 'c':33}", &nodes.OperBin{}},
-		// {"[[1,2,3]]", &nodes.OperBin{}},
+		{"(1,2,3,4,)", &nodes.OperBin{}},
+		{"[1,2,3,4]", &nodes.OperBin{}},
+		{"{'a':11, 'b':22, 'c':33}", &nodes.OperBin{}},
+		{"[[1,2,3]]", &nodes.OperBin{}},
 		{"[[1,2,3], (4,5,6), {7:'Q7', 8:'Q8'}]", &nodes.OperBin{}},
-		// {"", &nodes.OperBin{}},
+		{"a = 1; b = 2; c = 3", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 	}
@@ -192,14 +188,16 @@ func TestCaseSeqVal(t *testing.T) {
 			sctx := par.SplitContext{}
 			line := par.SplitLine([]rune(tt.src), sctx)
 			res, err := Line2tree(line, nil)
+			assert.Nil(t, err)
 			ltree := res.Tree
 			operTree := ltree.rightNode
-			t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
-			PrintONode(operTree, 0)
+			// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			// PrintONode(operTree, 0)
 			expr, ok := ProcExprTree(operTree)
 			assert.True(t, ok)
-			tp := fmt.Sprintf("%T", expr)
-			fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+			assert.NotNil(t, expr)
+			// tp := fmt.Sprintf("%T", expr)
+			// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
 		})
 	}
 }
@@ -209,12 +207,12 @@ func TestSimpleExpressionsDo(t *testing.T) {
 		src     string
 		resCase base.Expression
 	}{
-		// {"a = 101", &nodes.OperBin{}},
-		// {"a = 2 + 3", &nodes.OperBin{}},
-		// {"a = 5 * (3 + 4)", &nodes.OperBin{}},
-		// {"a = `Hello, 1 2!`", &nodes.OperBin{}},
-		// {"a = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9", &nodes.OperBin{}},
-		// {"a = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9", &nodes.OperBin{}},
+		{"a = 101", &nodes.OperBin{}},
+		{"a = 2 + 3", &nodes.OperBin{}},
+		{"a = 5 * (3 + 4)", &nodes.OperBin{}},
+		{"a = `Hello, 1 2!`", &nodes.OperBin{}},
+		{"a = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9", &nodes.OperBin{}},
+		{"a = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9", &nodes.OperBin{}},
 		// {"", &nodes.OperBin{}},
 	}
 	for _, tt := range tdata {
@@ -223,15 +221,19 @@ func TestSimpleExpressionsDo(t *testing.T) {
 			sctx := par.SplitContext{}
 			line := par.SplitLine([]rune(tt.src), sctx)
 			res, err := Line2tree(line, nil)
+			assert.Nil(t, err)
 			ltree := res.Tree
 			operTree := ltree.rightNode
-			t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
-			PrintONode(operTree, 0)
+			// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
+			// PrintONode(operTree, 0)
 
 			expr, ok := ProcExprTree(operTree)
 			assert.True(t, ok)
-			tp := fmt.Sprintf("%T", expr)
-			fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+			assert.IsType(t, &nodes.OperAssign{}, expr)
+			_, ok = expr.(*nodes.OperAssign)
+			assert.True(t, ok)
+			// tp := fmt.Sprintf("%T", expr)
+			// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
 
 			ctx := obb.NewContext(nil)
 			expr.Do(ctx)
@@ -276,7 +278,7 @@ func TestVarInMathDo(t *testing.T) {
 			block.Do(ctx)
 			vr := ctx.GetVar("a")
 			assert.Equal(t2, tt.res, vr.Val)
-			fmt.Println("tt3>", vr, vr.Name, vr.Val)
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
 }
@@ -289,87 +291,87 @@ func TestIfElseCase(t *testing.T) {
 		// {`
 		// a = 1
 		// `, int64(1)},
-		// {`
-		// a = 1
-		// if a == 1
-		// 	a = 5
-		// `, int64(5)},
-		// {`
-		// n = 12
-		// a = 5
-		// if n == 13
-		// 	b = 11
-		// 	a = a + b
-		// `, int64(16)},
-		// {`
-		// a = 1
-		// if a == 1
-		// 	a = 2
-		// b = 10
-		// if a != 1
-		// 	a = a + b
-		// `, int64(12)},
-		// {`
-		// a = 1
-		// if b = 2; a == 1
-		// 	a = b + 10
-		// `, int64(12)},
-		// {`
-		// a = 1
-		// if a == 2
-		// 	a = 3
-		// else
-		// 	a = 4
-		// `, int64(4)}, // else
-		// {`
-		// a = 2
-		// if a == 2
-		// 	a = 3
-		// else
-		// 	a = 4
-		// `, int64(3)}, // if
-		// {`
-		// a = 5
-		// if a == 2
-		// 	a = 3
-		// else if a == 5
-		// 	a = 4
-		// `, int64(4)},
-		// {`
-		// a = 1
-		// if a == 1 || a == 2
-		// 	a = 3
-		// `, int64(3)},
-		// {`
-		// a = 1
-		// if a == 1
-		// 	if a == 1
-		// 		if a == 1
-		// 			if a == 1
-		// 				a = 7
-		// `, int64(7)},
-		// {`
-		// a = 1
-		// if a == 1
-		// 	a = 2
-		// 	if a == 2
-		// 		a = 3
-		// 		if a == 3
-		// 			a = 4
-		// 			if a == 4
-		// 				a = 5
-		// `, int64(5)},
-		// {`
-		// a = 1
-		// b = 10
-		// if a == 2
-		// 	a = 20
-		// else
-		// 	if a == 3
-		// 		a = 30
-		// 	else
-		// 		a = 112
-		// `, int64(112)},
+		{`
+		a = 1
+		if a == 1
+			a = 5
+		`, int64(5)},
+		{`
+		n = 12
+		a = 5
+		if n == 12
+			b = 11
+			a = a + b
+		`, int64(16)},
+		{`
+		a = 1
+		if a == 1
+			a = 2
+		b = 10
+		if a != 1
+			a = a + b
+		`, int64(12)},
+		{`
+		a = 1
+		if b = 2; a == 1
+			a = b + 10
+		`, int64(12)},
+		{`
+		a = 1
+		if a == 2
+			a = 3
+		else
+			a = 4
+		`, int64(4)}, // else
+		{`
+		a = 2
+		if a == 2
+			a = 3
+		else
+			a = 4
+		`, int64(3)}, // if
+		{`
+		a = 5
+		if a == 2
+			a = 3
+		else if a == 5
+			a = 4
+		`, int64(4)},
+		{`
+		a = 1
+		if a == 1 || a == 2
+			a = 3
+		`, int64(3)},
+		{`
+		a = 1
+		if a == 1
+			if a == 1
+				if a == 1
+					if a == 1
+						a = 7
+		`, int64(7)},
+		{`
+		a = 1
+		if a == 1
+			a = 2
+			if a == 2
+				a = 3
+				if a == 3
+					a = 4
+					if a == 4
+						a = 5
+		`, int64(5)},
+		{`
+		a = 1
+		b = 10
+		if a == 2
+			a = 20
+		else
+			if a == 3
+				a = 30
+			else
+				a = 112
+		`, int64(112)},
 		{`
 		a = 1
 		b = 10
@@ -379,11 +381,50 @@ func TestIfElseCase(t *testing.T) {
 			a = 30
 		else
 			a = 111
-		`, int64(1)},
-		// {``, int64(1)},
-		// {``, int64(1)},
-		// {``, int64(1)},
-		// {``, int64(1)},
+		`, int64(111)},
+		{`
+		a = 3
+		b = 10
+		if a == 2
+			a = 20
+		else if a == 3
+			a = 31
+		else
+			a = 111
+		`, int64(31)},
+		{`
+		a = 7
+		if a == 1
+			a = 11
+		else if a == 2
+			a = 12
+		else if a == 3
+			a = 13
+		else if a== 4
+			a = 14
+		else if a== 5
+			a = 15
+		else if a== 6
+			a = 16
+		else if a== 7
+			a = 17
+		else 
+			a = 20
+		`, int64(17)},
+		{`
+		a = 3
+		b = 10
+		if a == 1
+			a = 11
+		else if a == 3
+			a = 13
+			if b == 10
+				a = 23
+			else
+				a = 24
+		else 
+			a = 12
+		`, int64(23)},
 		// {``, int64(1)},
 	}
 	for _, tt := range tdata {
@@ -391,13 +432,13 @@ func TestIfElseCase(t *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
-			t.Log("--- --- --- Do ...")
+			// t.Log("--- --- --- Do ...")
 			ctx := obb.NewContext(nil)
 			block.Do(ctx)
 			vr := ctx.GetVar("a")
-			t.Log("tt#vr", vr)
+			// t.Log("tt#vr", vr)
 			assert.Equal(t2, tt.res, vr.Val)
-			fmt.Println("tt3>", vr, vr.Name, vr.Val)
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
 }
