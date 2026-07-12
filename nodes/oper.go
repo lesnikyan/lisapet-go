@@ -16,7 +16,9 @@ const (
 	OpRoot
 	OpEqual
 	OpNotEqual
+	OpMore
 	OpMoreEqual
+	OpLess
 	OpLessEqual
 	OpPlusAssign
 	OpMinusAssign
@@ -73,6 +75,8 @@ var _operStrMap = map[Opid]string{
 	OpRoot:        "^/",
 	OpEqual:       "==",
 	OpNotEqual:    "!=",
+	OpLess:        "<",
+	OpMore:        ">",
 	OpMoreEqual:   ">=",
 	OpLessEqual:   "<=",
 	OpPlusAssign:  "+=",

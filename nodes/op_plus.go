@@ -39,6 +39,17 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return int64(math.Pow(float64(a), float64(b))), true
 		case OpEqual:
 			return a == b, true
+		case OpNotEqual:
+			return a != b, true
+		case OpLess:
+			return a < b, true
+		case OpLessEqual:
+			return a < b, true
+		case OpMore:
+			return a < b, true
+		case OpMoreEqual:
+			return a < b, true
+
 		}
 	case float64:
 		switch opid {
@@ -54,8 +65,16 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return math.Pow(float64(a), b), true
 		case OpEqual:
 			return float64(a) == b, true
-		case OpNot:
+		case OpNotEqual:
 			return float64(a) != b, true
+		case OpLess:
+			return float64(a) < b, true
+		case OpLessEqual:
+			return float64(a) < b, true
+		case OpMore:
+			return float64(a) < b, true
+		case OpMoreEqual:
+			return float64(a) < b, true
 		}
 	}
 	return nil, false
@@ -77,8 +96,16 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return math.Pow(a, float64(b)), true
 		case OpEqual:
 			return a == float64(b), true
-		case OpNot:
+		case OpNotEqual:
 			return a != float64(b), true
+		case OpLess:
+			return a < float64(b), true
+		case OpLessEqual:
+			return a < float64(b), true
+		case OpMore:
+			return a < float64(b), true
+		case OpMoreEqual:
+			return a < float64(b), true
 		}
 	case float64:
 		switch opid {
@@ -94,8 +121,16 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return math.Pow(float64(a), float64(b)), true
 		case OpEqual:
 			return a == b, true
-		case OpNot:
+		case OpNotEqual:
 			return a != b, true
+		case OpLess:
+			return a < b, true
+		case OpLessEqual:
+			return a < b, true
+		case OpMore:
+			return a < b, true
+		case OpMoreEqual:
+			return a < b, true
 		}
 	}
 	return nil, false
@@ -109,7 +144,7 @@ func binOperString(opid Opid, a string, b any) (any, bool) {
 			return a + b, true
 		case OpEqual:
 			return strings.Compare(a, b) == 0, true
-		case OpNot:
+		case OpNotEqual:
 			return a != b, true
 		}
 	}
@@ -122,10 +157,13 @@ func binOperBool(opid Opid, a bool, b any) (any, bool) {
 		switch opid {
 		case OpEqual:
 			return a == b, true
-		case OpNot:
+		case OpNotEqual:
 			return a != b, true
+		case OpAnd:
+			return a && b, true
+		case OpOr:
+			return a || b, true
 		}
-
 	}
 	return nil, false
 }

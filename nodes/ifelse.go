@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
@@ -10,18 +11,29 @@ type IfNode struct {
 	condition base.Expression
 	preCond   *BlockExpr
 	BlockIf   *BlockExpr
-	BlockElse *BlockExpr
+	BlockElse *ElseNode
 	res       any
+}
+
+func (nd *IfNode) IsParent() bool {
+	return true
 }
 
 func (nd *IfNode) Get() *base.Val {
 	return nil
 }
 
+func (nd *IfNode) PreDo(cx base.Context) error {
+	if nd.preCond == nil {
+		return nil
+	}
+	return nd.preCond.Do(cx)
+}
+
 func (nd *IfNode) Do(cx base.Context) error {
 	nd.res = nil
 	// pre cond
-
+	nd.PreDo(cx)
 	evalBlock := nd.BlockIf
 	// cond
 	if err := nd.condition.Do(cx); err != nil {
@@ -35,7 +47,7 @@ func (nd *IfNode) Do(cx base.Context) error {
 	case bool:
 		if !condV {
 			if nd.BlockElse != nil {
-				evalBlock = nd.BlockElse
+				evalBlock = nd.BlockElse.Block
 			} else {
 				// correct end of if when condition returns false
 				return nil
@@ -54,30 +66,39 @@ func (nd *IfNode) Do(cx base.Context) error {
 	return nil
 }
 
-func (nd *IfNode) Add(sub base.Expression) error {
+func (nd *IfNode) Add(sub base.Expression) {
 	nd.BlockIf.Add(sub)
-	return nil
+	// return nil
 }
 
-func (nd *IfNode) MakeElse() *BlockExpr {
-	nd.BlockElse = NewBlock()
-	return nd.BlockElse
+// func (nd *IfNode) MakeElse() *BlockExpr {
+// 	nd.BlockElse = NewBlock()
+// 	return nd.BlockElse
+// }
+
+func (nd *IfNode) SetElse(block *ElseNode) {
+	nd.BlockElse = block
 }
 
 func NewIf(cond base.Expression) *IfNode {
 	var prev *BlockExpr
 	// if cond is ;-separated expr
+	fmt.Println("# IF", cond)
 	switch conExpr := cond.(type) {
 	case *SequenceSemicolon:
 		//
+		fmt.Println("# IF#2", len(conExpr.Subs))
 		if len(conExpr.Subs) < 2 {
 			//bad case: a=1;
+			return nil
 		}
 		cond = conExpr.Subs[len(conExpr.Subs)-1]
+		fmt.Printf("#--IF (;) #1 (%T: %v), #2(%T: %v) \n", conExpr, conExpr, cond, cond)
 		prev = NewBlock()
 		for _, sub := range conExpr.Subs[:len(conExpr.Subs)-1] {
 			prev.Add(sub)
 		}
+	default:
 
 	}
 	node := &IfNode{
@@ -86,4 +107,44 @@ func NewIf(cond base.Expression) *IfNode {
 		preCond:   prev,
 	}
 	return node
+}
+
+type ElseNode struct {
+	Block   *BlockExpr
+	SlideIf *IfNode
+	Slided  bool
+}
+
+func (nd *ElseNode) IsParent() bool {
+	return true
+}
+
+// for case: else if condition
+func (nd *ElseNode) SetSlide(ndif *IfNode) {
+	nd.SlideIf = ndif
+	nd.Block.Add(ndif)
+	nd.Slided = true
+}
+
+func (nd *ElseNode) Get() *base.Val {
+	return nd.Block.Get()
+}
+
+func (nd *ElseNode) Do(cx base.Context) error {
+	return nd.Block.Do(cx)
+}
+
+func (nd *ElseNode) Add(sub base.Expression) {
+	if nd.Slided {
+		nd.SlideIf.Add(sub)
+		// fst := nd.Block.First()
+		// if exif, ok := fst.(*IfNode); ok {
+		// 	exif.Add(sub)
+		// }
+	}
+	nd.Block.Add(sub)
+}
+
+func NewElseNode() *ElseNode {
+	return &ElseNode{Block: NewBlock()}
 }

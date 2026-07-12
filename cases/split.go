@@ -209,6 +209,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			continue
 		}
 		// log.Println("cb0:", closeBr)
+		log.Println("split:", i, tx)
 		prevCloseBr := closeBr
 		closeBr = false
 		prev = cur
@@ -453,6 +454,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		// for k := len(ndStack) - 1; k >= 0; k-- {
 		// 	if curpri > ndStack[k].prior {
 		for k := len(parents) - 1; k >= 0; k-- {
+			log.Println("split: find parent> ", curpri, tx, " < ", parents[k].prior, parents[k].oper, curpri < parents[k].prior)
 			if curpri < parents[k].prior || parents[k].IsBrackets {
 				lInd = k
 				break

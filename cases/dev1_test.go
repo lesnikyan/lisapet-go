@@ -1,9 +1,7 @@
 package cases
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -75,36 +73,6 @@ func TestCaseVal(t *testing.T) {
 			assert.Equal(t2, exp, res)
 		})
 	}
-}
-
-func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {
-	if node != nil || elems == nil {
-		fmt.Printf(" %s %s: ", strings.Repeat(" ▵", ind), side)
-		if node != nil {
-			PrintONode(node, ind)
-		} else {
-			fmt.Println("<->")
-		}
-	} else {
-		fmt.Printf(" %s %s▷ %v\n", strings.Repeat(" .", ind), side, FPrintElems(elems))
-	}
-}
-
-func PrintONode(node *OperNode, ind int) {
-	//strings.Repeat(" ▵", ind)
-	fmt.Printf("⧐ %s %s \n", "", node.oper)
-	PrintOpArg("L", node.leftNode, node.leftElems, ind+1)
-	// if node.leftNode != nil {
-	// 	PrintONode(node.leftNode, ind+1)
-	// } else {
-	// 	fmt.Printf("  %s L▷ %v\n", strings.Repeat(" ▹", ind), FPrintElems(node.leftElems))
-	// }
-	// if node.rightNode != nil {
-	// 	PrintONode(node.rightNode, ind+1)
-	// } else {
-	// 	fmt.Printf("  %s R▷ %v\n", strings.Repeat(" ▹", ind), FPrintElems(node.rightElems))
-	// }
-	PrintOpArg("R", node.rightNode, node.rightElems, ind+1)
 }
 
 func TestOperSplit2(t *testing.T) {
@@ -319,75 +287,119 @@ func TestIfElseCase(t *testing.T) {
 		res any
 	}{
 		// {`
+		// a = 1
+		// `, int64(1)},
+		// {`
+		// a = 1
+		// if a == 1
+		// 	a = 5
+		// `, int64(5)},
+		// {`
 		// n = 12
 		// a = 5
 		// if n == 13
+		// 	b = 11
+		// 	a = a + b
+		// `, int64(16)},
+		// {`
+		// a = 1
+		// if a == 1
+		// 	a = 2
+		// b = 10
+		// if a != 1
+		// 	a = a + b
+		// `, int64(12)},
+		// {`
+		// a = 1
+		// if b = 2; a == 1
+		// 	a = b + 10
+		// `, int64(12)},
+		// {`
+		// a = 1
+		// if a == 2
 		// 	a = 3
-		// `, 3},
+		// else
+		// 	a = 4
+		// `, int64(4)}, // else
+		// {`
+		// a = 2
+		// if a == 2
+		// 	a = 3
+		// else
+		// 	a = 4
+		// `, int64(3)}, // if
+		// {`
+		// a = 5
+		// if a == 2
+		// 	a = 3
+		// else if a == 5
+		// 	a = 4
+		// `, int64(4)},
+		// {`
+		// a = 1
+		// if a == 1 || a == 2
+		// 	a = 3
+		// `, int64(3)},
+		// {`
+		// a = 1
+		// if a == 1
+		// 	if a == 1
+		// 		if a == 1
+		// 			if a == 1
+		// 				a = 7
+		// `, int64(7)},
+		// {`
+		// a = 1
+		// if a == 1
+		// 	a = 2
+		// 	if a == 2
+		// 		a = 3
+		// 		if a == 3
+		// 			a = 4
+		// 			if a == 4
+		// 				a = 5
+		// `, int64(5)},
+		// {`
+		// a = 1
+		// b = 10
+		// if a == 2
+		// 	a = 20
+		// else
+		// 	if a == 3
+		// 		a = 30
+		// 	else
+		// 		a = 112
+		// `, int64(112)},
 		{`
 		a = 1
-		if a == 1
-			a = 5
-		`, int64(5)},
-		// {``, nil},
-		// {``, nil},
-		// {``, nil},
+		b = 10
+		if a == 2
+			a = 20
+		else if a == 3
+			a = 30
+		else
+			a = 111
+		`, int64(1)},
+		// {``, int64(1)},
+		// {``, int64(1)},
+		// {``, int64(1)},
+		// {``, int64(1)},
+		// {``, int64(1)},
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
+			t.Log("--- --- --- Do ...")
 			ctx := obb.NewContext(nil)
 			block.Do(ctx)
 			vr := ctx.GetVar("a")
+			t.Log("tt#vr", vr)
 			assert.Equal(t2, tt.res, vr.Val)
 			fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
-}
-
-var lineInterpretErr = errors.New("Incorrect interpretation of line")
-
-// make executable block of expressions by parsed lines
-func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
-	block := nodes.NewBlock()
-	for _, cline := range clines {
-		if len(cline.Elems) == 0 {
-			continue
-		}
-		var res *LineTree
-		var err error
-		var expr base.Expression
-		var ok bool
-		if IsLKWord(cline.Elems) {
-			// control or definition expression
-			expr, err = KWordExp(cline.Elems)
-			if err != nil {
-				fmt.Println("Error LKWord!", err)
-				return nil, err
-			}
-		} else {
-			res, err = Line2tree(cline.Elems, nil)
-			if err != nil {
-				fmt.Println("Error!", err)
-				return nil, err
-			}
-			ltree := res.Tree
-			operTree := ltree.rightNode
-			// t.Log("tt1>", tt.src, res, err, "r-oper:", operTree.oper)
-			PrintONode(operTree, 0)
-			expr, ok = ProcExprTree(operTree)
-			if !ok {
-				return nil, lineInterpretErr
-			}
-
-		}
-		// tp := fmt.Sprintf("%T", expr)
-		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
-		block.Add(expr)
-	}
-	return block, nil
 }
 
 /*

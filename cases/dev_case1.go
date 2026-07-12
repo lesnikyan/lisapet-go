@@ -91,10 +91,10 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 
 	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
+	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
+		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case ":":
-		expr = &nodes.OperColon{Oper: OperByStr(oper)} // lambda
-	case "==", "!=":
-		expr = &nodes.OperBin{Oper: OperByStr(oper)} // lambda
+		expr = &nodes.OperColon{Oper: OperByStr(oper)}
 	case "->":
 		expr = &nodes.OperBin{} // lambda
 	case "<-":
@@ -213,7 +213,8 @@ func ProcSequence(rNode *OperNode) (base.Expression, bool) {
 	case ",":
 		expr = &nodes.SequenceComma{}
 	case ";":
-		return nil, false // TODO: SemiColon expr
+		expr = &nodes.SequenceSemicolon{}
+		// return nil, false // TODO: SemiColon expr
 	}
 	if expr == nil {
 		return nil, false
@@ -482,8 +483,6 @@ var caseList = []func(ee []*lang.Elem) (*CaseRes, bool){
 }
 
 func InterpretSups(supr base.SupExpr, cres *CaseRes) error {
-	// var supr base.SupExpr
-	// supr = resExp.(base.SupExpr)
 	for _, subp := range cres.Subs {
 		subExp, err := InterpretLine(subp)
 		if err != nil {
@@ -506,15 +505,6 @@ func InterpretLine(elems []*lang.Elem) (*CaseRes, error) {
 			continue
 		}
 		if len(cres.Subs) > 0 {
-			// var supr base.SupExpr
-			// supr = resExp.(base.SupExpr)
-			// for _, subp := range cres.Subs {
-			// 	subExp, err := InterpretLine(subp)
-			// 	if err != nil {
-			// 		return nil, err
-			// 	}
-			// 	supr.Add(subExp.Expr)
-			// }
 			InterpretSups(resExp.(base.SupExpr), cres)
 		}
 		return &CaseRes{Expr: resExp}, nil
@@ -568,16 +558,85 @@ func CaseFunc(sig *LineTree, pref *LineTree) (base.Expression, error) {
 	return nil, nil
 }
 
+func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {
+	if node != nil || elems == nil {
+		fmt.Printf(" %s %s: ", strings.Repeat(" ▵", ind), side)
+		if node != nil {
+			PrintONode(node, ind)
+		} else {
+			fmt.Println("<->")
+		}
+	} else {
+		fmt.Printf(" %s %s▷ %v\n", strings.Repeat(" .", ind), side, FPrintElems(elems))
+	}
+}
+
+func PrintONode(node *OperNode, ind int) {
+	//strings.Repeat(" ▵", ind)
+	if node == nil {
+		fmt.Println("Node", node, ind)
+		return
+	}
+	fmt.Printf("⧐ %s %s \n", "", node.oper)
+	PrintOpArg("L", node.leftNode, node.leftElems, ind+1)
+	PrintOpArg("R", node.rightNode, node.rightElems, ind+1)
+}
+
 var mockErr = errors.New("case mock error")
 
 func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 	var subElems []*lang.Elem
+	// elems = SkipSpaces(elems)
 	if len(elems) > 1 {
 		subElems = elems[1:]
 	}
-
-	kwRoot := &LineTree{Tree: &OperNode{oper: "KW", leftElems: []*lang.Elem{elems[0]}, prior: 111}}
+	rootNode := &OperNode{oper: "KW", leftElems: []*lang.Elem{elems[0]}, prior: 111}
+	kwRoot := &LineTree{Tree: rootNode, Parents: []*OperNode{rootNode}}
 	switch elems[0].Text {
+	case kIf:
+		ifTree, err := Line2tree(subElems[1:], kwRoot)
+		if err != nil {
+			// do smth
+		}
+		if !ifTree.Finished {
+			// unclosed expression, need continue on next line...
+		}
+		// exp, err2 := CaseIf(ifRes)
+		subNode := ifTree.Tree
+		PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		if !ok {
+			return nil, mockErr
+		}
+		exp := nodes.NewIf(subExp)
+		return exp, nil
+	case kElse:
+		//
+		exp := nodes.NewElseNode()
+		if len(SkipSpaces(elems)) == 1 {
+			return exp, nil
+		}
+		// if has inner `if`
+		subExp, err := KWordExp(subElems[1:])
+		if err != nil {
+			// do smth
+		}
+		sub, ok := subExp.(*nodes.IfNode)
+		if !ok {
+			// do smth
+		}
+		// if !elsTree.Finished {
+		// 	// unclosed expression, need continue on next line...
+		// }
+		// exp, err2 := CaseIf(ifRes)
+		// subNode := elsTree.Tree
+		// subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		// if !ok {
+		// 	return nil, mockErr
+		// }
+		// sub := nodes.NewIf(subExp)
+		exp.SetSlide(sub)
+		return exp, nil
 	case kFunc:
 		if len(subElems) > 6 {
 			// possible mehod def: `func inst:Type Name()`
@@ -598,24 +657,6 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			}
 			return CaseFunc(sigTree, prefTree)
 		}
-	case kIf:
-		ifTree, err := Line2tree(subElems[1:], kwRoot)
-		if err != nil {
-			// do smth
-		}
-		if !ifTree.Finished {
-			// unclosed expression, need continue on next line...
-		}
-		// exp, err2 := CaseIf(ifRes)
-		subNode := ifTree.Tree
-		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
-		if !ok {
-			return nil, mockErr
-		}
-		exp := nodes.NewIf(subExp)
-		return exp, nil
-	case kElse:
-		// if has inner `if`
 	case kFor:
 	case kWhile:
 	case kMatch:

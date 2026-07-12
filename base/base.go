@@ -34,6 +34,7 @@ type Block interface {
 	Do(Context) error
 	Get() *Val
 	Add(sub Expression)
+	IsParent() bool
 }
 
 // super-expression, expression that can have sub-expression

@@ -288,7 +288,6 @@ type SequenceSemicolon struct {
 }
 
 func (cs *SequenceSemicolon) Get() *base.Val {
-	// TODO
 	return base.NewVal(cs.res)
 }
 
@@ -301,6 +300,7 @@ func (cs *SequenceSemicolon) Do(ctx base.Context) error {
 			return err
 		}
 	}
+	// TODO: result of last sub expr
 	return nil
 }
 
