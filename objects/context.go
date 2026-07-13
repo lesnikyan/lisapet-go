@@ -11,20 +11,30 @@ type Context struct {
 	vars   map[string]*base.Var
 }
 
-func NewContext(parent *Context) *Context {
-	c := Context{parent: parent, vars: map[string]*base.Var{}}
-	return &c
-}
-
 func (cx *Context) AddVar(vr *base.Var) {
+	fmt.Printf("o.Ctx.AddVar1 %T, %v \n", vr, vr.Name)
 	cx.vars[vr.Name] = vr
-	fmt.Printf("o.Ctx.AddVar %T, %v \n", cx.vars, cx.vars)
+	fmt.Printf("o.Ctx.AddVar2 %T, %v \n", cx.vars, cx.vars)
 }
 
 func (cx *Context) GetVar(name string) *base.Var {
-	vr, ok := cx.vars[name]
-	if ok {
-		return vr
+	curCx := cx
+	for curCx != nil {
+		vr, ok := curCx.vars[name]
+		if ok {
+			return vr
+		}
+		curCx = curCx.parent
 	}
 	return nil
+}
+
+func NewContext(parent base.Context) *Context {
+	octx, ok := parent.(*Context)
+	if !ok {
+		// return nil
+		octx = nil
+	}
+	c := Context{parent: octx, vars: map[string]*base.Var{}}
+	return &c
 }

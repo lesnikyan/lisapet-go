@@ -96,13 +96,7 @@ func (op *OperAssign) Do(cx base.Context) error {
 	var leftObj any
 	switch lexp := op.left.(type) {
 	case *VarExpr:
-		// var lop *base.Var // Var, comma-sequence
-		// lop = lexp.GetVar()
-		// fmt.Printf("OP=#0 VarExrp: %v %v \n", lop, lop == nil)
-		// if lop == nil {
-		// 	lexp.NewVar(cx)
-		// 	lop = lexp.GetVar()
-		// }
+		fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
 		leftObj = GetVar(lexp, cx)
 	}
 	err2 := op.right.Do(cx)
@@ -178,14 +172,31 @@ func (op *OperBin) Do(cx base.Context) error {
 	return nil
 }
 
-// func GetOperArgs(oper any) (base.Expression, base.Expression) {
-// 	switch opp := oper.(type) {
-// 	case *OperAssign, *OperBin:
-// 		return opp.left, opp.right
-// 	}
+// **********************************
+type LeftArrow struct {
+	left  base.Expression
+	right base.Expression
+	Oper  *Oper
+	res   any
+}
 
-// }
+func (op *LeftArrow) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *LeftArrow) SetRight(xp base.Expression) {
+	op.right = xp
+}
 
+func (op *LeftArrow) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *LeftArrow) Do(cx base.Context) error {
+	// TODO
+	return nil
+}
+
+// **********************************
 type BrType int
 
 const (
@@ -311,65 +322,3 @@ func (cs *SequenceSemicolon) Add(elem base.Expression) {
 func (cs *SequenceSemicolon) SetSubs(elems []base.Expression) {
 	cs.Subs = elems
 }
-
-// func (op *OperBin) Plus(ctx *ob.Context) (any, bool) {
-// 	op.left.Do(ctx)
-// 	op.right.Do(ctx)
-// 	lop := op.left.Get()
-// 	lvv := ob.GetVal(lop)
-// 	rop := op.right.Get()
-// 	rvv := ob.GetVal(rop)
-
-// 	switch val := lvv.(type) {
-// 	case int64:
-// 		return plusIntN(val, rvv)
-// 	case float64:
-// 		return plusFloatN(val, rvv)
-// 	case string:
-// 		return plusStringN(val, rvv)
-// 	case ob.ListVal:
-// 		// TODO: ValList
-// 		return &ob.ListVal{}, false
-// 	}
-
-// 	return nil, false
-// }
-
-// func (op *OperBin) DoOper(ctx *ob.Context) (any, bool) {
-// 	op.left.Do(ctx)
-// 	op.right.Do(ctx)
-// 	lop := op.left.Get()
-// 	lvv := ob.GetVal(lop)
-// 	rop := op.right.Get()
-// 	rvv := ob.GetVal(rop)
-
-// 	switch val := lvv.(type) {
-// 	case int64:
-// 		return plusIntN(val, rvv)
-// 	case float64:
-// 		return plusFloatN(val, rvv)
-// 	case string:
-// 		return plusStringN(val, rvv)
-// 	case ob.ListVal:
-// 		// TODO: ValList
-// 		return &ob.ListVal{}, false
-// 	}
-
-// 	return nil, false
-// }
-
-// func (op *OperBin) Do1(ctx *ob.Context) error {
-// 	// var err error
-// 	// var res any = nil
-// 	var res any
-// 	var ok bool
-// 	switch op.Oper.Id {
-// 	case OpAssign:
-// 		res, ok = op.Plus(ctx)
-// 	}
-// 	if !ok {
-// 		return errors.New("Error in bin oper") // TODO: add more informative error
-// 	}
-// 	op.res = res
-// 	return nil
-// }

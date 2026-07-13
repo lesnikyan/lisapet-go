@@ -642,8 +642,16 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		if !ok {
 			return nil, mockErr
 		}
-		exp := nodes.NewIf(subExp)
-		return exp, nil
+		var exp nodes.ForExpr
+		switch subFor := subExp.(type) {
+		case *nodes.SequenceSemicolon:
+			exp = nodes.NewForCond(subFor)
+		case *nodes.LeftArrow:
+			exp = nodes.NewForSource(subFor)
+		default:
+			err = errors.New("bad sub-expr for `for` expression")
+		}
+		return exp, err
 
 	case kFunc:
 		if len(subElems) > 6 {

@@ -124,6 +124,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				nblock = bl
 			}
 		default:
+			fmt.Printf("tree.def Add: %T: %v .Add (%T: %v)  \n", nblock.elem, nblock.elem, texp, texp)
 			nblock.elem.Add(expr)
 		}
 	}
