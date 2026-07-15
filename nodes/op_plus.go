@@ -44,12 +44,13 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 		case OpLess:
 			return a < b, true
 		case OpLessEqual:
-			return a < b, true
+			return a <= b, true
 		case OpMore:
-			return a < b, true
+			return a > b, true
 		case OpMoreEqual:
-			return a < b, true
-
+			return a > b, true
+		case OpPercent:
+			return a % b, true
 		}
 	case float64:
 		switch opid {
@@ -70,11 +71,11 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 		case OpLess:
 			return float64(a) < b, true
 		case OpLessEqual:
-			return float64(a) < b, true
+			return float64(a) <= b, true
 		case OpMore:
-			return float64(a) < b, true
+			return float64(a) > b, true
 		case OpMoreEqual:
-			return float64(a) < b, true
+			return float64(a) >= b, true
 		}
 	}
 	return nil, false

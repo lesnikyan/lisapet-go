@@ -88,6 +88,10 @@ func (op *OperAssign) SetRight(xp base.Expression) {
 	op.right = xp
 }
 
+func (op *OperAssign) Get() *base.Val {
+	return base.NewVal(op.res) // make sense for last expression in the Block
+}
+
 func (op *OperAssign) Do(cx base.Context) error {
 	err1 := op.left.Do(cx)
 	if err1 != nil {
@@ -96,7 +100,7 @@ func (op *OperAssign) Do(cx base.Context) error {
 	var leftObj any
 	switch lexp := op.left.(type) {
 	case *VarExpr:
-		fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
+		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
 		leftObj = GetVar(lexp, cx)
 	}
 	err2 := op.right.Do(cx)
@@ -114,8 +118,68 @@ func (op *OperAssign) Do(cx base.Context) error {
 	return nil
 }
 
-func (op *OperAssign) Get() *base.Val {
-	return base.NewVal(op.res) // make sense for last expression in the Block
+// ===========
+
+type OperBinAssign struct {
+	Oper  *Oper
+	left  base.Expression
+	right base.Expression
+	res   any
+}
+
+func (op *OperBinAssign) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *OperBinAssign) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
+func (op *OperBinAssign) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+var opMAsg = map[Opid]Opid{
+	OpPlusAssign:    OpPlus,
+	OpMinusAssign:   OpMinus,
+	OpMultAssign:    OpMult,
+	OpDivAssign:     OpDiv,
+	OpPercentAssign: OpPercent,
+}
+
+func (op *OperBinAssign) Do(cx base.Context) error {
+	err1 := op.left.Do(cx)
+	if err1 != nil {
+		return err1
+	}
+	err2 := op.right.Do(cx)
+	if err2 != nil {
+		fmt.Println("OpAssign.R error", err2)
+		return err2
+	}
+	rval := GetExprVal(op.right, cx)
+
+	subOper, ok := opMAsg[op.Oper.Id]
+	if !ok {
+		return errors.New("sub oper of math-assign hasn't found")
+	}
+	lvv := GetExprVal(op.left, cx)
+	rvv := GetExprVal(op.right, cx)
+	res, ok := ApplyOper(lvv, rvv, subOper)
+
+	var leftObj any
+	switch lexp := op.left.(type) {
+	case *VarExpr:
+		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
+		leftObj = GetVar(lexp, cx)
+	}
+	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+
+	switch target := leftObj.(type) {
+	case *base.Var:
+		fmt.Printf("OP=#2 L: %T = R: %T \n", target, res)
+		target.Val = res
+	}
+	return nil
 }
 
 // ===========
@@ -150,26 +214,48 @@ func (op *OperBin) Do(cx base.Context) error {
 	lvv := GetExprVal(op.left, cx)
 	// rop := op.right.Get()
 	rvv := GetExprVal(op.right, cx)
-	var res any
-	var ok bool
-	fmt.Println("OperBin.Do#2:", op.Oper, lvv, rvv)
-	switch val := lvv.(type) {
-	case int64:
-		res, ok = binOperInt(op.Oper.Id, val, rvv)
-	case float64:
-		res, ok = binOperFloat(op.Oper.Id, val, rvv)
-	case bool:
-		res, ok = binOperBool(op.Oper.Id, val, rvv)
-	case string:
-		res, ok = binOperString(op.Oper.Id, val, rvv)
-	case *ob.ListVal:
-		res, ok = binOperList(op.Oper.Id, val, rvv)
-	}
+	// var res any
+	// var ok bool
+	// fmt.Println("OperBin.Do#2:", op.Oper, lvv, rvv)
+	// // Do operators by type of left operand
+	// switch val := lvv.(type) {
+	// case int64:
+	// 	res, ok = binOperInt(op.Oper.Id, val, rvv)
+	// case float64:
+	// 	res, ok = binOperFloat(op.Oper.Id, val, rvv)
+	// case bool:
+	// 	res, ok = binOperBool(op.Oper.Id, val, rvv)
+	// case string:
+	// 	res, ok = binOperString(op.Oper.Id, val, rvv)
+	// case *ob.ListVal:
+	// 	res, ok = binOperList(op.Oper.Id, val, rvv)
+	// }
+	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
 	if !ok {
 		return errors.New("Error in bin oper") // TODO: add more informative error
 	}
 	op.res = res
 	return nil
+}
+
+func ApplyOper(left any, right any, oper Opid) (any, bool) {
+	var res any
+	var ok bool
+	// fmt.Println("ApplyOper#0:", oper, left, right)
+	// Do operators by type of left operand
+	switch val := left.(type) {
+	case int64:
+		res, ok = binOperInt(oper, val, right)
+	case float64:
+		res, ok = binOperFloat(oper, val, right)
+	case bool:
+		res, ok = binOperBool(oper, val, right)
+	case string:
+		res, ok = binOperString(oper, val, right)
+	case *ob.ListVal:
+		res, ok = binOperList(oper, val, right)
+	}
+	return res, ok
 }
 
 // **********************************

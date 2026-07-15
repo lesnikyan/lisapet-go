@@ -24,7 +24,7 @@ TODO:
 6.2 loop by dict for k, v <- dict1
 6.3 append to dict: dict1 <- (k, v)
 */
-func TestForCase(t *testing.T) {
+func TestForCountCase(t *testing.T) {
 	tdata := []struct {
 		src string
 		res any
@@ -34,7 +34,32 @@ func TestForCase(t *testing.T) {
 		for i = 1; i < 6; i = i + 1
 			a = a + i
 		`, int64(15)},
-		// {``, int64(1)},
+		{`
+		a = 0
+		for i=0; i < 10; i += 1
+			a += i
+		`, int64(45)},
+		{`
+		a = 0
+		for i=0; i < 10; i+= 1
+			if i % 2 != 0
+				a += i
+		`, int64(25)},
+		{`
+		a = 0
+		for i=1; i < 10; i += 1
+			for j=1; j < 10; j += 1
+				for k=1; k < 10; k += 1
+					a += i + j + k
+		`, int64(10935)},
+		{`
+		a = 0
+		for i = 0; i < 10 ; i += 1
+			for j=1; j < 10; j += 1
+				if i % 2 > 0
+					if j % 2 >0
+						a += i + j
+		`, int64(250)},
 		// {``, int64(1)},
 		// {``, int64(1)},
 		// {``, int64(1)},
@@ -55,4 +80,16 @@ func TestForCase(t *testing.T) {
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
+
+	// a := 0
+	// for i := 1; i < 10; i++ {
+	// 	for j := 1; j < 10; j++ {
+	// 		// for k := 1; k < 10; k++ {
+	// 		// a += i + j + k
+	// 		if i%2 > 0 && j%2 > 0 {
+	// 			a += i + j
+	// 		}
+	// 	}
+	// }
+	// fmt.Println("i+j+k", a)
 }

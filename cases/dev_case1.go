@@ -93,6 +93,8 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
+	case "+=", "-=", "*=", "/=", "%=":
+		expr = &nodes.OperBinAssign{Oper: OperByStr(oper)}
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)}
 	case "->":
@@ -107,8 +109,8 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 		switch {
 		case slices.Contains(binOpers, oper):
 			expr = &nodes.OperBin{}
-		case slices.Contains(binAssignOpers, oper):
-			expr = &nodes.OperBin{} // BinAssign
+			// case slices.Contains(binAssignOpers, oper):
+			// 	expr = &nodes.OperBin{} // BinAssign
 		}
 
 	}
@@ -214,23 +216,11 @@ func ProcSequence(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.SequenceComma{}
 	case ";":
 		expr = &nodes.SequenceSemicolon{}
-		// return nil, false // TODO: SemiColon expr
 	}
 	if expr == nil {
 		return nil, false
 	}
-	// e1, ok := OperSub(rNode.leftNode, rNode.leftElems)
-	// if !ok {
-	// 	return nil, false
-	// }
-	// expr.Add(e1)
-	// node := rNode
-	// for node.leftNode != nil || len(node.leftElems) > 0 {
-	// 	sub, ok := OperSub(node.leftNode, node.leftElems)
-	// 	if !ok {
-	// 		return nil, false
-	// 	}
-	// }
+
 	subs, ok := SeqSubs(rNode)
 	if ok {
 		expr.SetSubs(subs)
@@ -351,39 +341,6 @@ func CaseBinOper(ee []*lang.Elem) (base.Expression, bool) {
 	// return &CaseRes{Expr: expr, Subs: parts}, true
 }
 
-// func CaseBinOper(ee []*lang.Elem) (*CaseRes, bool) {
-// 	spres, err := Line2tree(ee)
-// 	if err != nil || spres.Lowest == -1 {
-// 		// no oper fount out of brackets
-// 		return nil, false
-// 	}
-// 	parts := [][]*lang.Elem{ee[:spres.Lowest], ee[spres.Lowest+1:]}
-// 	var expr base.Expression
-// 	foundT := ee[spres.Lowest].Text
-// 	switch foundT {
-// 	case "=":
-// 		expr = &nodes.OperAssign{}
-// 	case "->":
-// 		expr = &nodes.TODOExpr{}
-// 	case "<-":
-// 		expr = &nodes.TODOExpr{}
-// 	case "$":
-// 		expr = &nodes.TODOExpr{}
-// 	case "?:":
-// 		expr = &nodes.TODOExpr{}
-// 	// case "*","/","+","-","*","^/","|":
-// 	default:
-// 		switch {
-// 		case slices.Contains(binOpers, foundT):
-// 			expr = &nodes.OperBin{}
-// 		case slices.Contains(binAssignOpers, foundT):
-// 			expr = &nodes.TODOExpr{} // BinAssign
-// 		}
-
-// 	}
-// 	return &CaseRes{Expr: expr, Subs: parts}, true
-// }
-
 func InterpretSpRes(elems []*lang.Elem, spres *SplittedRes) {
 
 }
@@ -441,28 +398,6 @@ func CaseLKeyword(elems []*lang.Elem) (*CaseRes, bool) {
 func ParseKWSub(elems []*lang.Elem) ([]base.Expression, error) {
 	return nil, nil
 }
-
-// func SubIf(elems []*lang.Elem) ([]base.Expression, error) {
-// 	// var err error = nil //  SubPartErr
-// 	// detect subs
-// 	// spres, sperr := Line2tree(elems)
-// 	// if sperr != nil {
-// 	// 	return nil, sperr
-// 	// }
-// 	// if spres.Lowest == -1 {
-// 	// 	// no oper, just solid expr
-// 	// 	return nil, nil // fix result
-// 	// }
-// 	// if elems[spres.Lowest].Text == ";" {
-// 	// 	// has extra expression before condition
-// 	// 	// 1. split elems to sub-expressions
-// 	// 	// 2. Inrerpret each sub
-// 	// 	return nil, nil // TODO: fix resilt
-// 	// }
-// 	expr := &nodes.IfExpr{}
-// 	exprs := []base.Expression{expr}
-// 	return exprs, nil
-// }
 
 /*
 keyword: kword [others]
