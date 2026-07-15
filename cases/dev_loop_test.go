@@ -11,18 +11,19 @@ import (
 
 /*
 TODO:
-3. for i=0; i<5; i +=1
-1. create list: nn = [1,2,3]
-2.1 read list v = nn[0]
-2.2 set elem: nn[0] = 1
+ok 3. for i=0; i<5; i +=1
+ok 1. create list: nn = [1,2,3]
+ok 2.1 read list v = nn[0]
+ok 2.2 set elem: nn[0] = 1
+5. create tuple: (1,2,3)
+5.1 tuple elem t[i]
+6. create dict: d1 = {'a':1, 'b': 2}
+6.1 dict elem: d1[k]
 4. LeftArrow:
 4.1 loop by list: for n <- nn
 4.2 append to list: nn <- v
-5. create tuple: (1,2,3)
-6. create dict: dict1 = {'a':1, 'b': 2}
-6.1 dict elem: dict1[k]
-6.2 loop by dict for k, v <- dict1
-6.3 append to dict: dict1 <- (k, v)
+6.2 loop by dict for k, v <- d1
+6.3 append to dict: d1 <- (k, v)
 */
 func TestForCountCase(t *testing.T) {
 	tdata := []struct {

@@ -183,7 +183,9 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 			// if lok: func call
 			return nil, false
 		}
-		if !okc {
+		if okc {
+			// tuple here
+		} else {
 			return &nodes.Brackets{Sub: subs, Type: bt}, true
 		}
 		// sub-case of generator: `(: expr ; ..)`

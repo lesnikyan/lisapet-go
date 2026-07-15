@@ -13,9 +13,23 @@ import (
 func anynn[T any](vals []T) []any {
 	r := make([]any, len(vals))
 	for i, n := range vals {
-		r[i] = n
+		var x any = n
+		switch v := x.(type) {
+		case int:
+			x = int64(v)
+		}
+		r[i] = x
 	}
 	return r
+}
+
+type Tup struct {
+	elems []any
+}
+
+func tanynn[T any](vals []T) *Tup {
+	vv := anynn(vals)
+	return &Tup{elems: vv}
 }
 
 // func LVals[T any](vals []*base.Val) []any {
@@ -100,6 +114,94 @@ func TestListsCase(t *testing.T) {
 			case *obb.ListVal:
 				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", vr, vr, vobj, vobj, len(vobj.Elems))
 				assert.Equal(t2, tt.res, vobj.Elems)
+			case int64:
+				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			default:
+				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			}
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
+func TestTupleCase(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		# empty tuple
+		nn = (,)
+		`, "nn", tanynn([]any{})},
+		{`
+		# empty tuple
+		nn = (1,)
+		`, "nn", tanynn([]any{int64(1)})},
+		{`
+		# empty tuple
+		nn = ('abc',)
+		`, "nn", tanynn([]any{"abc"})},
+		{`
+		# empty tuple
+		nn = (1,2)
+		`, "nn", tanynn([]any{1, 2})},
+		{`
+		# non-empty tuple
+		nn = (1,2,3,4,5)
+		`, "nn", tanynn([]int64{1, 2, 3, 4, 5})},
+		{`
+		# tuple, different type elems
+		nn = (1,2,true, false, "5", "hello")
+		`, "nn", tanynn([]any{1, 2, true, false, "5", "hello"})},
+		{`
+		# read from tuple
+		nn = (1,2,3,4,100])
+		a = 0
+		for i = 0; i < 5; i += 1
+			a += nn[i]
+		`, "a", int64(110)},
+		{`
+		# from tuple to list
+		tt = (11, 12, 13, 14, 115)
+		a = [0,0,0,0,0]
+		for i = 0; i < 5; i += 1
+			a[i] = tt[i]
+		`, "a", anynn([]any{11, 12, 13, 14, 115})},
+		{`
+		# list[i] += tuple[i]
+		tt = (11, 12, 13, 14, 115)
+		a = [10,20,30,40,50]
+		for i = 0; i < 5; i += 1
+			a[i] += tt[i]
+		`, "a", anynn([]any{21, 32, 43, 54, 165})},
+		// {``, "nn", int64(1)},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			// t.Log("--- --- --- Do ...")
+			ctx := obb.NewContext(nil)
+			block.Do(ctx)
+			vr := ctx.GetVar(tt.vname)
+			// t.Log("tt#vr", vr)
+			if vr == nil {
+				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				return
+			}
+			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			switch vobj := vr.Val.(type) {
+			case *obb.ListVal:
+				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.Elems)
+			case *obb.TupleVal:
+				fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", vr, vr, vobj, vobj, len(vobj.Elems))
+				tup, tok := tt.res.(*Tup)
+				assert.True(t2, tok)
+				assert.Equal(t2, tup.elems, vobj.Elems)
 			case int64:
 				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 				assert.Equal(t2, tt.res, vobj)

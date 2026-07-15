@@ -49,6 +49,28 @@ type TupleVal struct {
 	Elems []any
 }
 
+func (v *TupleVal) GetElem(key int64) (*base.Val, error) {
+	if key >= int64(len(v.Elems)) {
+		return nil, ErrorBadKey
+	}
+	return &base.Val{V: v.Elems[key]}, nil
+}
+
+func (v *TupleVal) Add(elem any) {
+	v.Elems = append(v.Elems, elem)
+}
+
+func (v *TupleVal) Len() int64 {
+	return int64(len(v.Elems))
+}
+
+func NewTupleVal(elems []any) *TupleVal {
+	if elems == nil {
+		elems = []any{}
+	}
+	return &TupleVal{Elems: elems}
+}
+
 // ****************************************
 
 type DictVal struct {
