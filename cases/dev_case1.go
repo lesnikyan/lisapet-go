@@ -159,6 +159,7 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 			// dict compr
 			return &nodes.MockExpr{}, false
 		case "(:":
+			// THINK: do we need tuple-comprehension? tuple([ ; ; ]) looks enough
 			// generator
 			return &nodes.MockExpr{}, false
 		}
@@ -169,36 +170,57 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 	return nil, false
 }
 
+func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
+	oper := rNode.oper
+	bt := nodes.GetBrType(rNode.oper)
+	subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
+	lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
+	fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v)\n", oper, lexp, lok, subs, rok)
+	seq, okc := subs.(*nodes.SequenceComma)
+	switch oper {
+	case "(":
+		if lok {
+			// if lok: func call
+			return nil, false
+		}
+		if !okc {
+			return &nodes.Brackets{Sub: subs, Type: bt}, true
+		}
+		// sub-case of generator: `(: expr ; ..)`
+
+	case "[":
+		if okc {
+			// list, not sure
+		}
+		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
+		if lok {
+			return &nodes.ColElem{Col: lexp, Key: subs}, true
+		}
+	}
+	fmt.Printf("PET#2 %T\n", seq)
+	if !okc {
+		// other non-comma-separated cases
+		// seq, ok := subs.(*nodes.SequenceComma)
+		// possible empty or 1-elem in sequence
+
+		subEx := []base.Expression{}
+		if rok {
+			subEx = append(subEx, subs)
+		}
+		sub1 := &nodes.SequenceComma{Subs: subEx}
+		seq = sub1
+	}
+	// collection | comprehension case
+	return SubSeq(oper, seq)
+}
+
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 	// fmt.Println("DEB+++1", rNode.oper)
 	oper := rNode.oper
 	fmt.Printf("PET#0 %v\n", oper)
 	switch rNode.oper {
 	case "(", "[", "{":
-		subs, ok := OperSub(rNode.rightNode, rNode.rightElems)
-		// fmt.Printf("PET#1 %s  %T %v\n", oper, subs, ok)
-		if !ok {
-			return nil, false
-		}
-		seq, okc := subs.(*nodes.SequenceComma)
-		if oper == "(" {
-			if !okc {
-				bt := nodes.GetBrType(rNode.oper)
-				return &nodes.Brackets{Sub: subs, Type: bt}, true
-			}
-			// sub-case of generator: `(: expr ; ..)`
-		}
-		// fmt.Printf("PET#2 %T\n", seq)
-		if !okc {
-			// other non-comma-separated cases
-			// seq, ok := subs.(*nodes.SequenceComma)
-			// possible 1-elem in sequence
-			sub1 := &nodes.SequenceComma{Subs: []base.Expression{subs}}
-			seq = sub1
-		}
-		// collection | comprehension case
-		return SubSeq(oper, seq)
-
+		return BracketsExpr(rNode)
 	case ",", ";":
 		return ProcSequence(rNode)
 	case "\\":
@@ -296,29 +318,28 @@ func ProcSubElems(elems []*lang.Elem) (base.Expression, bool) {
 	return CaseVar(elems)
 }
 
-func ProcOperSubNode(node *OperNode) (base.Expression, bool) {
-	// possible cases: bin-oper, unary-oper,
-	// brackets, collection,
-	// func-call, collect[elem], struct-constr
-	if node.oper == "" {
-		// processing not opers
-	}
-	if strings.Contains(OBRS, node.oper) {
-		// brackets
-		switch node.oper {
-		case "(":
-			// grouping, generator
-		case "[":
-			// list, list-comprehension
-		case "{":
-			// dict
-		case "\\":
-			// lambda
-		}
-	}
-
-	return nil, false
-}
+// func ProcOperSubNode(node *OperNode) (base.Expression, bool) {
+// 	// possible cases: bin-oper, unary-oper,
+// 	// brackets, collection,
+// 	// func-call, collect[elem], struct-constr
+// 	if node.oper == "" {
+// 		// processing not opers
+// 	}
+// 	if strings.Contains(OBRS, node.oper) {
+// 		// brackets
+// 		switch node.oper {
+// 		case "(":
+// 			// grouping, generator
+// 		case "[":
+// 			// list, list-comprehension
+// 		case "{":
+// 			// dict
+// 		case "\\":
+// 			// lambda
+// 		}
+// 	}
+// 	return nil, false
+// }
 
 func CaseBinOper(ee []*lang.Elem) (base.Expression, bool) {
 

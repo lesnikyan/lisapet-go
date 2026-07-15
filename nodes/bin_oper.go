@@ -93,24 +93,57 @@ func (op *OperAssign) Get() *base.Val {
 }
 
 func (op *OperAssign) Do(cx base.Context) error {
-	err1 := op.left.Do(cx)
-	if err1 != nil {
-		return err1
-	}
-	var leftObj any
-	switch lexp := op.left.(type) {
-	case *VarExpr:
-		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
-		leftObj = GetVar(lexp, cx)
-	}
 	err2 := op.right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
 		return err2
 	}
+	fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
 	rval := GetExprVal(op.right, cx)
+	err1 := op.left.Do(cx)
+	if err1 != nil {
+		return err1
+	}
+	AssignVal(cx, op.left, rval)
+	// var leftObj any
+	// switch lexp := op.left.(type) {
+	// case *VarExpr:
+	// 	// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
+	// 	leftObj = GetVar(lexp, cx)
+	// case *ColElem:
+	// 	fmt.Printf("OpAsg=#0 ColElem: %T %v \n", lexp, lexp)
+	// 	leftObj = lexp
+	// }
+	// fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+	// switch target := leftObj.(type) {
+	// // TODO: col[key] = val
+	// case *ColElem:
+	// 	target.Set(rval)
+	// 	// TODO: obj.member = val
+	// case *base.Var:
+	// 	fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+	// 	target.Val = rval
+	// }
+	return nil
+}
+
+func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
+	// rval := GetExprVal(rexpr, cx)
+	var leftObj any
+	switch lexp := lexpr.(type) {
+	case *VarExpr:
+		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
+		leftObj = GetVar(lexp, cx)
+	case *ColElem:
+		fmt.Printf("OpAsg=#0 ColElem: %T %v \n", lexp, lexp)
+		leftObj = lexp
+	}
 	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
 	switch target := leftObj.(type) {
+	// TODO: col[key] = val
+	case *ColElem:
+		target.Set(rval)
+		// TODO: obj.member = val
 	case *base.Var:
 		fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
 		target.Val = rval
@@ -156,7 +189,7 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 		fmt.Println("OpAssign.R error", err2)
 		return err2
 	}
-	rval := GetExprVal(op.right, cx)
+	// rval := GetExprVal(op.right, cx)
 
 	subOper, ok := opMAsg[op.Oper.Id]
 	if !ok {
@@ -165,20 +198,20 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 	lvv := GetExprVal(op.left, cx)
 	rvv := GetExprVal(op.right, cx)
 	res, ok := ApplyOper(lvv, rvv, subOper)
+	AssignVal(cx, op.left, res)
+	// var leftObj any
+	// switch lexp := op.left.(type) {
+	// case *VarExpr:
+	// 	// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
+	// 	leftObj = GetVar(lexp, cx)
+	// }
+	// // fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
 
-	var leftObj any
-	switch lexp := op.left.(type) {
-	case *VarExpr:
-		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
-		leftObj = GetVar(lexp, cx)
-	}
-	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
-
-	switch target := leftObj.(type) {
-	case *base.Var:
-		fmt.Printf("OP=#2 L: %T = R: %T \n", target, res)
-		target.Val = res
-	}
+	// switch target := leftObj.(type) {
+	// case *base.Var:
+	// 	fmt.Printf("OP=#2 L: %T = R: %T \n", target, res)
+	// 	target.Val = res
+	// }
 	return nil
 }
 

@@ -64,7 +64,6 @@ func TestForCountCase(t *testing.T) {
 		// {``, int64(1)},
 		// {``, int64(1)},
 		// {``, int64(1)},
-		// {``, int64(1)},
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
@@ -76,8 +75,15 @@ func TestForCountCase(t *testing.T) {
 			block.Do(ctx)
 			vr := ctx.GetVar("a")
 			// t.Log("tt#vr", vr)
-			assert.Equal(t2, tt.res, vr.Val)
-			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+
+			switch rr := vr.Val.(type) {
+			case *obb.ListVal:
+				// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", vr, vr, col, col, len(col.Elems))
+				assert.Equal(t2, tt.res, rr.Elems)
+			default:
+				assert.Equal(t2, tt.res, vr.Val)
+				// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+			}
 		})
 	}
 

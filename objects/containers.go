@@ -21,7 +21,7 @@ func (v *ListVal) Set(key int64, elem any) error {
 	v.Elems[int(key)] = elem
 	return nil
 }
-func (v *ListVal) Get(key int64) (*base.Val, error) {
+func (v *ListVal) GetElem(key int64) (*base.Val, error) {
 	if key >= int64(len(v.Elems)) {
 		return nil, ErrorBadKey
 	}

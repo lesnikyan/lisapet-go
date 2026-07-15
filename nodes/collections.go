@@ -29,6 +29,88 @@ func (cs *ListExpr) Do(ctx base.Context) error {
 	return nil
 }
 
+// ===========
+
+type ColElem struct {
+	Col base.Expression // list, dict, tuple, string object
+	Key base.Expression // index or key
+
+	Src  any // ListVal, DictVal, etc
+	KVal any // int64, string, etc
+}
+
+func (cc *ColElem) Get() *base.Val {
+	switch src := cc.Src.(type) {
+	case *objects.ListVal:
+		index, ok := cc.KVal.(int64)
+		if !ok {
+			// return errors.New("incorrect type of index in collection-elem expr")
+			panic("incorrect type of index in collection-elem expr")
+		}
+		res, err := src.GetElem(index)
+		if err != nil {
+			return nil
+		}
+		return res
+	}
+	return nil
+}
+
+func (cc *ColElem) Set(val any) error {
+	switch src := cc.Src.(type) {
+	case *objects.ListVal:
+		index, ok := cc.KVal.(int64)
+		if !ok {
+			return errors.New("incorrect type of index in collection-elem expr")
+			// panic("incorrect type of index in collection-elem expr")
+		}
+		err := src.Set(index, val)
+		if err != nil {
+			return nil
+		}
+	}
+	return nil
+
+}
+
+func (cc *ColElem) Do(ctx base.Context) error {
+	cc.KVal = nil
+	cc.Src = nil
+	err := cc.Col.Do(ctx)
+	if err != nil {
+		return err
+	}
+	err = cc.Key.Do(ctx)
+	if err != nil {
+		return err
+	}
+
+	// kval := cc.Key.Get()
+	// if kval == nil {
+	// 	return errors.New("empty key for collection-elem expr")
+	// }
+	kval := GetExprVal(cc.Key, ctx)
+	cc.KVal = kval
+	// sval := cc.Col.Get()
+	// if sval == nil {
+	// 	return errors.New("empty source for collection-elem expr")
+	// }
+	sval := GetExprVal(cc.Col, ctx)
+	cc.Src = sval
+	// objects.GetVal()
+	// if sval == nil {
+	// 	return errors.New("empty key for collection-elem expr")
+	// }
+	// src := GetExprVal(cc.Col, ctx)
+	// sVal := cc.Col.Get()
+	// if sVal == nil {
+	// 	return errors.New("empty source for collection-elem expr")
+	// }
+	return nil
+}
+
+//==
+
 type TupleExpr struct {
 	Seq *SequenceComma
 	res *objects.TupleVal
