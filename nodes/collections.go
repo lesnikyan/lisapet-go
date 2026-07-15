@@ -23,9 +23,9 @@ func (cs *ListExpr) Do(ctx base.Context) error {
 		if err != nil {
 			return err
 		}
-		res[i] = ex.Get()
+		res[i] = objects.GetVal(ex.Get())
 	}
-	cs.res = &objects.ListVal{Elems: res}
+	cs.res = objects.NewListVal(res)
 	return nil
 }
 

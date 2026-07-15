@@ -36,18 +36,6 @@ type Null struct {
 // 	Type int
 // }
 
-type ListVal struct {
-	Elems []any
-}
-
-type TupleVal struct {
-	Elems []any
-}
-
-type DictVal struct {
-	Vmap map[any]any
-}
-
 type Function struct {
 	Name  string
 	Block *base.Block

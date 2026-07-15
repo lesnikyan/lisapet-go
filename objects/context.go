@@ -1,8 +1,6 @@
 package objects
 
 import (
-	"fmt"
-
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -12,9 +10,9 @@ type Context struct {
 }
 
 func (cx *Context) AddVar(vr *base.Var) {
-	fmt.Printf("o.Ctx.AddVar1 %T, %v \n", vr, vr.Name)
+	// fmt.Printf("o.Ctx.AddVar1 %T, %v \n", vr, vr.Name)
 	cx.vars[vr.Name] = vr
-	fmt.Printf("o.Ctx.AddVar2 %T, %v \n", cx.vars, cx.vars)
+	// fmt.Printf("o.Ctx.AddVar2 %T, %v \n", cx.vars, cx.vars)
 }
 
 func (cx *Context) GetVar(name string) *base.Var {
@@ -26,6 +24,7 @@ func (cx *Context) GetVar(name string) *base.Var {
 		}
 		curCx = curCx.parent
 	}
+	// fmt.Printf("o.Ctx.GetVar no such var: %v \n", name)
 	return nil
 }
 
