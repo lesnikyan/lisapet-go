@@ -81,6 +81,7 @@ func GetVar(expr *VarExpr, cx base.Context) *base.Var {
 
 func GetExprVal(v base.Expression, cx base.Context) any {
 	fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
+	var eVal *base.Val
 	switch vv := v.(type) {
 	case *VarExpr:
 		vr := GetVar(vv, cx)
@@ -89,16 +90,20 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		}
 		return vr.Val
 	case *ValExpr:
-		eVal := vv.Get()
+		eVal = vv.Get()
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
-		return eVal.V
+		// return eVal.V
 	case *ColElem:
-		eVal := vv.Get()
-		// fmt.Printf("ColElem#Val: %T, %v\n", eVal.V, eVal.V)
-		return eVal.V
+		eVal = vv.Get()
+		fmt.Printf("ColElem#Val: %T, %v\n", eVal, eVal)
+		// return eVal.V
 	default:
 		return vv.Get().V
 	}
+	if eVal != nil {
+		return eVal.V
+	}
+	return nil
 }
 
 // // get point of Val

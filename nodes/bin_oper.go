@@ -105,25 +105,6 @@ func (op *OperAssign) Do(cx base.Context) error {
 		return err1
 	}
 	AssignVal(cx, op.left, rval)
-	// var leftObj any
-	// switch lexp := op.left.(type) {
-	// case *VarExpr:
-	// 	// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
-	// 	leftObj = GetVar(lexp, cx)
-	// case *ColElem:
-	// 	fmt.Printf("OpAsg=#0 ColElem: %T %v \n", lexp, lexp)
-	// 	leftObj = lexp
-	// }
-	// fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
-	// switch target := leftObj.(type) {
-	// // TODO: col[key] = val
-	// case *ColElem:
-	// 	target.Set(rval)
-	// 	// TODO: obj.member = val
-	// case *base.Var:
-	// 	fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
-	// 	target.Val = rval
-	// }
 	return nil
 }
 
@@ -199,19 +180,6 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 	rvv := GetExprVal(op.right, cx)
 	res, ok := ApplyOper(lvv, rvv, subOper)
 	AssignVal(cx, op.left, res)
-	// var leftObj any
-	// switch lexp := op.left.(type) {
-	// case *VarExpr:
-	// 	// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
-	// 	leftObj = GetVar(lexp, cx)
-	// }
-	// // fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
-
-	// switch target := leftObj.(type) {
-	// case *base.Var:
-	// 	fmt.Printf("OP=#2 L: %T = R: %T \n", target, res)
-	// 	target.Val = res
-	// }
 	return nil
 }
 
@@ -247,22 +215,7 @@ func (op *OperBin) Do(cx base.Context) error {
 	lvv := GetExprVal(op.left, cx)
 	// rop := op.right.Get()
 	rvv := GetExprVal(op.right, cx)
-	// var res any
-	// var ok bool
-	// fmt.Println("OperBin.Do#2:", op.Oper, lvv, rvv)
-	// // Do operators by type of left operand
-	// switch val := lvv.(type) {
-	// case int64:
-	// 	res, ok = binOperInt(op.Oper.Id, val, rvv)
-	// case float64:
-	// 	res, ok = binOperFloat(op.Oper.Id, val, rvv)
-	// case bool:
-	// 	res, ok = binOperBool(op.Oper.Id, val, rvv)
-	// case string:
-	// 	res, ok = binOperString(op.Oper.Id, val, rvv)
-	// case *ob.ListVal:
-	// 	res, ok = binOperList(op.Oper.Id, val, rvv)
-	// }
+
 	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
 	if !ok {
 		return errors.New("Error in bin oper") // TODO: add more informative error
@@ -293,10 +246,10 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 
 // **********************************
 type LeftArrow struct {
-	left  base.Expression
-	right base.Expression
-	Oper  *Oper
-	res   any
+	left   base.Expression
+	right  base.Expression
+	IsIter bool
+	res    any
 }
 
 func (op *LeftArrow) SetLeft(xp base.Expression) {
@@ -306,12 +259,61 @@ func (op *LeftArrow) SetRight(xp base.Expression) {
 	op.right = xp
 }
 
+func (op *LeftArrow) AsIter() {
+	op.IsIter = true
+}
+
 func (op *LeftArrow) Get() *base.Val {
 	return base.NewVal(op.res)
 }
 
+func (op *LeftArrow) GetIterAssign() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *LeftArrow) DoAppend(cx base.Context) error {
+	lvv := GetExprVal(op.left, cx)
+	rvv := GetExprVal(op.right, cx)
+	switch targ := lvv.(type) {
+	case *ob.ListVal:
+		targ.Add(rvv)
+	case *ob.DictVal:
+		switch rval := rvv.(type) {
+		// rvv should be a tuple(2) or dict
+		case *ob.TupleVal:
+			if rval.Len() != 2 {
+				return errors.New("incorrect right tuple in dict:append")
+			}
+			k := rval.Elems[0]
+			v := rval.Elems[1]
+			targ.Set(k, v)
+		case *ob.DictVal:
+			// append dict
+			for k, v := range rval.Vmap {
+				targ.Set(k, v)
+			}
+		}
+	default:
+		return errors.New("trying append to non-collection")
+	}
+	return nil
+}
+
 func (op *LeftArrow) Do(cx base.Context) error {
-	// TODO
+	err := op.right.Do(cx)
+	if err != nil {
+		return err
+	}
+	err = op.left.Do(cx)
+	if err != nil {
+		return err
+	}
+	// TODO:
+	// 1) loop-assign: for n <- nn
+	// actually its a generator-like expression
+
+	// 2) append: nn <- v
+
 	return nil
 }
 
@@ -372,7 +374,21 @@ func (op *OperColon) Get() *base.Val {
 	return base.NewVal(op.res)
 }
 
-func (op *OperColon) Do(ctx base.Context) error {
+func (op *OperColon) GetPair() *ColonPair {
+	return &ColonPair{Left: op.left, Right: op.right}
+}
+
+func (op *OperColon) Do(cx base.Context) error {
+	err1 := op.left.Do(cx)
+	if err1 != nil {
+		return err1
+	}
+	err2 := op.right.Do(cx)
+	if err2 != nil {
+		fmt.Println("OpAssign.R error", err2)
+		return err2
+	}
+
 	return nil
 }
 
@@ -413,8 +429,6 @@ func (cs *SequenceComma) SetSubs(elems []base.Expression) {
 type SequenceSemicolon struct {
 	Subs []base.Expression
 	res  any
-	// TODO: res type - of collection, func def args, func call argc, struct ded, struct constr, hmm...
-	// []any ?
 }
 
 func (cs *SequenceSemicolon) Get() *base.Val {
@@ -441,3 +455,9 @@ func (cs *SequenceSemicolon) Add(elem base.Expression) {
 func (cs *SequenceSemicolon) SetSubs(elems []base.Expression) {
 	cs.Subs = elems
 }
+
+// ===============
+var n = LeftArrow{}
+
+// type LeftArrow struct {
+// }

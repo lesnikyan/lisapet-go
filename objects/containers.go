@@ -23,7 +23,8 @@ func (v *ListVal) Set(key int64, elem any) error {
 }
 func (v *ListVal) GetElem(key int64) (*base.Val, error) {
 	if key >= int64(len(v.Elems)) {
-		return nil, ErrorBadKey
+		panic("list, get elem: index out of range")
+		// return nil, ErrorBadKey
 	}
 	return &base.Val{V: v.Elems[key]}, nil
 }
@@ -75,6 +76,29 @@ func NewTupleVal(elems []any) *TupleVal {
 
 type DictVal struct {
 	Vmap map[any]any
+}
+
+func (v *DictVal) GetElem(key any) (*base.Val, error) {
+	val, ok := v.Vmap[key]
+	if !ok {
+		return nil, ErrorBadKey
+	}
+	return &base.Val{V: val}, nil
+}
+
+func (v *DictVal) Set(key any, val any) {
+	v.Vmap[key] = val
+}
+
+func (v *DictVal) Len() int64 {
+	return int64(len(v.Vmap))
+}
+
+func NewDictVal(vm map[any]any) *DictVal {
+	if vm == nil {
+		vm = map[any]any{}
+	}
+	return &DictVal{Vmap: vm}
 }
 
 // ****************************************

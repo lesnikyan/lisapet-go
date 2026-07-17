@@ -14,23 +14,6 @@ import (
 
 var SubPartErr = errors.New("error in subpart of keywd case")
 
-// just simple var = val
-// (base.Expression, [][]*lang.Elem, bool)
-// func CaseAssign(ee []*lang.Elem) (*CaseRes, bool) {
-// 	// matching part
-// 	spres, err := OperSplit(ee)
-// 	if err != nil || spres.Lowest == -1 || ee[spres.Lowest].Text != "=" {
-// 		return nil, false
-// 	}
-// 	// ind := spres.Lowest
-// 	// if ee[ind].Text != "=" {
-// 	// 	return nil, false
-// 	// }
-// 	// parsing part
-// 	parts := [][]*lang.Elem{ee[:spres.Lowest], ee[spres.Lowest+1:]}
-// 	return &CaseRes{Expr: &nodes.OperAssign{}, Subs: parts}, true
-// }
-
 func SkipSpaces(elems []*lang.Elem) []*lang.Elem {
 	res := []*lang.Elem{}
 	for _, ee := range elems {

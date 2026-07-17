@@ -64,6 +64,13 @@ func (cc *ColElem) Get() *base.Val {
 		}
 		return res
 
+	case *objects.DictVal:
+		res, err := src.GetElem(cc.KVal)
+		if err != nil {
+			return nil
+		}
+		return res
+
 	}
 	return nil
 }
@@ -79,6 +86,8 @@ func (cc *ColElem) Set(val any) error {
 		if err != nil {
 			return nil
 		}
+	case *objects.DictVal:
+		src.Set(cc.KVal, val)
 	}
 	return nil
 
@@ -151,7 +160,7 @@ func (cp *ColonPair) Do(ctx base.Context) error {
 	if err1 != nil {
 		return err2
 	}
-	cp.res = Pair{cp.Left.Get(), cp.Right.Get()}
+	cp.res = Pair{objects.GetVal(cp.Left.Get()), objects.GetVal(cp.Right.Get())}
 	return nil
 }
 
@@ -169,10 +178,12 @@ func (cs *DictExpr) Get() *base.Val {
 func (cs *DictExpr) Do(ctx base.Context) error {
 	res := make(map[any]any, len(cs.Seq.Subs)) // TODO: think about constraints of key type
 	for _, ex := range cs.Seq.Subs {
-		cpair, ok := ex.(*ColonPair)
+		opcol, ok := ex.(*OperColon)
 		if !ok {
-			return errors.New("Incorest subelement od dict expression")
+			return errors.New("Incorest subelement of dict expression")
 		}
+		cpair := opcol.GetPair()
+		// fmt.Printf("DictDo1 (%T, %v) \n", cpair, cpair)
 		err := cpair.Do(ctx)
 		if err != nil {
 			return err
@@ -180,6 +191,6 @@ func (cs *DictExpr) Do(ctx base.Context) error {
 		pairVal := cpair.GetPair()
 		res[pairVal[0]] = pairVal[1]
 	}
-	cs.res = &objects.DictVal{Vmap: res}
+	cs.res = objects.NewDictVal(res)
 	return nil
 }
