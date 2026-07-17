@@ -2,25 +2,14 @@ package objects
 
 import (
 	"fmt"
-	"reflect"
 	"regexp"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
-func f1() {
-	n := 1
-	reflect.TypeOf(n)
-}
-
-// type Expression interface {
-// 	Do(*Context) error
-// 	Get() any
-// }
-// type Block interface {
-// 	Add(sub Expression)
-// 	Do(cx *Context) error
-// 	Get() any
+// func f1() {
+// 	n := 1
+// 	reflect.TypeOf(n)
 // }
 
 type Val interface {
@@ -29,12 +18,6 @@ type Val interface {
 
 type Null struct {
 }
-
-// type Var struct {
-// 	Val  any
-// 	Name string
-// 	Type int
-// }
 
 type Function struct {
 	Name  string
@@ -64,14 +47,6 @@ func GetVal(v any) any {
 		return vv
 	}
 }
-
-// func Any2Val(obj any) any {
-// 	switch src := obj.(type) {
-// 	case *Var:
-// 		return src.Val
-// 	}
-// 	return nil
-// }
 
 type Module struct {
 	block base.Block

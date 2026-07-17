@@ -15,16 +15,69 @@ ok 3. for i=0; i<5; i +=1
 ok 1. create list: nn = [1,2,3]
 ok 2.1 read list v = nn[0]
 ok 2.2 set elem: nn[0] = 1
-5. create tuple: (1,2,3)
-5.1 tuple elem t[i]
-6. create dict: d1 = {'a':1, 'b': 2}
-6.1 dict elem: d1[k]
+ok 5. create tuple: (1,2,3)
+ok 5.1 tuple elem t[i]
+ok 6. create dict: d1 = {'a':1, 'b': 2}
+ok 6.1 dict elem: d1[k]
 4. LeftArrow:
 4.1 loop by list: for n <- nn
 4.2 append to list: nn <- v
 6.2 loop by dict for k, v <- d1
 6.3 append to dict: d1 <- (k, v)
 */
+
+func _TestForArrowIterCase(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = 0
+		nn = [1,2,3,4,5]
+		for n <- nn
+			a += n
+		`, "a", int64(1)},
+		// {``, "a",  int64(1)},
+		// {``, "a",  int64(1)},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ArrowIter, %s >>", tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			// t.Log("--- --- --- Do ...")
+			ctx := obb.NewContext(nil)
+			block.Do(ctx)
+			vr := ctx.GetVar(tt.vname)
+			// t.Log("tt#vr", vr)
+			if vr == nil {
+				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				return
+			}
+			val := vr.Val
+			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			switch vobj := val.(type) {
+			case *obb.ListVal:
+				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.Elems)
+			case *obb.DictVal:
+				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				tm, tok := tt.res.(map[any]any)
+				assert.True(t2, tok)
+				res := pres(vobj)
+				assert.Equal(t2, tm, res)
+			case int64:
+				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			default:
+				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			}
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
 func TestForCountCase(t *testing.T) {
 	tdata := []struct {
 		src string
@@ -61,8 +114,6 @@ func TestForCountCase(t *testing.T) {
 					if j % 2 >0
 						a += i + j
 		`, int64(250)},
-		// {``, int64(1)},
-		// {``, int64(1)},
 		// {``, int64(1)},
 		// {``, int64(1)},
 	}

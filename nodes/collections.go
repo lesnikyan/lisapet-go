@@ -32,9 +32,6 @@ func (cs *ListExpr) Do(ctx base.Context) error {
 // ===========
 
 type ColElem struct {
-	Col base.Expression // list, dict, tuple, string object
-	Key base.Expression // index or key
-
 	Src  any // ListVal, DictVal, etc
 	KVal any // int64, string, etc
 }
@@ -90,12 +87,21 @@ func (cc *ColElem) Set(val any) error {
 		src.Set(cc.KVal, val)
 	}
 	return nil
-
 }
 
-func (cc *ColElem) Do(ctx base.Context) error {
-	cc.KVal = nil
-	cc.Src = nil
+type ColElemExpr struct {
+	Col    base.Expression // list, dict, tuple, string object
+	Key    base.Expression // index or key
+	ColRes *ColElem
+}
+
+func (cc *ColElemExpr) Get() *base.Val {
+	return base.NewVal(cc.ColRes)
+}
+
+func (cc *ColElemExpr) Do(ctx base.Context) error {
+	// cc.KVal = nil
+	// cc.Src = nil
 	err := cc.Col.Do(ctx)
 	if err != nil {
 		return err
@@ -105,9 +111,10 @@ func (cc *ColElem) Do(ctx base.Context) error {
 		return err
 	}
 	kval := GetExprVal(cc.Key, ctx)
-	cc.KVal = kval
+	// cc.KVal = kval
 	sval := GetExprVal(cc.Col, ctx)
-	cc.Src = sval
+	// cc.Src = sval
+	cc.ColRes = &ColElem{Src: sval, KVal: kval}
 	return nil
 }
 
@@ -160,7 +167,7 @@ func (cp *ColonPair) Do(ctx base.Context) error {
 	if err1 != nil {
 		return err2
 	}
-	cp.res = Pair{objects.GetVal(cp.Left.Get()), objects.GetVal(cp.Right.Get())}
+	cp.res = Pair{GetExprVal(cp.Left, ctx), GetExprVal(cp.Right, ctx)}
 	return nil
 }
 

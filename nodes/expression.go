@@ -93,8 +93,8 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		eVal = vv.Get()
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
 		// return eVal.V
-	case *ColElem:
-		eVal = vv.Get()
+	case *ColElemExpr:
+		eVal = vv.ColRes.Get()
 		fmt.Printf("ColElem#Val: %T, %v\n", eVal, eVal)
 		// return eVal.V
 	default:

@@ -179,7 +179,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 		}
 		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
 		if lok {
-			return &nodes.ColElem{Col: lexp, Key: subs}, true
+			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
 		}
 	}
 	fmt.Printf("PET#2 %T\n", seq)

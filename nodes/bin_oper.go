@@ -50,6 +50,10 @@ func OperArgsInfo(expr any) string {
 		aL = OperArgsInfo(exx.left)
 		aR = OperArgsInfo(exx.right)
 		opStr = exx.Oper.Sign
+	case *LeftArrow:
+		aL = OperArgsInfo(exx.left)
+		aR = OperArgsInfo(exx.right)
+		opStr = "<-"
 	case *Brackets:
 		subs := OperArgsInfo(exx.Sub)
 		return fmt.Sprintf("(%v)", subs)
@@ -115,9 +119,9 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	case *VarExpr:
 		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
 		leftObj = GetVar(lexp, cx)
-	case *ColElem:
-		fmt.Printf("OpAsg=#0 ColElem: %T %v \n", lexp, lexp)
-		leftObj = lexp
+	case *ColElemExpr:
+		leftObj = lexp.Get().V
+		fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)
 	}
 	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
 	switch target := leftObj.(type) {
@@ -242,79 +246,6 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 		res, ok = binOperList(oper, val, right)
 	}
 	return res, ok
-}
-
-// **********************************
-type LeftArrow struct {
-	left   base.Expression
-	right  base.Expression
-	IsIter bool
-	res    any
-}
-
-func (op *LeftArrow) SetLeft(xp base.Expression) {
-	op.left = xp
-}
-func (op *LeftArrow) SetRight(xp base.Expression) {
-	op.right = xp
-}
-
-func (op *LeftArrow) AsIter() {
-	op.IsIter = true
-}
-
-func (op *LeftArrow) Get() *base.Val {
-	return base.NewVal(op.res)
-}
-
-func (op *LeftArrow) GetIterAssign() *base.Val {
-	return base.NewVal(op.res)
-}
-
-func (op *LeftArrow) DoAppend(cx base.Context) error {
-	lvv := GetExprVal(op.left, cx)
-	rvv := GetExprVal(op.right, cx)
-	switch targ := lvv.(type) {
-	case *ob.ListVal:
-		targ.Add(rvv)
-	case *ob.DictVal:
-		switch rval := rvv.(type) {
-		// rvv should be a tuple(2) or dict
-		case *ob.TupleVal:
-			if rval.Len() != 2 {
-				return errors.New("incorrect right tuple in dict:append")
-			}
-			k := rval.Elems[0]
-			v := rval.Elems[1]
-			targ.Set(k, v)
-		case *ob.DictVal:
-			// append dict
-			for k, v := range rval.Vmap {
-				targ.Set(k, v)
-			}
-		}
-	default:
-		return errors.New("trying append to non-collection")
-	}
-	return nil
-}
-
-func (op *LeftArrow) Do(cx base.Context) error {
-	err := op.right.Do(cx)
-	if err != nil {
-		return err
-	}
-	err = op.left.Do(cx)
-	if err != nil {
-		return err
-	}
-	// TODO:
-	// 1) loop-assign: for n <- nn
-	// actually its a generator-like expression
-
-	// 2) append: nn <- v
-
-	return nil
 }
 
 // **********************************
