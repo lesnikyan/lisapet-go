@@ -1,5 +1,6 @@
 package objects
 
+/*
 import dt "github.com/lesnikyan/lisapet-go/lang/datatype"
 
 type Val struct {
@@ -100,10 +101,10 @@ type ColElem[T int | string] struct {
 	Id   int
 }
 
-/*
-* Table of container values
-* should contain all base types and containers
- */
+//
+// * Table of container values
+// * should contain all base types and containers
+//
 type ValTable struct {
 	vint    []int64
 	vfloat  []float64
@@ -177,5 +178,4 @@ type StructInst struct {
 	vtable ValTable
 }
 
-type Function struct {
-}
+*/

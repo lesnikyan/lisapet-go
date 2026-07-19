@@ -21,11 +21,73 @@ ok 6. create dict: d1 = {'a':1, 'b': 2}
 ok 6.1 dict elem: d1[k]
 ok 4. LeftArrow:
 ok 4.1 loop by list: for n <- nn
+ok 4.2 append to list: nn <- v
 6.2 loop by dict for k, v <- d1
-4.2 append to list: nn <- v
 6.3 append to dict: d1 <- (k, v)
 */
 
+func TestForArrowAppendCase(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = []
+		r <- 115
+		`, "r", anynn([]any{115})},
+		{`
+		nn = [11,22,33,44,50,66,77]
+		r = [8]
+		for n <- nn
+			r <- n
+		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 66, 77})},
+		{`
+		ii = [0,1,2,3,4,6]
+		nn = [11,22,33,44,50,66,77]
+		r = [8]
+		for i <- ii
+			r <- nn[i]
+		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 77})},
+		// {``, "a", int64(1)},
+		// {``, "a",  int64(1)},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ArrowIter, %s >>", tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			// t.Log("--- --- --- Do ...")
+			ctx := obb.NewContext(nil)
+			block.Do(ctx)
+			vr := ctx.GetVar(tt.vname)
+			// t.Log("tt#vr", vr)
+			if vr == nil {
+				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				return
+			}
+			val := vr.Val
+			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			switch vobj := val.(type) {
+			case *obb.ListVal:
+				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.Elems)
+			case *obb.DictVal:
+				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				tm, tok := tt.res.(map[any]any)
+				assert.True(t2, tok)
+				res := pres(vobj)
+				assert.Equal(t2, tm, res)
+			case int64:
+				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			default:
+				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			}
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
 func TestForArrowIterCase(t *testing.T) {
 	tdata := []struct {
 		src   string

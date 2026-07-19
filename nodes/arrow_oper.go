@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	ob "github.com/lesnikyan/lisapet-go/objects"
@@ -32,15 +33,25 @@ func (op *LeftArrow) Get() *base.Val {
 	return base.NewVal(op.res)
 }
 
+func (op *LeftArrow) GetIterAssign() *IterAssign {
+	return op.iter
+}
+
+// append to list, or update dict
 func (op *LeftArrow) DoAppend(cx base.Context) error {
+	// fmt.Printf("LAr.DoAppend#0  \n")
 	lvv := GetExprVal(op.left, cx)
 	rvv := GetExprVal(op.right, cx)
+	fmt.Printf("LAr.DoAppend#0 (%T, %v), (%T, %v) \n", lvv, lvv, rvv, rvv)
 	switch targ := lvv.(type) {
 	case *ob.ListVal:
+		// append to List
+		// fmt.Println("Append ListVal")
 		targ.Add(rvv)
 	case *ob.DictVal:
+		// update Dict
 		switch rval := rvv.(type) {
-		// rvv should be a tuple(2) or dict
+		// rvv should be a tuple: (k, v) or dict
 		case *ob.TupleVal:
 			if rval.Len() != 2 {
 				return errors.New("incorrect right tuple in dict:append")
@@ -60,9 +71,27 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 	return nil
 }
 
-func (op *LeftArrow) GetIterAssign() *IterAssign {
-	return op.iter
+// make iterator
+func (op *LeftArrow) DoIter(cx base.Context) error {
+	// actually its a generator-like expression
+	targ := GetExprTarget(op.left, cx)
+	src := GetExprVal(op.right, cx)
+	// fmt.Printf(" >>>  LArr.Do0.iter (%T, %v) Exp: (%T, %v) \n", targ, targ, src, src)
+	var iter SourceIter
+	switch ss := src.(type) {
+	case *ob.ListVal:
+		iter = NewListIter(ss.Elems)
+	case *ob.DictVal:
+		iter = NewDictIter(ss.Vmap)
+	}
+	// fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Exp: (%T, %v) \n", iter, iter, src, src)
+	op.iter = NewIterAssign(iter, targ)
+	return nil
 }
+
+// func (op *LeftArrow) DoAppend(cx base.Context) {
+
+// }
 
 func (op *LeftArrow) Do(cx base.Context) error {
 	err := op.right.Do(cx)
@@ -75,27 +104,14 @@ func (op *LeftArrow) Do(cx base.Context) error {
 	}
 	if op.IsIter {
 		// 1) loop-assign: for n <- nn
-		// actually its a generator-like expression
-		targ := GetExprTarget(op.left, cx)
-		src := GetExprVal(op.right, cx)
-		// fmt.Printf(" >>>  LArr.Do0.iter (%T, %v) Exp: (%T, %v) \n", targ, targ, src, src)
-		var iter SourceIter
-		switch ss := src.(type) {
-		case *ob.ListVal:
-			iter = NewListIter(ss.Elems)
-		case *ob.DictVal:
-			iter = NewDictIter(ss.Vmap)
-		}
-		// fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Exp: (%T, %v) \n", iter, iter, src, src)
-		op.iter = NewIterAssign(iter, targ)
+		return op.DoIter(cx)
 
 	} else {
 		// TODO:
 		// 2) append: nn <- v
-
+		return op.DoAppend(cx)
 	}
-
-	return nil
+	// return nil
 }
 
 // ====

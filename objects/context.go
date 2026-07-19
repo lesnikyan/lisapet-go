@@ -7,6 +7,10 @@ import (
 type Context struct {
 	parent *Context
 	vars   map[string]*base.Var
+	funcs  map[string]*Function
+
+	typeNames map[string]*base.Type
+	typeIds   map[int]*base.Type
 }
 
 func (cx *Context) AddVar(vr *base.Var) {
