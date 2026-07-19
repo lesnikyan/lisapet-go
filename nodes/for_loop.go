@@ -15,7 +15,7 @@ type ForExpr interface {
 	Add(sub base.Expression)
 
 	Init(cx base.Context) error
-	Post(cx base.Context) error
+	// Post(cx base.Context) error
 	Loop(cx base.Context) error
 }
 
@@ -59,13 +59,13 @@ func (nd *ForCondNode) Check(cx base.Context) (bool, error) {
 	return (val.V).(bool), nil
 }
 
-func (nd *ForCondNode) Post(cx base.Context) error {
-	err := nd.PostEx.Do(cx)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (nd *ForCondNode) Post(cx base.Context) error {
+// 	err := nd.PostEx.Do(cx)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (nd *ForCondNode) Loop(cx base.Context) error {
 	// TODO: implement in loop Block: break, continue, return
@@ -127,10 +127,12 @@ type ForSourceNode struct {
 	// InitEx base.Expression
 	// CondEx base.Expression
 	// PostEx base.Expression
-	Block *BlockExpr
+	IterExpr *LeftArrow
+	Block    *BlockExpr
 
-	SourceCollection any // list, dict, tuple, comprehension, generator, slice, etc
-	SourceGen        any
+	// SourceCollection any // list, dict, tuple, comprehension, generator, slice, etc
+	// iter             SourceIter
+	assign *IterAssign
 
 	res any
 }
@@ -144,39 +146,33 @@ func (nd *ForSourceNode) Get() *base.Val {
 }
 
 func (nd *ForSourceNode) Init(cx base.Context) error {
-
+	err := nd.IterExpr.Do(cx)
+	if err != nil {
+		return err
+	}
+	nd.assign = nd.IterExpr.GetIterAssign()
+	nd.assign.Init()
 	return nil
 }
 
-func (nd *ForSourceNode) IterCount(cx base.Context) error {
-	// TODO: implement in loop Block: break, continue, return
+func (nd *ForSourceNode) Loop(cx base.Context) error {
 	for {
-		ok, err := nd.Check(cx)
+		if nd.assign.Finished() {
+			break // correct finich
+		}
+		err := nd.assign.Next()
 		if err != nil {
 			return err
-		}
-		if !ok {
-			return nil // correct finish
 		}
 		err = nd.Block.Do(cx)
 		if err != nil {
 			return err
 		}
-
+		if nd.Block.IsAborted() {
+			// TODO: return, break
+			break
+		}
 	}
-	// return nil
-}
-
-func (nd *ForSourceNode) Post(cx base.Context) error {
-	return nil
-}
-
-func (nd *ForSourceNode) Check(cx base.Context) (bool, error) { return false, nil }
-
-// func (nd *ForSourceNode) IterSource(cx base.Context) error { return nil }
-
-func (nd *ForSourceNode) Loop(cx base.Context) error {
-
 	return nil
 }
 
@@ -197,5 +193,6 @@ func (nd *ForSourceNode) Add(sub base.Expression) {
 }
 
 func NewForSource(subEx *LeftArrow) *ForSourceNode {
-	return &ForSourceNode{Block: NewBlock()}
+	subEx.IsIter = true
+	return &ForSourceNode{Block: NewBlock(), IterExpr: subEx}
 }

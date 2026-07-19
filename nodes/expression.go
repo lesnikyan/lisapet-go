@@ -79,6 +79,35 @@ func GetVar(expr *VarExpr, cx base.Context) *base.Var {
 	return vr
 }
 
+func GetExprTarget(v base.Expression, cx base.Context) any {
+	switch vv := v.(type) {
+	case *VarExpr:
+		vr := GetVar(vv, cx)
+		return vr
+	case *SequenceComma:
+		// subs := vv.Subs
+		r := make([]*base.Var, len(vv.Subs))
+		for i, vsub := range vv.Subs {
+			vrex, ok := vsub.(*VarExpr)
+			if !ok {
+				panic("part of target comma separated expr is not a variable")
+			}
+			vr := GetVar(vrex, cx)
+			r[i] = vr
+		}
+		return r
+		// TODO: take vars, return []*Var
+
+	case *ColElemExpr:
+		colVal := vv.ColRes.Get()
+		if colVal == nil {
+			return nil
+		}
+		return colVal.V // *ColElem: obj[k]
+	}
+	return nil
+}
+
 func GetExprVal(v base.Expression, cx base.Context) any {
 	fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
 	var eVal *base.Val

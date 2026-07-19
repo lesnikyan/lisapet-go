@@ -19,14 +19,14 @@ ok 5. create tuple: (1,2,3)
 ok 5.1 tuple elem t[i]
 ok 6. create dict: d1 = {'a':1, 'b': 2}
 ok 6.1 dict elem: d1[k]
-4. LeftArrow:
-4.1 loop by list: for n <- nn
-4.2 append to list: nn <- v
+ok 4. LeftArrow:
+ok 4.1 loop by list: for n <- nn
 6.2 loop by dict for k, v <- d1
+4.2 append to list: nn <- v
 6.3 append to dict: d1 <- (k, v)
 */
 
-func _TestForArrowIterCase(t *testing.T) {
+func TestForArrowIterCase(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -37,8 +37,14 @@ func _TestForArrowIterCase(t *testing.T) {
 		nn = [1,2,3,4,5]
 		for n <- nn
 			a += n
-		`, "a", int64(1)},
-		// {``, "a",  int64(1)},
+		`, "a", int64(15)},
+		{`
+		ii = [0,1,2,3,4]
+		nn = [11,22,33,44,50,66,77]
+		r = [0,0,0,0,0]
+		for i <- ii
+			r[i] = nn[i]
+		`, "r", anynn([]int64{11, 22, 33, 44, 50})},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {

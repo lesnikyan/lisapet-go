@@ -16,14 +16,15 @@ type ListVal struct {
 
 func (v *ListVal) Set(key int64, elem any) error {
 	if key >= int64(len(v.Elems)) {
-		return ErrorBadKey
+		// return ErrorBadKey
+		panic("list: set elem: index out of range")
 	}
 	v.Elems[int(key)] = elem
 	return nil
 }
 func (v *ListVal) GetElem(key int64) (*base.Val, error) {
 	if key >= int64(len(v.Elems)) {
-		panic("list, get elem: index out of range")
+		panic("list: get elem: index out of range")
 		// return nil, ErrorBadKey
 	}
 	return &base.Val{V: v.Elems[key]}, nil

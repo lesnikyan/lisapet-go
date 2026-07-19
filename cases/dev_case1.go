@@ -83,7 +83,7 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 	case "->":
 		expr = &nodes.OperBin{} // lambda
 	case "<-":
-		expr = &nodes.OperBin{} // L-arrow
+		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
 		expr = &nodes.OperBin{} // func-apply
 	case "?:":
@@ -580,6 +580,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		subNode := forTree.Tree
 		// PrintONode(subNode, 0)
 		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		fmt.Printf("Case#For1,1: (%T, %v): %v \n", subExp, subExp, ok)
 		if !ok {
 			return nil, mockErr
 		}

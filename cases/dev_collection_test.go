@@ -266,62 +266,62 @@ func TestDictCase(t *testing.T) {
 		vname string
 		res   any
 	}{
-		// {`
-		// # empty dict
-		// dd = {}
-		// `, "dd", dk{}},
-		// {`
-		// # dict 1 elem
-		// dd = {'a': 11, }
-		// `, "dd", adk(dk{"a": 11})},
-		// {`
-		// # dict 1 elem
-		// dd = {'a': 12}
-		// `, "dd", adk(dk{"a": 12})},
-		// {`
-		// # dict
-		// dd = {'a': 11, 'b':22, 'c':33}
-		// `, "dd", adk(dk{"a": 11, "b": 22, "c": 33})},
-		// {`
-		// # dict str:str
-		// dd = {'a': 'abc'}
-		// `, "dd", dk{"a": "abc"}},
-		// {`
-		// # dict different type
-		// dd = {'a': 'abc', 2:22, 'c':[1,2,3]}
-		// `, "dd", adk(dk{"a": "abc", 2: 22, "c": anynn([]int64{1, 2, 3})})},
+		{`
+		# empty dict
+		dd = {}
+		`, "dd", dk{}},
+		{`
+		# dict 1 elem
+		dd = {'a': 11, }
+		`, "dd", adk(dk{"a": 11})},
+		{`
+		# dict 1 elem
+		dd = {'a': 12}
+		`, "dd", adk(dk{"a": 12})},
+		{`
+		# dict
+		dd = {'a': 11, 'b':22, 'c':33}
+		`, "dd", adk(dk{"a": 11, "b": 22, "c": 33})},
+		{`
+		# dict str:str
+		dd = {'a': 'abc'}
+		`, "dd", dk{"a": "abc"}},
+		{`
+		# dict different type
+		dd = {'a': 'abc', 2:22, 'c':[1,2,3]}
+		`, "dd", adk(dk{"a": "abc", 2: 22, "c": anynn([]int64{1, 2, 3})})},
 		{`
 		# dict from tuple
 		tt = (1,2)
 		dd = {tt[0] : tt[1]}
 		`, "dd", adk(dk{1: 2})},
-		// {`
-		// # get elem
-		// dd = {'a':1, 'b': 20}
-		// a = dd['a']
-		// a += dd['b']
-		// `, "a", int64(21)},
-		// {`
-		// # set elem
-		// dd = {}
-		// dd['a'] = 11
-		// dd['b'] = 20
-		// dd['a'] = 111
-		// `, "dd", adk(dk{"a": 111, "b": 20})},
-		// {`
-		// # dd[k] += dd[k]
-		// dd = {'a':3, 'b': 2}
-		// dd['a'] += dd['b']
-		// `, "dd", adk(dk{"a": 5, "b": 2})},
-		// {`
-		// # read from dict
-		// nn = ['a','b','c']
-		// dd = {'a': 2, 'b': 3, 'c': 20}
-		// a = 0
-		// for i = 0; i < 3; i += 1
-		// 	k = nn[i]
-		// 	a += dd[k]
-		// `, "a", int64(25)},
+		{`
+		# get elem
+		dd = {'a':1, 'b': 20}
+		a = dd['a']
+		a += dd['b']
+		`, "a", int64(21)},
+		{`
+		# set elem
+		dd = {}
+		dd['a'] = 11
+		dd['b'] = 20
+		dd['a'] = 111
+		`, "dd", adk(dk{"a": 111, "b": 20})},
+		{`
+		# dd[k] += dd[k]
+		dd = {'a':3, 'b': 2}
+		dd['a'] += dd['b']
+		`, "dd", adk(dk{"a": 5, "b": 2})},
+		{`
+		# read from dict
+		nn = ['a','b','c']
+		dd = {'a': 2, 'b': 3, 'c': 20}
+		a = 0
+		for i = 0; i < 3; i += 1
+			k = nn[i]
+			a += dd[k]
+		`, "a", int64(25)},
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {

@@ -7,12 +7,18 @@ import (
 )
 
 type BlockExpr struct {
-	subs    []base.Expression
-	res     any
-	parMark bool
+	subs     []base.Expression
+	res      any
+	parMark  bool
+	aborted  bool      // after: return, break
+	abortRes *base.Val // after return
 }
 
 func (bk *BlockExpr) IsParent() bool {
+	return bk.parMark
+}
+
+func (bk *BlockExpr) IsAborted() bool {
 	return bk.parMark
 }
 
