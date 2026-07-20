@@ -22,8 +22,9 @@ ok 6.1 dict elem: d1[k]
 ok 4. LeftArrow:
 ok 4.1 loop by list: for n <- nn
 ok 4.2 append to list: nn <- v
-6.2 loop by dict for k, v <- d1
-6.3 append to dict: d1 <- (k, v)
+ok 6.2 loop by dict for k, v <- d1
+ok 6.3 append to dict: d1 <- (k, v)
+7. num list: [1..5], [1, 3 .. 7]
 */
 
 func TestForArrowAppendCase(t *testing.T) {
@@ -49,7 +50,34 @@ func TestForArrowAppendCase(t *testing.T) {
 		for i <- ii
 			r <- nn[i]
 		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 77})},
-		// {``, "a", int64(1)},
+		{`
+		# dict append with tuple
+		dd = {}
+		dd <- ('a', 11)
+		`, "dd", adk(dk{"a": 11})},
+		{`
+		nn = ['a','b','c',]
+		dd = {}
+		for i, v <- nn
+			dd <- (v, i)
+		`, "dd", adk(dk{"a": 0, "b": 1, "c": 2})},
+		{`
+		nn = ['a','b','c', 'd', 'e', 'f']
+		dd = {}
+		for i, v <- nn
+			if i % 2 != 0
+				dd <- (v, i)
+		`, "dd", adk(dk{"b": 1, "d": 3, "f": 5})},
+		{`
+		ss = {'aa':11, 'bb':12, 'cc':13}
+		dd = {}
+		`, "a", int64(1)},
+		{`
+		dd = {1:11, }
+		ss = {3:33, 4:44}
+		dd <- {2:22}
+		dd <- ss
+		`, "dd", adk(dk{1: 11, 2: 22, 3: 33, 4: 44})},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
@@ -95,6 +123,7 @@ func TestForArrowIterCase(t *testing.T) {
 		res   any
 	}{
 		{`
+		# v <- list
 		a = 0
 		nn = [1,2,3,4,5]
 		for n <- nn
@@ -107,6 +136,30 @@ func TestForArrowIterCase(t *testing.T) {
 		for i <- ii
 			r[i] = nn[i]
 		`, "r", anynn([]int64{11, 22, 33, 44, 50})},
+		{`
+		# i, v <- list
+		ss = [10, 11, 12, 13, 14]
+		a = 0
+		for i, v <- ss
+			a += i + v
+		`, "a", int64(70)},
+		{`
+		# k,v <- dict
+		dd = {1:100, 2:200, 3:300}
+		a = []
+		a <- 0
+		for k,v <- dd
+			a <- k
+			a <- v
+		`, "a", anynn([]int64{0, 1, 100, 2, 200, 3, 300})},
+		{`
+		# k,v <- dict
+		dd = {1:100, 2:200, 3:300}
+		a = {}
+		a <- 0
+		for k,v <- dd
+			a <- (v, k)
+		`, "a", adk(dk{100: 1, 200: 2, 300: 3})},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {

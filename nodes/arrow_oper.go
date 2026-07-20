@@ -56,6 +56,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 			if rval.Len() != 2 {
 				return errors.New("incorrect right tuple in dict:append")
 			}
+			fmt.Printf("{} <- () [%T, %v],, [%T, %v] \n", rval.Elems[0], rval.Elems[0], rval.Elems[1], rval.Elems[1])
 			k := rval.Elems[0]
 			v := rval.Elems[1]
 			targ.Set(k, v)
@@ -76,7 +77,7 @@ func (op *LeftArrow) DoIter(cx base.Context) error {
 	// actually its a generator-like expression
 	targ := GetExprTarget(op.left, cx)
 	src := GetExprVal(op.right, cx)
-	// fmt.Printf(" >>>  LArr.Do0.iter (%T, %v) Exp: (%T, %v) \n", targ, targ, src, src)
+	fmt.Printf(" >>>  LArr.Do0.iter (%T, %v) Src: (%T, %v) \n", targ, targ, src, src)
 	var iter SourceIter
 	switch ss := src.(type) {
 	case *ob.ListVal:
@@ -84,8 +85,9 @@ func (op *LeftArrow) DoIter(cx base.Context) error {
 	case *ob.DictVal:
 		iter = NewDictIter(ss.Vmap)
 	}
-	// fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Exp: (%T, %v) \n", iter, iter, src, src)
+	fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Src: (%T, %v) \n", iter, iter, src, src)
 	op.iter = NewIterAssign(iter, targ)
+	// fmt.Printf(" %T \n", op.iter)
 	return nil
 }
 
@@ -165,7 +167,7 @@ func (it *ListIter) Next() (Pair, error) {
 	if it.Finished() {
 		return r, errors.New("trying to Next of Finished iterator")
 	}
-	i := it.index
+	i := int64(it.index)
 	val := it.Src[it.index]
 	it.index += 1
 	return Pair{i, val}, nil
@@ -201,11 +203,7 @@ func (it *DictIter) Next() (Pair, error) {
 	if err != nil {
 		return r, err
 	}
-	ind, ok := ival[1].(int)
-	if !ok {
-		return r, errors.New("trying to use non-int index")
-	}
-	k := it.keys[ind]
+	k := ival[1]
 	val := it.MSrc[k]
 	return Pair{k, val}, nil
 }
@@ -238,8 +236,10 @@ func (it *IterAssign) Finished() bool {
 func (it *IterAssign) Next() error {
 	vals, err := it.Src.Next()
 	if err != nil {
+		fmt.Printf(" -- ItAs#0  (%T, %v) \n", err, err)
 		return err
 	}
+	fmt.Printf(" -- ItAs#1 %d (%T, %v) \n", len(vals), vals[0], vals[0])
 	// check val ciunt for multi source: for a, b, c <- nn, cc, vv
 	switch len(it.Target) {
 	case 0:

@@ -14,6 +14,7 @@ raw dev log:
 2026.07.16 added collection elemens expression: `nn[index]`, implemented for lists
 2026.07.16 added tuple type: `tt = (1,2 "hello")`, fixed `nn[index]` for tuple
 2026.07.17 added dict type: `dd = {}`, `dd = {'a': 1, 'b': 2}`, fixed add-set elems: `dd['a'] = 10`, `x = dd['b']`
-
+2023.07.19 adedd `<-` operator. Implemented iterative assignment in `for` expression: `for v <- src`
+2026.07.20 Implemebted append operation for `list` by `<-` operator: `nn <- val`
 
 ```

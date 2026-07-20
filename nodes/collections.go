@@ -136,7 +136,7 @@ func (cs *TupleExpr) Do(ctx base.Context) error {
 		if err != nil {
 			return err
 		}
-		res[i] = objects.GetVal(ex.Get())
+		res[i] = GetExprVal(ex, ctx)
 	}
 	cs.res = objects.NewTupleVal(res)
 	return nil

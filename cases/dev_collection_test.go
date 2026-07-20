@@ -215,19 +215,28 @@ func TestTupleCase(t *testing.T) {
 
 type dk = map[any]any
 
+func tval(val any) any {
+	var ak any = val
+	switch tk := val.(type) {
+	case int:
+		ak = int64(tk)
+	}
+	return ak
+}
+
 func adk(src dk) dk {
 	res := make(dk)
 	for k, v := range src {
-		var ak any = k
-		switch tk := k.(type) {
-		case int:
-			ak = int64(tk)
-		}
-		var av any = v
-		switch tv := v.(type) {
-		case int:
-			av = int64(tv)
-		}
+		var ak any = tval(k)
+		// switch tk := k.(type) {
+		// case int:
+		// 	ak = int64(tk)
+		// }
+		var av any = tval(v)
+		// switch tv := v.(type) {
+		// case int:
+		// 	av = int64(tv)
+		// }
 		res[ak] = av
 	}
 	return res
