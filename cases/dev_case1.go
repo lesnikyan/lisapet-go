@@ -616,14 +616,18 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			return CaseFunc(sigTree, prefTree)
 		}
 	case kWhile:
+	case kBreak:
+		exp := &nodes.BreakExp{}
+		return exp, nil
+	case kContinue:
+		exp := &nodes.ContinueExp{}
+		return exp, nil
+	case kReturn:
 	case kMatch:
 	case kEnum:
 	case kGrup:
 	case kStruct:
 	case kImport:
-	case kReturn:
-	case kBreak:
-	case kContinue:
 	case kConst:
 	case kRun:
 	}

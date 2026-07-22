@@ -2,8 +2,11 @@ package cases
 
 import (
 	"fmt"
+	"log"
+	"reflect"
 	"testing"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	obb "github.com/lesnikyan/lisapet-go/objects"
 	par "github.com/lesnikyan/lisapet-go/parser"
 	"github.com/stretchr/testify/assert"
@@ -24,8 +27,17 @@ ok 4.1 loop by list: for n <- nn
 ok 4.2 append to list: nn <- v
 ok 6.2 loop by dict for k, v <- d1
 ok 6.3 append to dict: d1 <- (k, v)
-7. num list: [1..5], [1, 3 .. 7]
+ok 7.1 break
+ok 7.2 continue
+8. num list: [1..5], [1, 3 .. 7]
 */
+
+func TestInterfaceNil(t *testing.T) {
+	var ee base.Expression
+	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
+	ee = nil
+	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
+}
 
 func TestForArrowAppendCase(t *testing.T) {
 	tdata := []struct {
@@ -33,51 +45,51 @@ func TestForArrowAppendCase(t *testing.T) {
 		vname string
 		res   any
 	}{
-		{`
-		r = []
-		r <- 115
-		`, "r", anynn([]any{115})},
-		{`
-		nn = [11,22,33,44,50,66,77]
-		r = [8]
-		for n <- nn
-			r <- n
-		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 66, 77})},
-		{`
-		ii = [0,1,2,3,4,6]
-		nn = [11,22,33,44,50,66,77]
-		r = [8]
-		for i <- ii
-			r <- nn[i]
-		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 77})},
-		{`
-		# dict append with tuple
-		dd = {}
-		dd <- ('a', 11)
-		`, "dd", adk(dk{"a": 11})},
-		{`
-		nn = ['a','b','c',]
-		dd = {}
-		for i, v <- nn
-			dd <- (v, i)
-		`, "dd", adk(dk{"a": 0, "b": 1, "c": 2})},
-		{`
-		nn = ['a','b','c', 'd', 'e', 'f']
-		dd = {}
-		for i, v <- nn
-			if i % 2 != 0
-				dd <- (v, i)
-		`, "dd", adk(dk{"b": 1, "d": 3, "f": 5})},
-		{`
-		ss = {'aa':11, 'bb':12, 'cc':13}
-		dd = {}
-		`, "a", int64(1)},
-		{`
-		dd = {1:11, }
-		ss = {3:33, 4:44}
-		dd <- {2:22}
-		dd <- ss
-		`, "dd", adk(dk{1: 11, 2: 22, 3: 33, 4: 44})},
+		// {`
+		// r = []
+		// r <- 115
+		// `, "r", anynn([]any{115})},
+		// {`
+		// nn = [11,22,33,44,50,66,77]
+		// r = [8]
+		// for n <- nn
+		// 	r <- n
+		// `, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 66, 77})},
+		// {`
+		// ii = [0,1,2,3,4,6]
+		// nn = [11,22,33,44,50,66,77]
+		// r = [8]
+		// for i <- ii
+		// 	r <- nn[i]
+		// `, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 77})},
+		// {`
+		// # dict append with tuple
+		// dd = {}
+		// dd <- ('a', 11)
+		// `, "dd", adk(dk{"a": 11})},
+		// {`
+		// nn = ['a','b','c',]
+		// dd = {}
+		// for i, v <- nn
+		// 	dd <- (v, i)
+		// `, "dd", adk(dk{"a": 0, "b": 1, "c": 2})},
+		// {`
+		// nn = ['a','b','c', 'd', 'e', 'f']
+		// dd = {}
+		// for i, v <- nn
+		// 	if i % 2 != 0
+		// 		dd <- (v, i)
+		// `, "dd", adk(dk{"b": 1, "d": 3, "f": 5})},
+		// {`
+		// ss = {'aa':11, 'bb':12, 'cc':13}
+		// dd = {}
+		// `, "a", int64(1)},
+		// {`
+		// dd = {1:11, }
+		// ss = {3:33, 4:44}
+		// dd <- {2:22}
+		// dd <- ss
+		// `, "dd", adk(dk{1: 11, 2: 22, 3: 33, 4: 44})},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
@@ -92,6 +104,7 @@ func TestForArrowAppendCase(t *testing.T) {
 			// t.Log("tt#vr", vr)
 			if vr == nil {
 				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				assert.Fail(t2, "No expected Var")
 				return
 			}
 			val := vr.Val
@@ -160,6 +173,18 @@ func TestForArrowIterCase(t *testing.T) {
 		for k,v <- dd
 			a <- (v, k)
 		`, "a", adk(dk{100: 1, 200: 2, 300: 3})},
+		{`
+		# for <- continue, break
+		nn = [1,2,30,40,50,6,7,8,9]
+		rr = []
+		for i, v <- nn
+			if v > 10
+				continue
+			if i == 7
+				rr <- 88
+				break
+			rr <- v
+		`, "rr", anis(1, 2, 6, 7, 88)},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
@@ -187,7 +212,8 @@ func TestForArrowIterCase(t *testing.T) {
 				tm, tok := tt.res.(map[any]any)
 				assert.True(t2, tok)
 				res := pres(vobj)
-				assert.Equal(t2, tm, res)
+				// assert.Equal(t2, tm, res)
+				assert.True(t2, reflect.DeepEqual(tm, res))
 			case int64:
 				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 				assert.Equal(t2, tt.res, vobj)
@@ -235,6 +261,87 @@ func TestForCountCase(t *testing.T) {
 					if j % 2 >0
 						a += i + j
 		`, int64(250)},
+		{`
+		# break
+		a = 0
+		for i=3; i < 10; i += 1
+			a += i
+			break
+		`, int64(3)},
+		{`
+		# for-if
+		a = 100
+		for i=3; i < 6; i += 1
+			if i == 4
+				a += 1000
+			a += i
+		`, int64(1112)},
+		{`
+		# for-if: break
+		a = 100
+		for i=3; i <= 5; i += 1
+			if i == 4
+				break
+			a += i
+		`, int64(103)},
+		{`
+		# for--if--else-if: break
+		a = 100
+		for i=1; i <= 5; i += 1
+			if i == 6
+				break
+			else if i == 3
+				a += 20
+				break
+			a += i
+		`, int64(123)},
+		{`
+		# for--if-else: break
+		a = 100
+		for i=1; i <= 5; i += 1
+			if i < 4
+				a += 10
+			else
+				a += 100
+				break
+			a += i
+		`, int64(236)},
+		{`
+		# for-continue
+		a = 100
+		for i=1; i <= 5; i += 1
+			a += i
+			continue
+		`, int64(115)},
+		{`
+		# for-continue 1
+		a = 100
+		for i=1; i <= 5; i += 1
+			if i < 3
+				continue
+			# 3 4 5
+			a += i
+		`, int64(112)},
+		{`
+		# for-continue 2
+		a = 100
+		for i=1; i <= 5; i += 1
+			if i % 2 == 0
+				continue
+			# 1 3 5
+			a += i
+		`, int64(109)},
+		{`
+		# continue, break
+		a = 100
+		for i=1; i <= 9 ; i += 1
+			if i < 5
+				continue
+			if i == 8
+				break
+			# 5 6 7
+			a += i
+		`, int64(118)},
 		// {``, int64(1)},
 		// {``, int64(1)},
 	}

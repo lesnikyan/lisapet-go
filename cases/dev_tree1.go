@@ -54,9 +54,13 @@ type BlockLink struct {
 // make executable block of expressions by parsed lines
 func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 	top := nodes.NewBlock()
-	var nblock *BlockLink = &BlockLink{elem: top, indent: 0} // TODO: fix start indent
+	if len(clines) == 0 {
+		return nil, errors.New("empty code to build tree")
+	}
+	firstIndent := clines[0].Indent
+	var nblock *BlockLink = &BlockLink{elem: top, indent: firstIndent} // current parent block
 	parents := []*BlockLink{}
-	cind := 0
+	cind := firstIndent
 	for _, cline := range clines {
 		if len(cline.Elems) == 0 {
 			continue
@@ -78,13 +82,19 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		if cind <= nblock.indent {
 			// end of prev block
 			if _, ok := expr.(*nodes.ElseNode); ok {
-				// if cline.Elems[0].Text == "else" {
 				elseInd = true
-				// }
 			}
 			pfound := false
 			for i := len(parents) - 1; i >= 0; i-- {
-				pfound = (elseInd && parents[i].indent == cind) || (!elseInd && parents[i].indent <= cind)
+				pfound = false
+				if elseInd {
+					if parents[i].indent == cind {
+						pfound = true
+					}
+				} else if parents[i].indent < cind {
+					pfound = true
+				}
+				// pfound = () || ()
 				if pfound {
 					// TODO: resolve cases: else, else if
 					nblock = parents[i]
@@ -94,11 +104,11 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			}
 		}
 
-		fmt.Printf("tree.Block %T: %v .Add (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
-		switch texp := expr.(type) {
+		fmt.Printf("tree.Block %T: %v .line: (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
+		switch texp := expr.(type) { // cur expr
 		case *nodes.ElseNode:
 			// nblock is: if | else if
-			switch prev := (nblock.elem).(type) {
+			switch prev := (nblock.elem).(type) { // parent block
 			case *nodes.IfNode:
 				prev.SetElse(texp)
 			case *nodes.ElseNode:

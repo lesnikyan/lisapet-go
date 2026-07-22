@@ -17,10 +17,16 @@ func anynn[T any](vals []T) []any {
 		switch v := x.(type) {
 		case int:
 			x = int64(v)
+		case []int64:
+			x = anynn(v)
 		}
 		r[i] = x
 	}
 	return r
+}
+
+func anis(vals ...any) []any {
+	return anynn(vals)
 }
 
 // func LVals[T any](vals []*base.Val) []any {

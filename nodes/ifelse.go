@@ -12,6 +12,7 @@ type IfNode struct {
 	preCond   *BlockExpr
 	BlockIf   *BlockExpr
 	BlockElse *ElseNode
+	PopUp     *PopUp
 	res       any
 }
 
@@ -23,6 +24,10 @@ func (nd *IfNode) Get() *base.Val {
 	return nil
 }
 
+func (bk *IfNode) GetPopUp() *PopUp {
+	return bk.PopUp
+}
+
 func (nd *IfNode) PreDo(cx base.Context) error {
 	if nd.preCond == nil {
 		return nil
@@ -32,6 +37,7 @@ func (nd *IfNode) PreDo(cx base.Context) error {
 
 func (nd *IfNode) Do(cx base.Context) error {
 	nd.res = nil
+	nd.PopUp = nil
 	// pre cond
 	nd.PreDo(cx)
 	evalBlock := nd.BlockIf
@@ -59,6 +65,11 @@ func (nd *IfNode) Do(cx base.Context) error {
 
 	// eval
 	evalBlock.Do(cx)
+	pup := evalBlock.GetPopUp()
+	if pup != nil {
+		// some aborting
+		nd.PopUp = pup
+	}
 	res := evalBlock.Get()
 	if res != nil {
 		nd.res = res.V
@@ -128,6 +139,10 @@ func (nd *ElseNode) SetSlide(ndif *IfNode) {
 
 func (nd *ElseNode) Get() *base.Val {
 	return nd.Block.Get()
+}
+
+func (bk *ElseNode) GetPopUp() *PopUp {
+	return bk.Block.GetPopUp()
 }
 
 func (nd *ElseNode) Do(cx base.Context) error {

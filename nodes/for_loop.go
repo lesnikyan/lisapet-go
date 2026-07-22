@@ -19,6 +19,13 @@ type ForExpr interface {
 	Loop(cx base.Context) error
 }
 
+type LoopNode interface {
+	IsParent() bool
+	Do(cx base.Context) error
+	Add(sub base.Expression)
+	Loop(cx base.Context) error
+}
+
 type ForCondNode struct {
 	InitEx base.Expression
 	CondEx base.Expression
@@ -30,6 +37,7 @@ type ForCondNode struct {
 
 	IsCond   bool // for ex; ex; ex
 	IsSource bool // for a <- b
+	stopped  bool
 
 	res any
 }
@@ -40,6 +48,10 @@ func (nd *ForCondNode) IsParent() bool {
 
 func (nd *ForCondNode) Get() *base.Val {
 	return nil
+}
+
+func (bk *ForCondNode) GetPopUp() *PopUp {
+	return bk.Block.GetPopUp()
 }
 
 func (nd *ForCondNode) Init(cx base.Context) error {
@@ -59,16 +71,29 @@ func (nd *ForCondNode) Check(cx base.Context) (bool, error) {
 	return (val.V).(bool), nil
 }
 
-// func (nd *ForCondNode) Post(cx base.Context) error {
-// 	err := nd.PostEx.Do(cx)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+func ForStop(bk *BlockExpr) bool {
+	pup := bk.GetPopUp()
+	if pup == nil {
+		return false
+	}
+	// TODO: return
+	switch pup.Parent {
+	case NodeBreak:
+		fmt.Println("#For.Break")
+		return true
+	case NodeContinue:
+		fmt.Println("#For.Continue")
+		return false
+	case NodeReturn:
+		fmt.Println("#For.Return")
+		return true
+	}
+	return false
+}
 
 func (nd *ForCondNode) Loop(cx base.Context) error {
 	// TODO: implement in loop Block: break, continue, return
+	// stop := false
 	for {
 		// check condition
 		ok, err := nd.Check(cx)
@@ -80,11 +105,30 @@ func (nd *ForCondNode) Loop(cx base.Context) error {
 		}
 		// Do block
 		err = nd.Block.Do(cx)
+		if err != nil {
+			return err
+		}
+
+		// pup := nd.Block.GetPopUp()
+		// if pup != nil {
+		// 	// TODO: return, break
+		// 	switch pup.Parent {
+		// 	case NodeBreak:
+		// 		fmt.Println("#For.Break")
+		// 		stop = true
+		// 	case NodeContinue:
+		// 		fmt.Println("#For.Continue")
+		// 	case NodeReturn:
+		// 		fmt.Println("#For.Return")
+		// 		stop = true
+		// 	}
+		// }
+		stop := ForStop(nd.Block)
 		// block.aborted(); // break | return
 		// block.Brocken(); // break case
 		// block.HasReturn; block.GetReturned()
-		if err != nil {
-			return err
+		if stop {
+			break
 		}
 		// Do post
 		err = nd.PostEx.Do(cx)
@@ -145,6 +189,10 @@ func (nd *ForSourceNode) Get() *base.Val {
 	return nil
 }
 
+func (bk *ForSourceNode) GetPopUp() *PopUp {
+	return bk.Block.GetPopUp()
+}
+
 func (nd *ForSourceNode) Init(cx base.Context) error {
 	err := nd.IterExpr.Do(cx)
 	if err != nil {
@@ -168,8 +216,8 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 		if err != nil {
 			return err
 		}
-		if nd.Block.IsAborted() {
-			// TODO: return, break
+		stop := ForStop(nd.Block)
+		if stop {
 			break
 		}
 	}
@@ -195,4 +243,9 @@ func (nd *ForSourceNode) Add(sub base.Expression) {
 func NewForSource(subEx *LeftArrow) *ForSourceNode {
 	subEx.IsIter = true
 	return &ForSourceNode{Block: NewBlock(), IterExpr: subEx}
+}
+
+type WhileNode struct {
+	CondEx base.Expression
+	Block  *BlockExpr
 }
