@@ -81,9 +81,10 @@ func TestForArrowAppendCase(t *testing.T) {
 				dd <- (v, i)
 		`, "dd", adk(dk{"b": 1, "d": 3, "f": 5})},
 		{`
-		ss = {'aa':11, 'bb':12, 'cc':13}
+		ss = {'aa':11, 'bb':12}
 		dd = {}
-		`, "a", int64(1)},
+		dd <- ss
+		`, "dd", adk(dk{"aa": 11, "bb": 12})},
 		{`
 		dd = {1:11, }
 		ss = {3:33, 4:44}
