@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -151,7 +152,7 @@ func NewDots2(lArg base.Expression, rArg base.Expression) *Dots2Expr {
 }
 
 type NumSeqExpr struct {
-	Left  base.Expression
+	Left  base.Expression // any val result or pair `x, y`
 	Right base.Expression
 
 	res *ob.NumSeqGen
@@ -168,17 +169,39 @@ func (sq *NumSeqExpr) Do(cx base.Context) error {
 		return err
 	}
 	// TODO: implement <n,m> case of left arg
-	var lNum int64 = 0
-	lv := sq.Left.Get()
-	if lv != nil {
-		lNum = lv.V.(int64)
+	fmt.Printf(" SqNum left: %T \n", sq.Left)
+	var start int64 = 0
+	var step int64 = 1
+	switch lExp := sq.Left.(type) {
+	case *SequenceComma:
+		subs := lExp.Subs
+		if len(subs) != 2 {
+			return errors.New("NumGen incorrect num of left arg ")
+		}
+		v1 := subs[0].Get()
+		if v1 == nil {
+			return errors.New("NumGen incorrect 1-st agr of left ")
+		}
+		start = v1.V.(int64)
+		v2 := subs[1].Get()
+		if v2 == nil {
+			return errors.New("NumGen incorrect 1-st agr of left ")
+		}
+		n2 := v2.V.(int64)
+		step = n2 - start
+	default:
+		lv := sq.Left.Get()
+		if lv != nil {
+			start = lv.V.(int64)
+		}
+
 	}
-	var rNum int64 = 0
+	var max int64 = 0
 	rv := sq.Right.Get()
 	if rv != nil {
-		rNum = rv.V.(int64)
+		max = rv.V.(int64)
 	}
-	sq.res = ob.NewNumSeqGen(lNum, rNum, 1)
+	sq.res = ob.NewNumSeqGen(start, max, step)
 	return nil
 }
 

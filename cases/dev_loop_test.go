@@ -45,19 +45,36 @@ func TestNumberSequenceCase(t *testing.T) {
 		vname string
 		res   any
 	}{
-		// {`
-		// # iter by var = [ .. ]
-		// r = [-1]
-		// ss = [1 .. 5]
-		// for n <- ss
-		// 	r <- n
-		// `, "r", anynn([]int64{-1, 1, 2, 3, 4, 5})},
+		{`
+		# iter by var = [ .. ]
+		r = [-1]
+		ss = [1 .. 5]
+		for n <- ss
+			r <- n
+		`, "r", anynn([]int64{-1, 1, 2, 3, 4, 5})},
 		{`
 		# iter by [ .. ]
 		r = [-1]
 		for n <- [2 .. 7]
 			r <- n
 		`, "r", anynn([]int64{-1, 2, 3, 4, 5, 6, 7})},
+		{`
+		# num-gen, custom step to var
+		a = [1, 3 .. 7]
+		`, "a", anis(1, 3, 5, 7)},
+		{`
+		# iter by [ .. ]
+		r = [-2]
+		for n <- [1, 3 .. 7]
+			r <- n
+		`, "r", anis(-2, 1, 3, 5, 7)},
+		{`
+		# num gen [ .. ] custom step, max is over
+		r = [-3]
+		for n <- [1, 4 .. 11]
+			r <- n
+		`, "r", anis(-3, 1, 4, 7, 10)},
+		// {``, "a",  int64(1)},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
