@@ -29,7 +29,7 @@ ok 6.2 loop by dict for k, v <- d1
 ok 6.3 append to dict: d1 <- (k, v)
 ok 7.1 break
 ok 7.2 continue
-8. num list: [1..5], [1, 3 .. 7]
+ok 8. num list: [1..5], [1, 3 .. 7]
 */
 
 func TestInterfaceNil(t *testing.T) {
@@ -74,6 +74,24 @@ func TestNumberSequenceCase(t *testing.T) {
 		for n <- [1, 4 .. 11]
 			r <- n
 		`, "r", anis(-3, 1, 4, 7, 10)},
+		{`
+		# num gen from negative - up
+		r = [-50]
+		for n <- [5, 3 .. -3]
+			r <- n
+		`, "r", anis(-50, 5, 3, 1, -1, -3)},
+		{`
+		# num gen from negative - down
+		r = [-51]
+		for n <- [-1, 4, .. 15]
+			r <- n
+		`, "r", anis(-51, -1, 4, 9, 14)},
+		{`
+		# num gen negative step
+		r = [-52]
+		for n <- [-1, -4, .. -15]
+			r <- n
+		`, "r", anis(-52, -1, -4, -7, -10, -13)},
 		// {``, "a",  int64(1)},
 		// {``, "a",  int64(1)},
 	}
