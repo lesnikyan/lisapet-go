@@ -293,14 +293,20 @@ func SplitCode(code string) []*lang.CLine {
 	if BaseIndent > 0 {
 
 	}
-	ln0 := Runes(lines[0])
-	if strings.ContainsRune(_spaces, ln0[0]) {
-		for i, r := range ln0 {
-			if !strings.ContainsRune(_spaces, r) {
-				BaseIndent = i - 1
-			}
+	for _, ln := range lines {
+		if len(ln) == 0 {
+			continue
 		}
-		// cutIndent(line)
+		lnx := Runes(ln)
+		if strings.ContainsRune(_spaces, lnx[0]) {
+			for i, r := range lnx {
+				if !strings.ContainsRune(_spaces, r) {
+					BaseIndent = i - 1
+				}
+			}
+			// cutIndent(line)
+		}
+		break
 	}
 	for i, line := range lines {
 		rline := Runes(line)
