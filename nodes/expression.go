@@ -126,6 +126,8 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		eVal = vv.ColRes.Get()
 		fmt.Printf("ColElem#Val: %T, %v\n", eVal, eVal)
 		// return eVal.V
+	case *NumSeqExpr:
+		return vv.res.GetList()
 	default:
 		return vv.Get().V
 	}

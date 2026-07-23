@@ -142,20 +142,17 @@ func (cs *TupleExpr) Do(ctx base.Context) error {
 	return nil
 }
 
-// L : R
-type Pair [2]any
-
 type ColonPair struct {
 	Left  base.Expression
 	Right base.Expression
-	res   Pair
+	res   base.Pair
 }
 
 func (cp *ColonPair) Get() *base.Val {
 	return base.NewVal(cp.res)
 }
 
-func (cp *ColonPair) GetPair() Pair {
+func (cp *ColonPair) GetPair() base.Pair {
 	return cp.res
 }
 func (cp *ColonPair) Do(ctx base.Context) error {
@@ -167,7 +164,7 @@ func (cp *ColonPair) Do(ctx base.Context) error {
 	if err1 != nil {
 		return err2
 	}
-	cp.res = Pair{GetExprVal(cp.Left, ctx), GetExprVal(cp.Right, ctx)}
+	cp.res = base.Pair{GetExprVal(cp.Left, ctx), GetExprVal(cp.Right, ctx)}
 	return nil
 }
 

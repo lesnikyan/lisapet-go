@@ -14,6 +14,9 @@ func NewVal(v any) *Val {
 	return &Val{V: v}
 }
 
+// L : R
+type Pair [2]any
+
 type Context interface {
 	AddVar(vr *Var)
 	GetVar(name string) *Var

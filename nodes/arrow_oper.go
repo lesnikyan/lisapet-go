@@ -42,7 +42,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 	// fmt.Printf("LAr.DoAppend#0  \n")
 	lvv := GetExprVal(op.left, cx)
 	rvv := GetExprVal(op.right, cx)
-	fmt.Printf("LAr.DoAppend#0 (%T, %v), (%T, %v) \n", lvv, lvv, rvv, rvv)
+	// fmt.Printf("LAr.DoAppend#0 (%T, %v), (%T, %v) \n", lvv, lvv, rvv, rvv)
 	switch targ := lvv.(type) {
 	case *ob.ListVal:
 		// append to List
@@ -76,16 +76,25 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 func (op *LeftArrow) DoIter(cx base.Context) error {
 	// actually its a generator-like expression
 	targ := GetExprTarget(op.left, cx)
-	src := GetExprVal(op.right, cx)
-	fmt.Printf(" >>>  LArr.Do0.iter (%T, %v) Src: (%T, %v) \n", targ, targ, src, src)
+	var src any
+	// fmt.Printf(" >>>  LArr.Do0.iter (%T, %v) Src: (%T, %v) \n", op.left, op.left, op.right, op.right)
+	switch srcExp := op.right.(type) {
+	case *NumSeqExpr:
+		src = srcExp.Get().V
+	default:
+		src = GetExprVal(op.right, cx)
+	}
+	// fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Src: (%T, %v) \n", targ, targ, src, src)
 	var iter SourceIter
 	switch ss := src.(type) {
 	case *ob.ListVal:
 		iter = NewListIter(ss.Elems)
 	case *ob.DictVal:
 		iter = NewDictIter(ss.Vmap)
+	case *ob.NumSeqGen:
+		iter = ss // &NumGenIter{Src: ss}
 	}
-	fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Src: (%T, %v) \n", iter, iter, src, src)
+	// fmt.Printf(" >>>  LArr.Do3.iter (%T, %v) Src: (%T, %v) \n", iter, iter, src, src)
 	op.iter = NewIterAssign(iter, targ)
 	// fmt.Printf(" %T \n", op.iter)
 	return nil
@@ -132,8 +141,8 @@ func MKeys(s map[any]any) []any {
 
 type SourceIter interface {
 	Init()
-	Next() (Pair, error) // index:val | key:val
-	Finished() bool      // true if iter has ended
+	Next() (base.Pair, error) // index:val | key:val
+	Finished() bool           // true if iter has ended
 }
 
 // ====
@@ -162,15 +171,15 @@ func (it *ListIter) Finished() bool {
 	return it.index > it.maxInd
 }
 
-func (it *ListIter) Next() (Pair, error) {
-	var r Pair
+func (it *ListIter) Next() (base.Pair, error) {
+	var r base.Pair
 	if it.Finished() {
 		return r, errors.New("trying to Next of Finished iterator")
 	}
 	i := int64(it.index)
 	val := it.Src[it.index]
 	it.index += 1
-	return Pair{i, val}, nil
+	return base.Pair{i, val}, nil
 }
 
 func NewListIter(val []any) *ListIter {
@@ -194,8 +203,8 @@ func (it *DictIter) Init() {
 	it.iter.Init()
 }
 
-func (it *DictIter) Next() (Pair, error) {
-	var r Pair
+func (it *DictIter) Next() (base.Pair, error) {
+	var r base.Pair
 	if it.iter.Finished() {
 		return r, errors.New("trying to Next of Finished iterator")
 	}
@@ -205,12 +214,30 @@ func (it *DictIter) Next() (Pair, error) {
 	}
 	k := ival[1]
 	val := it.MSrc[k]
-	return Pair{k, val}, nil
+	return base.Pair{k, val}, nil
 }
 
 func NewDictIter(val map[any]any) *DictIter {
 	return &DictIter{MSrc: val}
 }
+
+// ===
+
+// type NumGenIter struct {
+// 	Src *ob.NumSeqGen
+// }
+
+// func (it *NumGenIter) Init() {
+// 	it.Src.Init()
+// }
+
+// func (it *NumGenIter) Finished() bool {
+// 	return it.Src.Finished()
+// }
+
+// func (it *NumGenIter) Next() (base.Pair, error) {
+// 	return it.Src.Next()
+// }
 
 // ===
 
@@ -236,10 +263,10 @@ func (it *IterAssign) Finished() bool {
 func (it *IterAssign) Next() error {
 	vals, err := it.Src.Next()
 	if err != nil {
-		fmt.Printf(" -- ItAs#0  (%T, %v) \n", err, err)
+		// fmt.Printf(" -- ItAs#0  (%T, %v) \n", err, err)
 		return err
 	}
-	fmt.Printf(" -- ItAs#1 %d (%T, %v) \n", len(vals), vals[0], vals[0])
+	// fmt.Printf(" -- ItAs#1 %d (%T, %v) \n", len(vals), vals[0], vals[0])
 	// check val ciunt for multi source: for a, b, c <- nn, cc, vv
 	switch len(it.Target) {
 	case 0:

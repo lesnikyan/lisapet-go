@@ -78,6 +78,8 @@ func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case "+=", "-=", "*=", "/=", "%=":
 		expr = &nodes.OperBinAssign{Oper: OperByStr(oper)}
+	case "..":
+		expr = nodes.NewDots2(nil, nil)
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)}
 	case "->":
@@ -181,12 +183,17 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 		if lok {
 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
 		}
+
 	}
 	fmt.Printf("PET#2 %T\n", seq)
 	if !okc {
 		// other non-comma-separated cases
-		// seq, ok := subs.(*nodes.SequenceComma)
-		// possible empty or 1-elem in sequence
+		// possible empty, 1-elem in sequence, num-seq [a..b]
+
+		dots2, dok := subs.(*nodes.Dots2Expr)
+		if dok {
+			return dots2.GetNumSeq(), true
+		}
 
 		subEx := []base.Expression{}
 		if rok {
@@ -239,46 +246,20 @@ func ProcSequence(rNode *OperNode) (base.Expression, bool) {
 func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 	node := rNode
 	elems := []base.Expression{}
-	// if node.leftNode == nil && len(node.leftElems) == 0 {
-	// 	//
-	// }
-	// first, ok := OperSub(node.leftNode, node.leftElems)
-	// if !ok {
-	// 	// bad first elem
-	// 	return nil, false
-	// }
 	last := rNode
 	for node != nil && node.oper == rNode.oper {
 		last = node
 		sub, ok := OperSub(node.rightNode, node.rightElems)
-		// if !ok {
-		// 	// end of sequence
-		// }
 		if ok {
 			elems = append(elems, sub)
 		}
-		// if node.leftNode == nil || node.leftNode.oper != node.oper {
-		// 	// start of seq has found
-		// 	first, ok := OperSub(node.leftNode, node.leftElems)
-		// 	if ok {
-		// 		elems = append(elems, first)
-		// 	}
-		// 	// TODO: do we need 1-st empty expression in sequences?
-		// 	// ( ; a; b) ?
-		// 	break
-		// }
 		node = node.leftNode
 	}
-
-	// if node.leftNode != nil ||  {
-	// start of seq has found
 	first, ok := OperSub(last.leftNode, last.leftElems)
 	// fmt.Printf("SeqSub#3 %T %v %T", last, ok, first)
 	if ok {
 		elems = append(elems, first)
 	}
-	// }
-	// elems = append(elems, first)
 	slices.Reverse(elems)
 	fmt.Println("Seq#1:", elems)
 	// sub, ok := OperSub(node.leftNode, node.leftElems)

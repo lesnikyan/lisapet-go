@@ -39,6 +39,65 @@ func TestInterfaceNil(t *testing.T) {
 	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
 }
 
+func TestNumberSequenceCase(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// {`
+		// # iter by var = [ .. ]
+		// r = [-1]
+		// ss = [1 .. 5]
+		// for n <- ss
+		// 	r <- n
+		// `, "r", anynn([]int64{-1, 1, 2, 3, 4, 5})},
+		{`
+		# iter by [ .. ]
+		r = [-1]
+		for n <- [2 .. 7]
+			r <- n
+		`, "r", anynn([]int64{-1, 2, 3, 4, 5, 6, 7})},
+		// {``, "a",  int64(1)},
+	}
+	for _, tt := range tdata {
+		t.Run(fmt.Sprintf("ArrowIter, %s >>", tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			// t.Log("--- --- --- Do ...")
+			ctx := obb.NewContext(nil)
+			block.Do(ctx)
+			vr := ctx.GetVar(tt.vname)
+			// t.Log("tt#vr", vr)
+			if vr == nil {
+				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				assert.Fail(t2, "No expected Var")
+				return
+			}
+			val := vr.Val
+			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			switch vobj := val.(type) {
+			case *obb.ListVal:
+				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.Elems)
+			case *obb.DictVal:
+				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				tm, tok := tt.res.(map[any]any)
+				assert.True(t2, tok)
+				res := pres(vobj)
+				assert.Equal(t2, tm, res)
+			case int64:
+				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			default:
+				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			}
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
 func TestForArrowAppendCase(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -130,6 +189,7 @@ func TestForArrowAppendCase(t *testing.T) {
 		})
 	}
 }
+
 func TestForArrowIterCase(t *testing.T) {
 	tdata := []struct {
 		src   string
