@@ -92,8 +92,7 @@ func ForStop(bk *BlockExpr) bool {
 }
 
 func (nd *ForCondNode) Loop(cx base.Context) error {
-	// TODO: implement in loop Block: break, continue, return
-	// stop := false
+	// TODO: implement in loop Block: return
 	for {
 		// check condition
 		ok, err := nd.Check(cx)
@@ -108,25 +107,7 @@ func (nd *ForCondNode) Loop(cx base.Context) error {
 		if err != nil {
 			return err
 		}
-
-		// pup := nd.Block.GetPopUp()
-		// if pup != nil {
-		// 	// TODO: return, break
-		// 	switch pup.Parent {
-		// 	case NodeBreak:
-		// 		fmt.Println("#For.Break")
-		// 		stop = true
-		// 	case NodeContinue:
-		// 		fmt.Println("#For.Continue")
-		// 	case NodeReturn:
-		// 		fmt.Println("#For.Return")
-		// 		stop = true
-		// 	}
-		// }
 		stop := ForStop(nd.Block)
-		// block.aborted(); // break | return
-		// block.Brocken(); // break case
-		// block.HasReturn; block.GetReturned()
 		if stop {
 			break
 		}
@@ -163,6 +144,10 @@ func NewForCond(subEx *SequenceSemicolon) *ForCondNode {
 	cond := subEx.Subs[1]
 	post := subEx.Subs[2]
 	return &ForCondNode{InitEx: init, CondEx: cond, PostEx: post, Block: NewBlock()}
+}
+
+func NewWhile(cond base.Expression) *ForCondNode {
+	return &ForCondNode{InitEx: &EmptyExpr{}, CondEx: cond, PostEx: &EmptyExpr{}, Block: NewBlock()}
 }
 
 // ***************************************************

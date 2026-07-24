@@ -39,6 +39,78 @@ func TestInterfaceNil(t *testing.T) {
 	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
 }
 
+func TestWhileCase(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		# while
+		r = []
+		a = 1
+		while a < 5
+			n = a + 10
+			a += 1
+			r <- n
+		`, "r", anis(11, 12, 13, 14)},
+		{`
+		# while, more complex
+		r = []
+		x = 9
+		ss = [1..20]
+		i = 0
+		L = 0
+		while L < 6
+			if i == 20
+				break
+			v = ss[i]
+			if v % 2 > 0
+				if v % 3 > 0
+					if v % 5 > 0
+						r <- v
+			i += 1
+		`, "r", anis(1, 7, 11, 13, 17, 19)},
+		// {``, "a",  int64(1)},
+	}
+	for i, tt := range tdata {
+		t.Run(fmt.Sprintf("ArrowIter, %d) %s >>", i, tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			// t.Log("--- --- --- Do ...")
+			ctx := obb.NewContext(nil)
+			block.Do(ctx)
+			vr := ctx.GetVar(tt.vname)
+			// t.Log("tt#vr", vr)
+			if vr == nil {
+				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				assert.Fail(t2, "No expected Var")
+				return
+			}
+			val := vr.Val
+			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			switch vobj := val.(type) {
+			case *obb.ListVal:
+				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.Elems)
+			case *obb.DictVal:
+				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				tm, tok := tt.res.(map[any]any)
+				assert.True(t2, tok)
+				res := pres(vobj)
+				assert.Equal(t2, tm, res)
+			case int64:
+				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			default:
+				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			}
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+}
+
 func TestNumberSequenceCase(t *testing.T) {
 	tdata := []struct {
 		src   string

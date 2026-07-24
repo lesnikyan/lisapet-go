@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -64,14 +65,68 @@ func OperByStr(s string) *nodes.Oper {
 	return &nodes.Oper{Sign: s, Id: nodes.OperIndex(s)}
 }
 
-func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
+var NoNumElem = errors.New("Not number elem to parse")
+
+func ParseInt(el *lang.Elem) (int64, error) {
+	// le := node.leftElems[0]
+	if el.Type != Lt.Num {
+		return 0, NoNumElem
+	}
+	return strconv.ParseInt(el.Text, 10, 64)
+}
+
+func DotCaseOper(node *OperNode) *nodes.OperDot {
+	if node.leftNode != nil || node.rightNode != nil {
+		return &nodes.OperDot{} // not float
+	}
+	return nil
+}
+
+func DotCaseNum(node *OperNode) *nodes.ValExpr {
+	if len(node.leftElems) > 1 || len(node.rightElems) > 1 {
+		return nil // not-number case
+	}
+
+	sb := &strings.Builder{}
+	// get int part
+	if len(node.leftElems) == 1 {
+		el := node.leftElems[0]
+		if el.Type != Lt.Num {
+			return nil // not number
+		}
+		sb.WriteString(el.Text)
+	}
+	sb.WriteString(".")
+	// get decimal part
+	if len(node.rightElems) == 1 {
+		el := node.rightElems[0]
+		if el.Type != Lt.Num {
+			return nil // not number
+		}
+		sb.WriteString(el.Text)
+	}
+	nstr := sb.String()
+	nval, err := strconv.ParseFloat(nstr, 64)
+	if err != nil {
+		return nil
+	}
+	return &nodes.ValExpr{Val: nval}
+}
+
+// func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
+func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	var expr base.OperExpr
 	oper := rNode.oper
 	println("$$PROP#0:", oper)
 	switch oper {
 	case "=":
 		expr = &nodes.OperAssign{Oper: oper}
-
+	case ".":
+		fnum := DotCaseNum(rNode)
+		if fnum != nil {
+			return fnum, true
+		}
+		expr = &nodes.OperDot{} // lambda
 	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
@@ -575,6 +630,23 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			err = errors.New("bad sub-expr for `for` expression")
 		}
 		return exp, err
+	case kWhile:
+		forTree, err := Line2tree(subElems[1:], kwRoot)
+		if err != nil {
+			// do smth
+		}
+		if !forTree.Finished {
+			// unclosed expression, need continue on next line...
+		}
+		subNode := forTree.Tree
+		// PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		fmt.Printf("Case#While#1: (%T, %v): %v \n", subExp, subExp, ok)
+		if !ok {
+			return nil, mockErr
+		}
+		exp := nodes.NewWhile(subExp)
+		return exp, nil
 
 	case kFunc:
 		if len(subElems) > 6 {
@@ -596,7 +668,6 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			}
 			return CaseFunc(sigTree, prefTree)
 		}
-	case kWhile:
 	case kBreak:
 		exp := &nodes.BreakExp{}
 		return exp, nil

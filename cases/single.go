@@ -43,16 +43,6 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 	if !slices.Contains(_valLexms, ee[0].Type) {
 		return nil, false
 	}
-	// if ee[0].Type == Lt.Word && !slices.Contains(_constLex, ee[0].Text) {
-	// 	return nil, false
-	// }
-	// if ee[0].Type == Lt.Word {
-	// 	cv, ok := _contsVals[etext]
-	// 	if !ok {
-	// 		return nil, false
-	// 	}
-	// 	return valex(cv), true
-	// }
 
 	var res base.Expression = nil
 	// var ok = false

@@ -6,6 +6,19 @@ import (
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
+// *** EMPTY
+
+type EmptyExpr struct {
+}
+
+func (op *EmptyExpr) Get() *base.Val {
+	return nil
+}
+
+func (op *EmptyExpr) Do(cx base.Context) error {
+	return nil
+}
+
 // *** ValExpr
 type ValExpr struct {
 	Val any
@@ -124,10 +137,12 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// return eVal.V
 	case *ColElemExpr:
 		eVal = vv.ColRes.Get()
-		fmt.Printf("ColElem#Val: %T, %v\n", eVal, eVal)
+		fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
 		// return eVal.V
 	case *NumSeqExpr:
-		return vv.res.GetList()
+		res := vv.res.GetList()
+		fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
+		return res
 	default:
 		return vv.Get().V
 	}

@@ -93,9 +93,9 @@ func elemType(c rune, prev Lt.Lt) Lt.Lt {
 		if strings.ContainsRune(extNum, c) {
 			return Lt.Num
 		}
-		if c == '.' {
-			return prev
-		}
+		// if c == '.' {
+		// 	return prev
+		// }
 	case Lt.Word:
 		if strings.ContainsRune(c_nums, c) || has(charSet, c) {
 			return Lt.Word
@@ -191,9 +191,9 @@ func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
 		}
 		// TODO: need 1-st line of mttext to detect valid close sequence
 	case Lt.Num:
-		if next == '.' {
-			return slices.Contains(cur, '.') // possibly decimal point
-		}
+		// if next == '.' {
+		// 	return slices.Contains(cur, '.') // possibly decimal point
+		// }
 		return curType != Lt.Num
 	case Lt.Oper:
 		if curType != Lt.Oper {
@@ -246,7 +246,7 @@ func SplitLine(runes []rune, ctx SplitContext) []*lang.Elem {
 		}
 
 		fin := finCond(cur, c, xtype, ctype)
-		// log.Printf("SL1: %s  <%s>, %s : '%s'  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
+		// log.Printf("SL1: %s  c<%s>, x<%s> : s='%s'  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
 		if fin {
 			ntype := nextType(xtype, c)
 			if xtype == Lt.Quot { // close string

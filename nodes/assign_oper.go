@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 type OperAssign struct {
@@ -33,6 +34,9 @@ func (op *OperAssign) Do(cx base.Context) error {
 	}
 	fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
 	rval := GetExprVal(op.right, cx)
+	if rr, ok := rval.(*objects.ListVal); ok {
+		fmt.Printf("Op=Do#2, R-list len = %v \n", len(rr.Elems))
+	}
 	err1 := op.left.Do(cx)
 	if err1 != nil {
 		return err1

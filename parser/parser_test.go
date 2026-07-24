@@ -7,6 +7,10 @@ import (
 
 	lang "github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
+
+	// "github.com/lesnikyan/lisapet-go/parser"
+
+	// "github.com/lesnikyan/lisapet-go/parser"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -57,7 +61,43 @@ func TestSplitCode(t *testing.T) {
 		rts[i] = rw
 	}
 	assert.Equal(t, exp, rts)
+}
 
+func TestSplitOpers(t *testing.T) {
+	data := []struct {
+		code  string
+		parts []string
+	}{
+		{"x=1", []string{"x", "=", "1"}},
+		{"1..2", []string{"1", "..", "2"}},
+		{"[1..20]", []string{"[", "1", "..", "20", "]"}},
+		// {"1", []string{"1"}},
+		// {"1", []string{"1"}},
+	}
+
+	for j, tt := range data {
+		t.Run(fmt.Sprintf(" %d) %s", j, tt.code), func(t2 *testing.T) {
+			sctx := SplitContext{}
+			elems := SplitLine([]rune(tt.code), sctx)
+			res := make([]string, len(elems))
+			for i, el := range elems {
+				res[i] = el.Text
+			}
+			assert.Equal(t2, tt.parts, res)
+		})
+	}
+	// clines := SplitCode(code)
+	// rts := make([][]string, len(clines))
+	// for i, cl := range clines {
+	// 	rw := make([]string, len(cl.Elems))
+	// 	for j, el := range cl.Elems {
+	// 		rw[j] = fmt.Sprintf("%s?^%s", el.Text, Lt.TName(el.Type))
+	// 	}
+	// 	strings.Join(rw, `","`)
+	// 	// t.Log(strings.Join(rw, `","`))
+	// 	rts[i] = rw
+	// }
+	// assert.Equal(t, exp, rts)
 }
 
 var num = Lt.Num
