@@ -1,8 +1,6 @@
 package objects
 
 import (
-	"fmt"
-
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -25,6 +23,9 @@ func (cx *Context) SubContext() base.Context {
 
 func (cx *Context) AddVar(vr *base.Var) {
 	// fmt.Printf("o.Ctx.AddVar1 %T, %v \n", vr, vr.Name)
+	if _, ok := cx.vars[vr.Name]; ok {
+		panic("ctx: attempt to add an existing var " + vr.Name)
+	}
 	cx.vars[vr.Name] = vr
 	// fmt.Printf("o.Ctx.AddVar2 %T, %v \n", cx.vars, cx.vars)
 }
@@ -43,7 +44,7 @@ func (cx *Context) GetVar(name string) *base.Var {
 }
 
 func (cx *Context) AddFunc(fn base.FuncVal) {
-	fmt.Printf("cx.AddFunc %s \n", fn.GetName())
+	// fmt.Printf("cx.AddFunc %s \n", fn.GetName())
 	cx.funcs[fn.GetName()] = fn
 }
 
@@ -62,11 +63,11 @@ func (cx *Context) GetFunc(name string) base.FuncVal {
 func (cx *Context) GetElem(name string) *base.ContextElem {
 	curCx := cx
 	for curCx != nil {
-		fmt.Printf("cx.GetEl#1 vars(%T, %v ) funcs(%T, %v )\n", cx.vars, len(cx.vars), cx.funcs, len(cx.funcs))
-		aa, ak := curCx.vars[name]
-		bb, bk := curCx.funcs[name]
+		// fmt.Printf("cx.GetEl#1 vars(%T, %v ) funcs(%T, %v )\n", cx.vars, len(cx.vars), cx.funcs, len(cx.funcs))
+		// aa, ak := curCx.vars[name]
+		// bb, bk := curCx.funcs[name]
 
-		fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, bb, bk)
+		// fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, bb, bk)
 		var ok bool
 		vr, ok := curCx.vars[name]
 		if ok {

@@ -11,7 +11,7 @@ import (
 // func definition node
 type FuncDef struct {
 	Name  string
-	Args  []*VarExpr
+	Args  []base.Expression
 	Block *BlockExpr
 
 	res *Function
@@ -31,13 +31,13 @@ func (fd *FuncDef) Get() *base.Val {
 func (fd *FuncDef) Do(cx base.Context) error {
 	fd.res = nil
 	defCx := objects.NewContext(cx)
-	args := make([]*base.Var, len(fd.Args))
-	for i, vex := range fd.Args {
-		vex.NewVar(defCx)
-		vr := vex.GetVar()
-		args[i] = vr
-	}
-	fn := NewFunction(fd.Name, args, fd.Block, defCx)
+	// args := make([]*base.Var, len(fd.Args))
+	// for i, vex := range fd.Args {
+	// 	vex.NewVar(defCx)
+	// 	vr := vex.GetVar()
+	// 	args[i] = vr
+	// }
+	fn := NewFunction(fd.Name, fd.Args, fd.Block, defCx)
 	fd.res = fn
 	cx.AddFunc(fn)
 	return nil
@@ -52,13 +52,13 @@ func (fd *FuncDef) SetObject(obj *VarExpr) {
 
 }
 
-func NewFuncDef(name string, args []*VarExpr) *FuncDef {
+func NewFuncDef(name string, args []base.Expression) *FuncDef {
 	return &FuncDef{Name: name, Args: args, Block: NewBlock()}
 }
 
 //==
 
-var NoResult = base.NewVal(objects.Null{})
+var NoResult = base.NewVal(&objects.Null{})
 
 //==
 
@@ -74,10 +74,11 @@ type FuncCall struct {
 }
 
 func (fc *FuncCall) Get() *base.Val {
-	if fc.res == nil {
-		return nil
-	}
-	return base.NewVal(fc.res)
+	// if fc.res == nil {
+	// 	return nil
+	// }
+	// return base.NewVal(fc.res)
+	return fc.resVal
 }
 
 func (fc *FuncCall) getFunc(cx base.Context) error {
@@ -98,17 +99,48 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	return nil
 }
 
+func (fc *FuncCall) DoArgs(cx base.Context) error {
+	// do arg expr
+	vals := make([]any, len(fc.args))
+	mvals := map[string]any{}
+	for i, vex := range fc.args {
+		err := vex.Do(cx)
+		if err != nil {
+			return err
+		}
+		val := GetExprVal(vex, cx)
+		if val == nil {
+			return errors.New("func call: no result of argument expression")
+		}
+		vals[i] = val
+	}
+
+	// put args to func
+	fc.fun.SetArgVals(vals, mvals)
+	return nil
+}
+
 func (fc *FuncCall) Do(cx base.Context) error {
 	err := fc.getFunc(cx)
 	if err != nil {
 		return err
 	}
-	fc.fun.Do(cx)
+	// do args
+	err = fc.DoArgs(cx)
+	if err != nil {
+		return err
+	}
+	// do func
+	err = fc.fun.Do(cx)
+	if err != nil {
+		return err
+	}
 	r := fc.fun.Get()
 	fc.resVal = r
 	if r == nil {
 		r = NoResult
 	}
+	fc.resVal = r
 	fc.res = r.V
 	fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
 	return nil

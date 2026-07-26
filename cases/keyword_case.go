@@ -74,7 +74,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 		return nil, errors.New("func def without brackets")
 	}
 	PrintONode(sigTree.Tree, 0)
-	var args []*nodes.VarExpr
+	var args []base.Expression
 	// inBrNode := fNode.rightNode
 	if fNode.rightNode != nil || len(fNode.rightElems) > 0 {
 		argExp, sok := OperSub(fNode.rightNode, fNode.rightElems)
@@ -84,7 +84,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 		switch subs := argExp.(type) {
 		case *nodes.SequenceComma:
 			if len(subs.Subs) > 0 {
-				args = make([]*nodes.VarExpr, len(subs.Subs))
+				args = make([]base.Expression, len(subs.Subs))
 				for i, sub := range subs.Subs {
 					if aex, ok2 := sub.(*nodes.VarExpr); ok2 {
 						args[i] = aex
@@ -92,7 +92,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 				}
 			}
 		case *nodes.VarExpr:
-			args = []*nodes.VarExpr{subs}
+			args = []base.Expression{subs}
 		}
 	} else {
 		// empty args

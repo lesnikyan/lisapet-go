@@ -39,6 +39,12 @@ func Anis(vals ...any) []any {
 	return Anynn(vals)
 }
 
+// for tuples
+
+func Tanis(vals ...any) *Tup {
+	return &Tup{Anynn(vals)}
+}
+
 // func LVals[T any](vals []*base.Val) []any {
 // 	r := make([]any, len(vals))
 // 	for i, n := range vals {

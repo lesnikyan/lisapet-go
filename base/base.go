@@ -51,7 +51,7 @@ type FuncVal interface {
 	Do(Context) error
 	Get() *Val
 	GetName() string
-	SetArgVals(vals []any)
+	SetArgVals(vals []any, mvals map[string]any)
 	// IsParent() bool
 }
 
