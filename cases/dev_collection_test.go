@@ -9,8 +9,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+TODO:
+1. slice: nn[a : b]
+constructors:
+2. list()
+3. dict()
+4. tuple()
+
+*/
+
 // convert []T to []any
-func anynn[T any](vals []T) []any {
+func Anynn[T any](vals []T) []any {
 	r := make([]any, len(vals))
 	for i, n := range vals {
 		var x any = n
@@ -18,15 +28,15 @@ func anynn[T any](vals []T) []any {
 		case int:
 			x = int64(v)
 		case []int64:
-			x = anynn(v)
+			x = Anynn(v)
 		}
 		r[i] = x
 	}
 	return r
 }
 
-func anis(vals ...any) []any {
-	return anynn(vals)
+func Anis(vals ...any) []any {
+	return Anynn(vals)
 }
 
 // func LVals[T any](vals []*base.Val) []any {
@@ -46,22 +56,22 @@ func TestListsCase(t *testing.T) {
 		{`
 		# empty list
 		nn = []
-		`, "nn", anynn([]any{})},
+		`, "nn", Anynn([]any{})},
 		{`
 		# non-empty list
 		nn = [1,2,3,4,5]
-		`, "nn", anynn([]int64{1, 2, 3, 4, 5})},
+		`, "nn", Anynn([]int64{1, 2, 3, 4, 5})},
 		{`
 		# write to list
 		nn = [1,2,3]
 		nn[1] = 222
-		`, "nn", anynn([]int64{1, 222, 3})},
+		`, "nn", Anynn([]int64{1, 222, 3})},
 		{`
 		# write to list in loop
 		a = [0,0,0,0,0]
 		for i=0; i < 5; i += 1
 			a[i] = 10 + i
-		`, "a", anynn([]int64{10, 11, 12, 13, 14})},
+		`, "a", Anynn([]int64{10, 11, 12, 13, 14})},
 		{`
 		# read from list
 		nn = [1,2,3,4,100]
@@ -75,25 +85,25 @@ func TestListsCase(t *testing.T) {
 		a = [0,0,0,0,0]
 		for i = 0; i < 5; i += 1
 			a[i] = nn[i]
-		`, "a", anynn([]int64{11, 12, 13, 14, 15})},
+		`, "a", Anynn([]int64{11, 12, 13, 14, 15})},
 		{`
 		# list[i] += v
 		a = [0,0,0,0,100]
 		for i=0; i < 5; i += 1
 			a[i] += 10 + i
-		`, "a", anynn([]int64{10, 11, 12, 13, 114})},
+		`, "a", Anynn([]int64{10, 11, 12, 13, 114})},
 		{`
 		# list[i] += list[i]
 		nn = [11,12,13,14,15]
 		a = [0,0,0,0,100]
 		for i=0; i < 5; i += 1
 			a[i] += nn[i]
-		`, "a", anynn([]int64{11, 12, 13, 14, 115})},
+		`, "a", Anynn([]int64{11, 12, 13, 14, 115})},
 		// {`` "nn", int64(1)},
 		// {``, "nn", int64(1)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
@@ -127,7 +137,7 @@ type Tup struct {
 }
 
 func tanynn[T any](vals []T) *Tup {
-	vv := anynn(vals)
+	vv := Anynn(vals)
 	return &Tup{elems: vv}
 }
 
@@ -174,18 +184,18 @@ func TestTupleCase(t *testing.T) {
 		a = [0,0,0,0,0]
 		for i = 0; i < 5; i += 1
 			a[i] = tt[i]
-		`, "a", anynn([]any{11, 12, 13, 14, 115})},
+		`, "a", Anynn([]any{11, 12, 13, 14, 115})},
 		{`
 		# list[i] += tuple[i]
 		tt = (11, 12, 13, 14, 115)
 		a = [10,20,30,40,50]
 		for i = 0; i < 5; i += 1
 			a[i] += tt[i]
-		`, "a", anynn([]any{21, 32, 43, 54, 165})},
+		`, "a", Anynn([]any{21, 32, 43, 54, 165})},
 		// {``, "nn", int64(1)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
@@ -304,7 +314,7 @@ func TestDictCase(t *testing.T) {
 		{`
 		# dict different type
 		dd = {'a': 'abc', 2:22, 'c':[1,2,3]}
-		`, "dd", adk(dk{"a": "abc", 2: 22, "c": anynn([]int64{1, 2, 3})})},
+		`, "dd", adk(dk{"a": "abc", 2: 22, "c": Anynn([]int64{1, 2, 3})})},
 		{`
 		# dict from tuple
 		tt = (1,2)
@@ -339,7 +349,7 @@ func TestDictCase(t *testing.T) {
 		`, "a", int64(25)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)

@@ -53,7 +53,7 @@ func TestWhileCase(t *testing.T) {
 			n = a + 10
 			a += 1
 			r <- n
-		`, "r", anis(11, 12, 13, 14)},
+		`, "r", Anis(11, 12, 13, 14)},
 		{`
 		# while, more complex
 		r = []
@@ -70,11 +70,11 @@ func TestWhileCase(t *testing.T) {
 					if v % 5 > 0
 						r <- v
 			i += 1
-		`, "r", anis(1, 7, 11, 13, 17, 19)},
+		`, "r", Anis(1, 7, 11, 13, 17, 19)},
 		// {``, "a",  int64(1)},
 	}
 	for i, tt := range tdata {
-		t.Run(fmt.Sprintf("ArrowIter, %d) %s >>", i, tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
@@ -123,52 +123,52 @@ func TestNumberSequenceCase(t *testing.T) {
 		ss = [1 .. 5]
 		for n <- ss
 			r <- n
-		`, "r", anynn([]int64{-1, 1, 2, 3, 4, 5})},
+		`, "r", Anynn([]int64{-1, 1, 2, 3, 4, 5})},
 		{`
 		# iter by [ .. ]
 		r = [-1]
 		for n <- [2 .. 7]
 			r <- n
-		`, "r", anynn([]int64{-1, 2, 3, 4, 5, 6, 7})},
+		`, "r", Anynn([]int64{-1, 2, 3, 4, 5, 6, 7})},
 		{`
 		# num-gen, custom step to var
 		a = [1, 3 .. 7]
-		`, "a", anis(1, 3, 5, 7)},
+		`, "a", Anis(1, 3, 5, 7)},
 		{`
 		# iter by [ .. ]
 		r = [-2]
 		for n <- [1, 3 .. 7]
 			r <- n
-		`, "r", anis(-2, 1, 3, 5, 7)},
+		`, "r", Anis(-2, 1, 3, 5, 7)},
 		{`
 		# num gen [ .. ] custom step, max is over
 		r = [-3]
 		for n <- [1, 4 .. 11]
 			r <- n
-		`, "r", anis(-3, 1, 4, 7, 10)},
+		`, "r", Anis(-3, 1, 4, 7, 10)},
 		{`
 		# num gen from negative - up
 		r = [-50]
 		for n <- [5, 3 .. -3]
 			r <- n
-		`, "r", anis(-50, 5, 3, 1, -1, -3)},
+		`, "r", Anis(-50, 5, 3, 1, -1, -3)},
 		{`
 		# num gen from negative - down
 		r = [-51]
 		for n <- [-1, 4, .. 15]
 			r <- n
-		`, "r", anis(-51, -1, 4, 9, 14)},
+		`, "r", Anis(-51, -1, 4, 9, 14)},
 		{`
 		# num gen negative step
 		r = [-52]
 		for n <- [-1, -4, .. -15]
 			r <- n
-		`, "r", anis(-52, -1, -4, -7, -10, -13)},
+		`, "r", Anis(-52, -1, -4, -7, -10, -13)},
 		// {``, "a",  int64(1)},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ArrowIter, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
@@ -214,20 +214,20 @@ func TestForArrowAppendCase(t *testing.T) {
 		{`
 		r = []
 		r <- 115
-		`, "r", anynn([]any{115})},
+		`, "r", Anynn([]any{115})},
 		{`
 		nn = [11,22,33,44,50,66,77]
 		r = [8]
 		for n <- nn
 			r <- n
-		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 66, 77})},
+		`, "r", Anynn([]int64{8, 11, 22, 33, 44, 50, 66, 77})},
 		{`
 		ii = [0,1,2,3,4,6]
 		nn = [11,22,33,44,50,66,77]
 		r = [8]
 		for i <- ii
 			r <- nn[i]
-		`, "r", anynn([]int64{8, 11, 22, 33, 44, 50, 77})},
+		`, "r", Anynn([]int64{8, 11, 22, 33, 44, 50, 77})},
 		{`
 		# dict append with tuple
 		dd = {}
@@ -260,7 +260,7 @@ func TestForArrowAppendCase(t *testing.T) {
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ArrowIter, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
@@ -316,7 +316,7 @@ func TestForArrowIterCase(t *testing.T) {
 		r = [0,0,0,0,0]
 		for i <- ii
 			r[i] = nn[i]
-		`, "r", anynn([]int64{11, 22, 33, 44, 50})},
+		`, "r", Anynn([]int64{11, 22, 33, 44, 50})},
 		{`
 		# i, v <- list
 		ss = [10, 11, 12, 13, 14]
@@ -324,15 +324,15 @@ func TestForArrowIterCase(t *testing.T) {
 		for i, v <- ss
 			a += i + v
 		`, "a", int64(70)},
-		{`
-		# k,v <- dict
-		dd = {1:100, 2:200, 3:300}
-		a = []
-		a <- 0
-		for k,v <- dd
-			a <- k
-			a <- v
-		`, "a", anynn([]int64{0, 1, 100, 2, 200, 3, 300})},
+		// {`
+		// # k,v <- dict # Incorrect approach: expecting order of dict keys
+		// dd = {1:100, 2:200, 3:300}
+		// a = []
+		// a <- 0
+		// for k,v <- dd
+		// 	a <- k
+		// 	a <- v
+		// `, "a", Anynn([]int64{0, 1, 100, 2, 200, 3, 300})},
 		{`
 		# k,v <- dict
 		dd = {1:100, 2:200, 3:300}
@@ -352,11 +352,11 @@ func TestForArrowIterCase(t *testing.T) {
 				rr <- 88
 				break
 			rr <- v
-		`, "rr", anis(1, 2, 6, 7, 88)},
+		`, "rr", Anis(1, 2, 6, 7, 88)},
 		// {``, "a",  int64(1)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ArrowIter, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)
@@ -514,7 +514,7 @@ func TestForCountCase(t *testing.T) {
 		// {``, int64(1)},
 	}
 	for _, tt := range tdata {
-		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
+		t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
 			clines := par.SplitCode(tt.src[1:])
 			block, err := TreeBlock(clines)
 			assert.Nil(t, err)

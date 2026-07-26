@@ -20,6 +20,13 @@ type Pair [2]any
 type Context interface {
 	AddVar(vr *Var)
 	GetVar(name string) *Var
+	AddFunc(fn FuncVal)
+	GetElem(name string) *ContextElem
+	SubContext() Context
+}
+
+type ContextElem struct {
+	V any
 }
 
 type Expression interface {
@@ -38,6 +45,14 @@ type Block interface {
 	Get() *Val
 	Add(sub Expression)
 	IsParent() bool
+}
+
+type FuncVal interface {
+	Do(Context) error
+	Get() *Val
+	GetName() string
+	SetArgVals(vals []any)
+	// IsParent() bool
 }
 
 // super-expression, expression that can have sub-expression

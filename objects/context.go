@@ -1,16 +1,26 @@
 package objects
 
 import (
+	"fmt"
+
 	"github.com/lesnikyan/lisapet-go/base"
 )
+
+func NewCxElem(v any) *base.ContextElem {
+	return &base.ContextElem{V: v}
+}
 
 type Context struct {
 	parent *Context
 	vars   map[string]*base.Var
-	funcs  map[string]*Function
+	funcs  map[string]base.FuncVal
 
 	typeNames map[string]*base.Type
 	typeIds   map[int]*base.Type
+}
+
+func (cx *Context) SubContext() base.Context {
+	return NewContext(cx)
 }
 
 func (cx *Context) AddVar(vr *base.Var) {
@@ -32,12 +42,53 @@ func (cx *Context) GetVar(name string) *base.Var {
 	return nil
 }
 
+func (cx *Context) AddFunc(fn base.FuncVal) {
+	fmt.Printf("cx.AddFunc %s \n", fn.GetName())
+	cx.funcs[fn.GetName()] = fn
+}
+
+func (cx *Context) GetFunc(name string) base.FuncVal {
+	curCx := cx
+	for curCx != nil {
+		vr, ok := curCx.funcs[name]
+		if ok {
+			return vr
+		}
+		curCx = curCx.parent
+	}
+	return nil
+}
+
+func (cx *Context) GetElem(name string) *base.ContextElem {
+	curCx := cx
+	for curCx != nil {
+		fmt.Printf("cx.GetEl#1 vars(%T, %v ) funcs(%T, %v )\n", cx.vars, len(cx.vars), cx.funcs, len(cx.funcs))
+		aa, ak := curCx.vars[name]
+		bb, bk := curCx.funcs[name]
+
+		fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, bb, bk)
+		var ok bool
+		vr, ok := curCx.vars[name]
+		if ok {
+			return NewCxElem(vr)
+		}
+		fn, ok := curCx.funcs[name]
+		if ok {
+			return NewCxElem(fn)
+		}
+		curCx = curCx.parent
+	}
+	return nil
+}
+
 func NewContext(parent base.Context) *Context {
 	octx, ok := parent.(*Context)
 	if !ok {
 		// return nil
 		octx = nil
 	}
-	c := Context{parent: octx, vars: map[string]*base.Var{}}
+	varMap := map[string]*base.Var{}
+	funMap := map[string]base.FuncVal{}
+	c := Context{parent: octx, vars: varMap, funcs: funMap}
 	return &c
 }

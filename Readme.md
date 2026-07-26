@@ -17,4 +17,5 @@ raw dev log:
 2023.07.19 adedd `<-` operator. Implemented iterative assignment in `for` expression: `for v <- src`
 2026.07.20 Implemented append operation for `list` by `<-` operator: `nn <- val`
 2026.07.23 Implemented number sequence (num generator): `[start .. max]`,  `[start, second .. max]`, fixed for loop and assign
+20026.07.24 Implemented `while` loop. Fixed parsing of `.` char for float num and other cases like: `1..2` 
 ```

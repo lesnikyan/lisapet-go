@@ -25,6 +25,12 @@ func Line2Expr(cline *lang.CLine) (base.Expression, error) {
 		}
 		fmt.Println("L2E1>", cline.Src, expr, err)
 	} else {
+		if len(cline.Elems) == 1 {
+			exp, ok := ProcSubElems(cline.Elems)
+			if ok {
+				return exp, nil
+			}
+		}
 		var res *LineTree
 		res, err = Line2tree(cline.Elems, nil)
 		if err != nil {
@@ -58,14 +64,14 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		return nil, errors.New("empty code to build tree")
 	}
 	firstIndent := clines[0].Indent
-	var nblock *BlockLink = &BlockLink{elem: top, indent: firstIndent} // current parent block
-	parents := []*BlockLink{}
+	var nblock *BlockLink = &BlockLink{elem: top, indent: firstIndent - 1} // current parent block
+	parents := []*BlockLink{nblock}
 	cind := firstIndent
 	for _, cline := range clines {
 		if len(cline.Elems) == 0 {
 			continue
 		}
-		fmt.Println("\n>>>>", cline.Src)
+		fmt.Println("\n>>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem))
 		expr, err := Line2Expr(cline)
 		if err != nil {
 			fmt.Println("Error of line expr!", err)
@@ -79,6 +85,8 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
 		cind = cline.Indent
 		elseInd := false // if expr is `else`
+
+		fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
 		if cind <= nblock.indent {
 			// end of prev block
 			if _, ok := expr.(*nodes.ElseNode); ok {

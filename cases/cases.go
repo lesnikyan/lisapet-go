@@ -1,6 +1,9 @@
 package cases
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
 )
@@ -93,3 +96,27 @@ type LineTree struct {
 // 	// parse var
 // 	return true, &TNode{}
 // }
+
+func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {
+	if node != nil || elems == nil {
+		fmt.Printf(" %s %s: ", strings.Repeat(" ▵", ind), side)
+		if node != nil {
+			PrintONode(node, ind)
+		} else {
+			fmt.Println("<->")
+		}
+	} else {
+		fmt.Printf(" %s %s▷ %v\n", strings.Repeat(" .", ind), side, FPrintElems(elems))
+	}
+}
+
+func PrintONode(node *OperNode, ind int) {
+	//strings.Repeat(" ▵", ind)
+	if node == nil {
+		fmt.Println("Node", node, ind)
+		return
+	}
+	fmt.Printf("⧐ %s %s \n", "", node.oper)
+	PrintOpArg("L", node.leftNode, node.leftElems, ind+1)
+	PrintOpArg("R", node.rightNode, node.rightElems, ind+1)
+}

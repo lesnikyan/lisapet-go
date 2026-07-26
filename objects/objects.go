@@ -19,10 +19,12 @@ type Val interface {
 type Null struct {
 }
 
-type Function struct {
-	Name  string
-	Block *base.Block
-}
+// type Function struct {
+// 	Name  string
+// 	Block *base.Block
+
+// 	argList []*base.Var
+// }
 
 type StructVal struct {
 	Fields []*base.Var

@@ -41,18 +41,34 @@ func (vex *ValExpr) Get() *base.Val {
 
 // *** VarExpr
 type VarExpr struct {
-	name string
-	vr   *base.Var
+	name  string
+	vr    *base.Var
+	IsVar bool
+	cxEl  *base.ContextElem
 }
 
 func (ex *VarExpr) Do(cx base.Context) error {
-	vr := cx.GetVar(ex.name)
-	fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", vr, vr, vr == nil)
-	if vr == nil {
-		ex.vr = nil
+	ex.IsVar = false
+	ex.vr = nil
+	ex.cxEl = nil
+
+	elem := cx.GetElem(ex.name)
+	if elem == nil {
 		return nil
 	}
-	ex.vr = vr
+	// vr := cx.GetVar(ex.name)
+	// fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", vr, vr, vr == nil)
+	// if vr == nil {
+	// 	ex.vr = nil
+	// 	return nil
+	// }
+	switch vr := elem.V.(type) {
+	case *base.Var:
+		ex.vr = vr
+		ex.IsVar = true
+	}
+	ex.cxEl = elem
+	// ex.vr = vr
 	return nil
 }
 
@@ -68,6 +84,10 @@ func (ex *VarExpr) GetVar() *base.Var {
 		return nil
 	}
 	return ex.vr
+}
+
+func (ex *VarExpr) GetElem() *base.ContextElem {
+	return ex.cxEl
 }
 
 func (ex *VarExpr) NewVar(cx base.Context) {
@@ -126,11 +146,23 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	var eVal *base.Val
 	switch vv := v.(type) {
 	case *VarExpr:
-		vr := GetVar(vv, cx)
-		if vr == nil {
+		// vr := GetVar(vv, cx)
+		elem := vv.GetElem()
+		if elem == nil {
 			return nil
 		}
-		return vr.Val
+		// var found:
+		if vv.IsVar {
+			vr := vv.GetVar()
+			val := vr.Val
+			return val
+		}
+		// other objects by name: func, type, enum, group
+		switch el := elem.V.(type) {
+		case *Function:
+			return el
+		}
+		return "<? No val from VArExpr>"
 	case *ValExpr:
 		eVal = vv.Get()
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
@@ -139,6 +171,10 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		eVal = vv.ColRes.Get()
 		fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
 		// return eVal.V
+	case *FuncCall:
+		eVal := vv.Get()
+		fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
+		return eVal.V
 	case *NumSeqExpr:
 		res := vv.res.GetList()
 		fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))

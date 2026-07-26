@@ -177,7 +177,7 @@ func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool)    { return nil, f
 func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool)  { return nil, false }
 func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool)    { return nil, false }
 func binOperType(opid Opid, a any, b any) (any, bool)            { return nil, false }
-func binOperFunc(opid Opid, a ob.Function, b any) (any, bool)    { return nil, false }
+func binOperFunc(opid Opid, a Function, b any) (any, bool)       { return nil, false }
 func binOperStruct(opid Opid, a ob.StructVal, b any) (any, bool) { return nil, false }
 func binOperRegext(opid Opid, a ob.Regexp, b any) (any, bool)    { return nil, false }
 func binOperAny(opid Opid, a any, b any) (any, bool)             { return nil, false }

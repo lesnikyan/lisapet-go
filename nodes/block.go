@@ -119,7 +119,10 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 	}
 	last = bk.subs[len(bk.subs)-1]
 	if last != nil {
-		bk.res = last.Get()
+		r := last.Get()
+		if r != nil {
+			bk.res = r.V
+		}
 	}
 	return nil
 }

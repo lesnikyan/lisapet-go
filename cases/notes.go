@@ -17,8 +17,6 @@ r = 1, expr <+> expr
 -- keyword
 func name(args)
 struct Name f:type
-group Name
-enum Name
 if aexpr
 for expr
 while expr
@@ -26,6 +24,8 @@ match expr
 break
 continue
 return |expr|
+group Name
+enum Name
 -- special / service
 @debug, @exit, @! (@del?)
 -- sequences
