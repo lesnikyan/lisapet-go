@@ -135,6 +135,8 @@ func (fc *FuncCall) Do(cx base.Context) error {
 	if err != nil {
 		return err
 	}
+	// fc.fun.Get
+	// fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
 	r := fc.fun.Get()
 	fc.resVal = r
 	if r == nil {

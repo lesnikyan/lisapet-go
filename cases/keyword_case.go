@@ -118,7 +118,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 	kwRoot := &LineTree{Tree: rootNode, Parents: []*OperNode{rootNode}}
 	switch elems[0].Text {
 	case kIf:
-		ifTree, err := Line2tree(subElems[1:], kwRoot)
+		ifTree, err := Line2tree(subElems, kwRoot)
 		if err != nil {
 			// do smth
 		}
@@ -204,6 +204,25 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		exp := &nodes.ContinueExp{}
 		return exp, nil
 	case kReturn:
+		subElems = SkipSpaces(subElems)
+		if len(subElems) == 0 {
+			return nodes.NewReturn(nil), nil
+		}
+		subTree, err := Line2tree(subElems, kwRoot)
+		if err != nil {
+			// do smth
+		}
+		if !subTree.Finished {
+			// unclosed expression, need continue on next line...
+		}
+		subNode := subTree.Tree
+		// PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		if !ok {
+			return nil, errors.New("Return: bad sub")
+		}
+		exp := nodes.NewReturn(subExp)
+		return exp, nil
 	case kMatch:
 	case kEnum:
 	case kGrup:

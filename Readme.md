@@ -18,5 +18,7 @@ raw dev log:
 2026.07.20 Implemented append operation for `list` by `<-` operator: `nn <- val`
 2026.07.23 Implemented number sequence (num generator): `[start .. max]`,  `[start, second .. max]`, fixed for loop and assign
 2026.07.24 Implemented `while` loop. Fixed parsing of `.` char for float num and other cases like: `1..2` 
-2026.07.26 Implement simplest case of function definition, function call and function result.
+2026.07.26 Implement simplest case of function definition, function call and function result, no args: `func foo()`, `r = func()`
+2026.07.26 Implement positional args in functions: `func foo(a,b,c)`, `r = foo(1,2,3)`
+
 ```

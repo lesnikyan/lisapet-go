@@ -103,7 +103,7 @@ func (op *OperBin) Do(cx base.Context) error {
 	if op.TODO {
 		return nil
 	}
-	fmt.Printf("OperBin.Do#0: oper:%v (%T:%v) (%T:%v)", op.Oper, op.left, op.left, op.right, op.right)
+	// fmt.Printf("OperBin.Do#0: oper:%v (%T:%v) (%T:%v)", op.Oper, op.left, op.left, op.right, op.right)
 	op.left.Do(cx)
 	op.right.Do(cx)
 	// lop := op.left.Get()

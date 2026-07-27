@@ -31,6 +31,7 @@ type ForCondNode struct {
 	CondEx base.Expression
 	PostEx base.Expression
 	Block  *BlockExpr
+	pup    *PopUp
 
 	SourceCollection any // list, dict, tuple, comprehension, generator, slice, etc
 	SourceGen        any
@@ -51,9 +52,8 @@ func (nd *ForCondNode) Get() *base.Val {
 }
 
 func (bk *ForCondNode) GetPopUp() *PopUp {
-	return bk.Block.GetPopUp()
+	return bk.pup
 }
-
 func (nd *ForCondNode) Init(cx base.Context) error {
 	err := nd.InitEx.Do(cx)
 	return err
@@ -71,24 +71,24 @@ func (nd *ForCondNode) Check(cx base.Context) (bool, error) {
 	return (val.V).(bool), nil
 }
 
-func ForStop(bk *BlockExpr) bool {
+func ForStop(bk *BlockExpr) (bool, *PopUp) {
 	pup := bk.GetPopUp()
 	if pup == nil {
-		return false
+		return false, nil
 	}
 	// TODO: return
 	switch pup.Parent {
 	case NodeBreak:
 		fmt.Println("#For.Break")
-		return true
+		return true, nil
 	case NodeContinue:
 		fmt.Println("#For.Continue")
-		return false
+		return false, nil
 	case NodeReturn:
 		fmt.Println("#For.Return")
-		return true
+		return true, pup
 	}
-	return false
+	return false, nil
 }
 
 func (nd *ForCondNode) Loop(cx base.Context) error {
@@ -107,8 +107,14 @@ func (nd *ForCondNode) Loop(cx base.Context) error {
 		if err != nil {
 			return err
 		}
-		stop := ForStop(nd.Block)
+		stop, popUp := ForStop(nd.Block)
 		if stop {
+			if popUp != nil {
+				switch popUp.Parent {
+				case NodeReturn:
+					nd.pup = popUp
+				}
+			}
 			break
 		}
 		// Do post
@@ -158,6 +164,7 @@ type ForSourceNode struct {
 	// PostEx base.Expression
 	IterExpr *LeftArrow
 	Block    *BlockExpr
+	pup      *PopUp
 
 	// SourceCollection any // list, dict, tuple, comprehension, generator, slice, etc
 	// iter             SourceIter
@@ -175,7 +182,7 @@ func (nd *ForSourceNode) Get() *base.Val {
 }
 
 func (bk *ForSourceNode) GetPopUp() *PopUp {
-	return bk.Block.GetPopUp()
+	return bk.pup
 }
 
 func (nd *ForSourceNode) Init(cx base.Context) error {
@@ -189,6 +196,7 @@ func (nd *ForSourceNode) Init(cx base.Context) error {
 }
 
 func (nd *ForSourceNode) Loop(cx base.Context) error {
+	nd.pup = nil
 	for {
 		if nd.assign.Finished() {
 			break // correct finich
@@ -201,8 +209,14 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 		if err != nil {
 			return err
 		}
-		stop := ForStop(nd.Block)
+		stop, popUp := ForStop(nd.Block)
 		if stop {
+			if popUp != nil {
+				switch popUp.Parent {
+				case NodeReturn:
+					nd.pup = popUp
+				}
+			}
 			break
 		}
 	}

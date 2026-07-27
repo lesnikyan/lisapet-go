@@ -190,16 +190,16 @@ func (sq *NumSeqExpr) Do(cx base.Context) error {
 		n2 := v2.V.(int64)
 		step = n2 - start
 	default:
-		lv := sq.Left.Get()
+		lv := GetExprVal(sq.Left, nil)
 		if lv != nil {
-			start = lv.V.(int64)
+			start = lv.(int64)
 		}
 
 	}
 	var max int64 = 0
-	rv := sq.Right.Get()
+	rv := GetExprVal(sq.Right, nil)
 	if rv != nil {
-		max = rv.V.(int64)
+		max = rv.(int64)
 	}
 	sq.res = ob.NewNumSeqGen(start, max, step)
 	return nil

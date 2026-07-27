@@ -21,3 +21,7 @@ type PopUp struct {
 	Parent NodeType
 	Res    *base.Val
 }
+
+func NewPopUp(nt NodeType, res *base.Val) *PopUp {
+	return &PopUp{Parent: nt, Res: res}
+}

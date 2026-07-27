@@ -19,9 +19,9 @@ func (bk *BlockExpr) IsParent() bool {
 	return bk.parMark
 }
 
-func (bk *BlockExpr) IsAborted() bool {
-	return bk.aborted
-}
+// func (bk *BlockExpr) IsAborted() bool {
+// 	return bk.aborted
+// }
 
 func (bk *BlockExpr) GetPopUp() *PopUp {
 	return bk.PopUp
@@ -70,21 +70,45 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			hasRes = false
 			stop = true
 		case *ReturnExp:
-			popUp = NodeReturn
-			hasRes = false
-			if cur.Sub != nil {
-				hasRes = true
-			}
-			stop = true
+			r := cur.Get()
+			pup := NewPopUp(NodeReturn, r)
+			bk.PopUp = pup
+
+			// r := cur.Get()
+			// if r != nil {
+			// 	bk.res = r.V
+			// }
+			return nil
+
 		case *IfNode:
 			inPup := cur.GetPopUp()
 			if inPup != nil {
 				bk.PopUp = inPup
-				bk.res = cur.Get()
 				return nil
+			} else {
+				r := cur.Get()
+				if r != nil {
+					bk.res = r.V
+				}
 			}
 			// other resulting expressions: func def, func call, operators, value, if-else, match, etc
-		case LoopNode:
+		case *ForCondNode:
+			fmt.Printf("Block.Loop node \n")
+
+			inPup := cur.GetPopUp()
+			if inPup != nil {
+				bk.PopUp = inPup
+				return nil
+			}
+			hasRes = false
+		case *ForSourceNode:
+			fmt.Printf("Block.Loop node \n")
+
+			inPup := cur.GetPopUp()
+			if inPup != nil {
+				bk.PopUp = inPup
+				return nil
+			}
 			hasRes = false
 		default:
 			hasRes = true

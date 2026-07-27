@@ -40,7 +40,7 @@ func (rr *ReturnExp) Do(cx base.Context) error {
 	if rr.Sub == nil {
 		return nil
 	}
-	err := rr.Do(cx)
+	err := rr.Sub.Do(cx)
 	if err != nil {
 		return err
 	}

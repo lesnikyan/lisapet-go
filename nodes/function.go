@@ -83,15 +83,30 @@ func (fn *Function) Do(cx base.Context) error {
 		return err
 	}
 	// take result
+
+	// 2. result if return
+	pup := fn.Block.GetPopUp()
+	if pup != nil {
+		switch pup.Parent {
+		case NodeReturn:
+			// return val
+			fn.resVal = pup.Res
+			if pup.Res != nil {
+				fn.res = pup.Res.V
+			}
+			fmt.Printf(" - Fu.Do#4 br(%T : %v) fr(%T : %v) \n", fn.resVal, fn.resVal, fn.res, fn.res)
+		}
+		return nil
+	}
+
 	// 1. simple case: result of last expression
 	r := fn.Block.Get()
 	fn.resVal = r
 	if r != nil {
 		fn.res = r.V
+		fmt.Printf(" - Fu.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fn.res, fn.res)
+		return nil
 	}
-	// fmt.Printf(" - Fu.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fn.res, fn.res)
-
-	// 2. result if return
 
 	return nil
 }
