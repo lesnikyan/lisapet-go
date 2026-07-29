@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/nodes"
 	obb "github.com/lesnikyan/lisapet-go/objects"
 	par "github.com/lesnikyan/lisapet-go/parser"
@@ -15,7 +16,7 @@ TODO:
 ok 1. func def
 ok 2. func call
 ok 3. func args
-4. return, return with res
+ok 4. return, return with res
 4.1 builtin functions, funcs len, iter
 4.2 named args
 5. default arg val
@@ -34,12 +35,133 @@ func t1() {
 
 }
 
+func PreloadContext(cx base.Context) {
+	nodes.PreloadFuncs(cx)
+
+}
+
+func TestFuncBuiltins(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = len("hello! 12345")
+		`, "r", int64(12)},
+		{`
+		s = "hello! 123"
+		r = len(s)
+		`, "r", int64(10)},
+		{`
+		s = []
+		r = len(s)
+		`, "r", int64(0)},
+		{`
+		s = [1,2,3,4,5]
+		r = len(s)
+		`, "r", int64(5)},
+		{`
+		r = len([1,2,3,4,5,6,7])
+		`, "r", int64(7)},
+		// TODO: redefine "print" for tests
+		{`
+		# print, just call
+		print(1)
+		print(1,2,3)
+		print("Hey Print!")
+		print([5,6,7])
+		aa = [11,22]
+		bb = [33,44]
+		print(aa, bb)
+		r = 16)
+		`, "r", int64(16)},
+		{`
+		a1 = join([], "")
+		a2 = join(['a'], "")
+		a3 = join(['q','w','e'], '=')
+		s4 = ['aa','bb','11','22','33','44','55','66','77','88']
+		a4 = join(s4, " ")
+		r = [a1, a2, a3, a4]
+		`, "r", Anis("", "a", "q=w=e", "aa bb 11 22 33 44 55 66 77 88")},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  Anis(11, )},
+		// # r = [foo(5, 2), foo(3, 5), foo(10, 9)]
+	}
+	for i, tt := range tdata {
+		t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
+			clines := par.SplitCode(tt.src[1:])
+			block, err := TreeBlock(clines)
+			assert.Nil(t, err)
+			// t.Log("--- --- --- Do ...")
+			ctx := obb.NewContext(nil)
+			PreloadContext(ctx)
+			terr := block.Do(ctx)
+			if terr != nil {
+				assert.Fail(t2, terr.Error())
+				return
+			}
+			var val any
+			vr := ctx.GetVar(tt.vname)
+			// t.Log("tt#vr", vr)
+			if vr == nil {
+				vel := ctx.GetElem(tt.vname)
+				if vel == nil {
+					assert.Fail(t2, "No expected Var or elem")
+					return
+				}
+				val = vel.V
+				fmt.Printf(" TT#0: %T %v\n", val, val)
+			} else {
+				val = vr.Val
+			}
+			fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
+			switch vobj := val.(type) {
+			case *nodes.Function:
+				// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.GetName())
+			case *obb.ListVal:
+				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				assert.Equal(t2, tt.res, vobj.Elems)
+			case *obb.TupleVal:
+				fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				tup, ok := tt.res.(*Tup)
+				if !ok {
+					assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
+				}
+				assert.Equal(t2, tup.elems, vobj.Elems)
+			case *obb.DictVal:
+				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				tm, tok := tt.res.(map[any]any)
+				assert.True(t2, tok)
+				res := pres(vobj)
+				assert.Equal(t2, tm, res)
+			case int64:
+				fmt.Printf("tt#int#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			case string:
+				fmt.Printf("tt#string#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Equal(t2, tt.res, vobj)
+			case *obb.Null:
+				fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
+				assert.Equal(t2, tt.res, vobj)
+			default:
+				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				assert.Fail(t2, "unknown test result")
+			}
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
+		})
+	}
+	var aa []any = []any{1, 2, 3}
+	fmt.Println(aa)
+}
+
 func TestFuncReturn(t *testing.T) {
-	// 1. return in function
-	// 2. return with value
-	// 3. return from `if`
-	// 4. return from `for`, `while`
-	// 5. return from deep inner block: for/for/if/if
+	// ok 1. return in function
+	// ok 2. return with value
+	// ok 3. return from `if`
+	// ok 4. return from `for`, `while`
+	// ok 5. return from deep inner block: for/for/if/if
 	// 5.1 return from: match-case
 	// 6. return set: return a, b, c
 
