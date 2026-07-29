@@ -82,10 +82,10 @@ func elemType(c rune, prev Lt.Lt) Lt.Lt {
 	// 	return Lt.Text
 	// case Lt.Mttext:
 	// 	return Lt.Text
-	// case Lt.Comm:
-	// 	return Lt.Comm
-	// case Lt.Mtcomm:
-	// 	return Lt.Comm
+	case Lt.Comm:
+		return Lt.Comm
+	case Lt.Mtcomm:
+		return Lt.Comm
 	case Lt.Esc:
 		return Lt.Text
 	case Lt.Num:
@@ -177,6 +177,8 @@ func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
 	}
 
 	switch prevType {
+	case Lt.Comm:
+		return false
 	case Lt.Word:
 		return curType != Lt.Word
 	case Lt.Space:
@@ -226,6 +228,9 @@ func SplitLine(runes []rune, ctx SplitContext) []*lang.Elem {
 		// cur = append(cur, c)
 
 		switch ctype {
+		case Lt.Comm:
+			cur = append(cur, c)
+			continue
 		case Lt.Mtcomm:
 			// if not close
 			cur = append(cur, c)
