@@ -68,7 +68,7 @@ type FuncCall struct {
 	Src  base.Expression // should return function object
 	args []base.Expression
 
-	fun    *Function
+	fun    base.FuncVal
 	res    any
 	resVal *base.Val
 }
@@ -91,11 +91,16 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	if fv == nil {
 		return errors.New("trying to call nil elem")
 	}
-	fn, ok := fv.(*Function)
-	if !ok {
-		return errors.New("trying to call non-function")
+	switch fn := fv.(type) {
+	case *Function:
+		fc.fun = fn
+	case *NFunc:
+		fc.fun = fn
+	default:
+		fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
+		return errors.New("trying to call non-function ")
 	}
-	fc.fun = fn
+
 	return nil
 }
 

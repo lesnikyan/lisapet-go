@@ -159,7 +159,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		}
 		// other objects by name: func, type, enum, group
 		switch el := elem.V.(type) {
-		case *Function:
+		case *Function, *NFunc:
 			return el
 		}
 		return "<? No val from VArExpr>"
