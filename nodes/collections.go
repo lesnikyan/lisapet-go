@@ -61,13 +61,20 @@ func (cc *ColElem) Get() *base.Val {
 		}
 		return res
 
+	case string:
+		index, ok := cc.KVal.(int64)
+		if !ok {
+			panic("incorrect type of index in collection-elem expr")
+		}
+		res := src[int(index)]
+		return base.NewVal(res)
+
 	case *objects.DictVal:
 		res, err := src.GetElem(cc.KVal)
 		if err != nil {
 			return nil
 		}
 		return res
-
 	}
 	return nil
 }

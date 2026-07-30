@@ -45,6 +45,19 @@ func NewListVal(elems []any) *ListVal {
 	return &ListVal{Elems: elems}
 }
 
+func AnyList[T any](vals []T) []any {
+	vv := make([]any, len(vals))
+	for i, v := range vals {
+		vv[i] = v
+	}
+	return vv
+}
+
+func NewAnyListVal[T any](vals []T) *ListVal {
+	vv := AnyList(vals)
+	return NewListVal(vv)
+}
+
 // ****************************************
 
 type TupleVal struct {
