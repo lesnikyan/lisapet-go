@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -97,7 +96,7 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	case *NFunc:
 		fc.fun = fn
 	default:
-		fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
+		// fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
 		return errors.New("trying to call non-function ")
 	}
 
@@ -106,26 +105,56 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 
 func (fc *FuncCall) DoArgs(cx base.Context) error {
 	// do arg expr
-	vals := make([]any, len(fc.args))
+	// namedN := 0
 	mvals := map[string]any{}
-	for i, vex := range fc.args {
-		err := vex.Do(cx)
+	vals := make([]any, len(fc.args))
+
+	i := 0
+	// foo(ord1, ordN, variadic..., named1=val1, named2=val2)
+	for _, vex := range fc.args {
+		nmExp, ok := vex.(*OperAssign)
+		// fmt.Printf("FunCall (Args1): exp:(%T, %v) isAssign: %v \n", vex, vex, ok)
+		if !ok {
+			// ordered arg
+			err := vex.Do(cx)
+			if err != nil {
+				return err
+			}
+			val := GetExprVal(vex, cx)
+			if val == nil {
+				return errors.New("func call: no result of argument expression")
+			}
+			vals[i] = val
+			i += 1
+			continue
+		}
+		// variadic args
+
+		// named arg
+		lvar, ok := nmExp.left.(*VarExpr)
+		if !ok {
+			return errors.New("func call (Args2): Named arg in func call without left part")
+		}
+		err := nmExp.right.Do(cx)
 		if err != nil {
 			return err
 		}
-		val := GetExprVal(vex, cx)
-		if val == nil {
-			return errors.New("func call: no result of argument expression")
+		lval := nmExp.right.Get()
+		// fmt.Printf("FunCall (Args3): r-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.right, nmExp.right, lval, lval == nil)
+		if lval == nil {
+			return errors.New("func call (Args): Named arg in func call without value")
 		}
-		vals[i] = val
+		argName := lvar.name
+		mvals[argName] = lval.V
+		// namedN += 1
 	}
-
 	// put args to func
-	fc.fun.SetArgVals(vals, mvals)
+	fc.fun.SetArgVals(vals[:i], mvals)
 	return nil
 }
 
 func (fc *FuncCall) Do(cx base.Context) error {
+	fc.res = nil
 	err := fc.getFunc(cx)
 	if err != nil {
 		return err
@@ -140,7 +169,6 @@ func (fc *FuncCall) Do(cx base.Context) error {
 	if err != nil {
 		return err
 	}
-	// fc.fun.Get
 	// fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
 	r := fc.fun.Get()
 	fc.resVal = r
@@ -149,7 +177,7 @@ func (fc *FuncCall) Do(cx base.Context) error {
 	}
 	fc.resVal = r
 	fc.res = r.V
-	fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
+	// fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
 	return nil
 }
 

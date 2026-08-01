@@ -18,6 +18,7 @@ type Function struct {
 	// defArgs map[string]*base.Var
 	defArgs map[string]*base.Var
 	argVals []any
+	nmVals  map[string]any
 	Args    []base.Expression
 
 	Block  *BlockExpr
@@ -31,34 +32,54 @@ type Function struct {
 // 3. default arg vals, 4. variative count
 // 5. ovreload by arg count, 6. overload by arg types
 
-func (fn *Function) SetArgVals(vals []any, mvals map[string]any) {
+func (fn *Function) SetArgVals(vals []any, nvals map[string]any) {
+	fmt.Printf(" Fu.SetArgVals  ovs=%d, nvs:%d  \n", len(vals), len(nvals))
 	fn.argVals = vals
+	fn.nmVals = nvals
 }
 
-// foo(<positional>, <named>)
+// foo(<positional>, <variadic...>, <named=val>)
 func (fn *Function) PrepareArgs(fcx base.Context) error {
-	if len(fn.Args) != len(fn.argVals) {
-		return errors.New("Func.prep args: wrong count of arg vals")
-	}
+	// minArgCount := len(fn.Args) // actual for odered args
+	// if len(fn.argVals) <= minArgCount {
+	// 	return errors.New("Func.prep args: wrong count of arg vals")
+	// }
 	// for i, argv := range fn.argVals {
 
 	// }
 	// args := make([]*base.Var, len(fn.Args))
 	for i, ex := range fn.Args {
-		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v) = %v \n", i, ex, ex, fn.argVals[i])
+		fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, ex, ex)
+		var vr *base.Var
+		var val any
 		switch vex := ex.(type) {
 		case *VarExpr:
+			// arg defined as ordered: foo(a, b, c)
 			vex.NewVar(fcx)
-			vr := vex.GetVar()
-			vr.Val = fn.argVals[i]
-		// args[i] = vr
+			vr = vex.GetVar()
+			if i < len(fn.argVals) {
+				val = fn.argVals[i]
+			} else {
+				// val passed by name, after ordered ones: foo(ordered, named=val)
+				nmval, ok := fn.nmVals[vr.Name]
+				if !ok {
+					return errors.New("Not enough arguments")
+				}
+				// named arg has been passed
+				val = nmval
+			}
 		case *OperAssign:
-			// named|default arg - arg = 5
+			// arg defined with default value foo(named=123)
 
+		case *OperColon:
 			// typed arg - x : int
 
+		case *TripleDots:
 			// triple-dots arg - nn...
 		}
+
+		fmt.Printf(" Fu.PArg#N %d) (%T, %v) = (%T, %v)  \n", i, vr, vr, val, val)
+		vr.Val = val
 	}
 	return nil
 }

@@ -56,46 +56,11 @@ type CaseRes struct {
 }
 
 type LineTree struct {
-	Tree     *OperNode   // parsed tree of operators
-	Finished bool        // if all operators and brackates was finished
-	Parents  []*OperNode // final chain of parent nodes - right branch of tree
+	Tree       *OperNode         // parsed tree of operators
+	Finished   bool              // if all operators and brackates was finished
+	Parents    []*OperNode       // final chain of parent nodes - right branch of tree
+	ShiftOpers map[string]string // what an oper : after what should be shifter
 }
-
-// type LangCase interface {
-// 	match(line lang.CLine) bool
-// 	expr(line lang.CLine) *nodes.TNode
-// }
-
-// type CaseNum struct{}
-
-// func (c *CaseNum) match(line lang.CLine) bool {
-// 	return false
-// }
-
-// func (c *CaseNum) expr(line lang.CLine) *nodes.TNode {
-// 	return nil
-// }
-
-// // another way:
-
-// type CPart struct {
-// 	Line  lang.CLine
-// 	start int
-// 	end   int
-// }
-
-// type TNode = nodes.TNode
-
-// func CaseVar(part CPart) (bool, *TNode) {
-// 	if len(part.Line.Elems) != 1 {
-// 		return false, nil
-// 	}
-// 	if part.Line.Elems[0].Type != Lt.Word {
-// 		return false, nil
-// 	}
-// 	// parse var
-// 	return true, &TNode{}
-// }
 
 func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {
 	if node != nil || elems == nil {

@@ -2,6 +2,7 @@ package cases
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"slices"
 	"strings"
@@ -50,14 +51,20 @@ var _operPriorStr = `( ) [ ] { } 1 . 1 ~> 1 ... 1 -x ! ~ 1 ** ^/ 1 * / % 1 + - 1
 
 var _operPriorStr2 = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
-	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
+	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
+
+// spec: fun=
+
+var _operPriorFBr = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
+	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
+	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 = += -= *= /= %= 1 , 1 .. 1 <- 1 @! 1 ; 1 !: :? => 1 /: `
 
 var unary = strings.Split("- ! ~ +", " ")
 var unaryR = strings.Split("... ~>", " ")
 var seqSeprs = strings.Split(", ;", " ")
 var kwPrior = 100000
 
-var priors = func() [][]string {
+func priorSet(opers string) [][]string {
 	ss := strings.Split(_operPriorStr, "1")
 	var res [][]string
 	for _, s := range ss {
@@ -66,18 +73,33 @@ var priors = func() [][]string {
 		res = append(res, nn)
 	}
 	return res
-}()
+}
 
-var priors2 = func() [][]string {
-	ss := strings.Split(_operPriorStr2, "1")
-	var res [][]string
-	for _, s := range ss {
-		s = strings.TrimSpace(s)
-		nn := strings.Split(s, " ")
-		res = append(res, nn)
-	}
-	return res
-}()
+var priors2 = priorSet(_operPriorStr2)
+var priorsFuBr = priorSet(_operPriorFBr)
+var priors = priorSet(_operPriorStr)
+
+// func() [][]string {
+// 	ss := strings.Split(_operPriorStr, "1")
+// 	var res [][]string
+// 	for _, s := range ss {
+// 		s = strings.TrimSpace(s)
+// 		nn := strings.Split(s, " ")
+// 		res = append(res, nn)
+// 	}
+// 	return res
+// }()
+
+// var priors2 = func() [][]string {
+// 	ss := strings.Split(_operPriorStr2, "1")
+// 	var res [][]string
+// 	for _, s := range ss {
+// 		s = strings.TrimSpace(s)
+// 		nn := strings.Split(s, " ")
+// 		res = append(res, nn)
+// 	}
+// 	return res
+// }()
 
 type ints2 [2]int
 
@@ -159,6 +181,8 @@ func (nd *OperNode) AddLElem(el *lang.Elem) {
 // 	}
 // }
 
+// in function brackets foo(a,b,c=9)
+
 /*
 a * b - (c + d) / (2 / 5)
 res:
@@ -173,9 +197,34 @@ Brackets: [[4, 8], [10, 14]]
 3. ,;-sequence
 4. other cases: keyword, space-separated case, n|n|n-sequence, L-unary, R-unary
 */
+
+// x, y = (foo(a=(1,2), b=5), 12), 13
+
+type PriorKey int
+
+const (
+	_             PriorKey = iota
+	PriorKeyBase           // basic priors
+	PriorKeyFunBr          // func definition or call
+	// PriorKeyMatch // case of match
+)
+
+var priorMap = map[PriorKey][][]string{
+	PriorKeyBase:  priors2,
+	PriorKeyFunBr: priorsFuBr,
+}
+
+func notEmptyLeft(node *OperNode) bool {
+	return node.leftNode != nil || len(node.leftElems) > 0
+}
+
 func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	opris := priors2 // here all opers, except unary
-	brC := 0         // brackets depth
+	// opCtx := priors2
+	// if len(prevTree.ShiftOpers) > 0 {
+	// 	// change operShift
+	// }
+	brC := 0 // brackets depth
 	brs := []string{}
 	brpos := []ints2{}
 	// brN := -1 // index of last opened bracked
@@ -200,6 +249,8 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	curPart := []int{} // indexes of elements
 	// left0 := true
 	var slashLambda bool = false
+
+	opcx := 1
 	for i, el := range elems {
 		// curin = i
 		tx := el.Text
@@ -215,28 +266,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		prev = cur
 		cur = el
 		curPart = append(curPart, i)
-		// log.Println("$1", tx, brC, brs, "preCl:", prevCloseBr)
-		// if etp == Lt.Word && IsKeywd(tx) {
-		// 	// keyword detected
-		// 	// should be a first elem in line
-		// 	tnode := &OperNode{kword: tx, prior: kwPrior}
-		// 	if rNode.prior != 555 {
-		// 		rNode.rightNode = tnode //
-		// 	} else {
-		// 		rNode = tnode
-		// 	}
-		// 	cNode = tnode
-		// }
 		if etp != Lt.Oper {
-
-			// if left0 {
-			// 	// very 1st left didnt set
-			// 	// cNode.leftElems = append(cNode.leftElems, el)
-			// 	cNode.AddLElem(el)
-			// } else {
-			// 	cNode.AddRElem(el)
-			// }
-			// log.Println("!=oper", el.Text, cNode.prior, cNode.oper)
 			cNode.AddRElem(el)
 			continue
 		}
@@ -271,15 +301,6 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 				cNode = fParent
 			}
 			parents = parents[:tInd]
-			// if !ok || lastbr != expBr {
-			// 	// incorrect closing bracket
-			// 	return nil, badBracketsErr
-			// }
-			// brs = brs[:len(brs)-1]
-			// brC--
-			// if brC == 0 {
-			// 	brpos[len(brpos)-1][1] = i // closed br
-			// }
 
 			continue
 		}
@@ -316,13 +337,6 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 				obj.mem[1][2](3)(4)
 			*/
 			var solidEnd = strings.Split(") ] } ... ~>", " ")
-			// if prev == nil {
-			// 	cNode = tNode
-			// 	cNode.rightNode = tNode
-			// 	parents = append(parents, tNode)
-			// 	continue
-			// }
-
 			fParent := cNode
 			if prev != nil && (prev.Type == Lt.Word ||
 				(prev.Type == Lt.Oper && slices.Contains(solidEnd, prev.Text)) || // ) ] } ~>
@@ -357,18 +371,37 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			parents = append(parents, tNode)
 			continue
 		}
-		// if brC > 0 {
-		// 	continue // skip sequence in brackets (thinking about 1-pass logic)
-		// }
-		// if cNode.oper == "" {
-		// 	// first oper
-		// 	cNode.oper = tx
-		// 	continue
-		// }
 
 		// log.Println("$102", tx, prevCloseBr)
-
-		curpri := getPrior(opris, tx)
+		// opris = priors2
+		isFuBr := cNode.IsBrackets && cNode.oper == "(" && notEmptyLeft(cNode)
+		txex := tx // changing oper var for special context
+		if cNode.IsBrackets {
+			opcx = 2
+			// debug
+			fmt.Printf(" -- nodeOper: %s, is fuBr: %v \n", cNode.oper, isFuBr)
+			if isFuBr {
+				// cur parent should be a function def or call
+				log.Println("Change oper priors")
+				// opris = priorsFuBr
+				opcx = 3
+			} else {
+				// opris = priors2
+				opcx = 4
+			}
+		}
+		if opcx == 3 {
+			log.Println("Change oper to spec context")
+			switch tx {
+			case "=":
+				txex = "func="
+			}
+		}
+		curpri := getPrior(opris, txex)
+		p1 := getPrior(opris, txex)
+		p2 := getPrior(priorsFuBr, txex)
+		fmt.Printf(" -+ isFuBr %v (ocx:%d); oper: <%s> ; prior: %v \n", isFuBr, opcx, tx, curpri)
+		fmt.Printf(" - oper: <%s> ; prior1: %v ; prior2: %v \n", txex, p1, p2)
 
 		// L-unary section
 		if prev != nil && (prev.Type == Lt.Oper && !prevCloseBr) {
@@ -386,7 +419,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		// R-unary section
 		if slices.Contains(unaryR, tx) {
 
-			curpri = getPrior(opris, tx)
+			curpri = getPrior(opris, txex)
 			tNode := &OperNode{oper: tx, prior: curpri}
 			tInd := 0
 			for k := len(parents) - 1; k >= 0; k-- {

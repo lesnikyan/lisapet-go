@@ -18,8 +18,11 @@ raw dev log:
 2026.07.20 Implemented append operation for `list` by `<-` operator: `nn <- val`
 2026.07.23 Implemented number sequence (num generator): `[start .. max]`,  `[start, second .. max]`, fixed for loop and assign
 2026.07.24 Implemented `while` loop. Fixed parsing of `.` char for float num and other cases like: `1..2` 
-2026.07.26 Implement simplest case of function definition, function call and function result, no args: `func foo()`, `r = func()`
-2026.07.26 Implement positional args in functions: `func foo(a,b,c)`, `r = foo(1,2,3)`
-2026.07.27 Implement command `return`, `return` with value. Fixed `if` `for` blocks for `return`.
+2026.07.26 Implemented simplest case of function definition, function call and function result, no args: `func foo()`, `r = func()`
+2026.07.26 Implemented positional args in functions: `func foo(a,b,c)`, `r = foo(1,2,3)`
+2026.07.27 Implemented command `return`, `return` with value. Fixed `if` `for` blocks for `return`.
+2026.07.29 Implemented ability to add builtin (preloaded) function. Function can be written with Go lang and preload to execution context. 
+-.-.30 Added builtin functions: `len`, `iter`, `split`, `join`, `replace`, `print`.
+2026.08.01 Implemented named args in function call: `r = foo(1, n=2, m='hello')`
 
 ```
