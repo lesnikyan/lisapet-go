@@ -86,7 +86,8 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 			if len(subs.Subs) > 0 {
 				args = make([]base.Expression, len(subs.Subs))
 				for i, sub := range subs.Subs {
-					if aex, ok2 := sub.(*nodes.VarExpr); ok2 {
+					switch aex := sub.(type) {
+					case *nodes.VarExpr, *nodes.OperAssign, *nodes.TripleDots:
 						args[i] = aex
 					}
 				}

@@ -38,6 +38,10 @@ func (fd *FuncDef) Do(cx base.Context) error {
 	// }
 	fn := NewFunction(fd.Name, fd.Args, fd.Block, defCx)
 	fd.res = fn
+	err := fn.Init(cx)
+	if err != nil {
+		return errors.Join(err)
+	}
 	cx.AddFunc(fn)
 	return nil
 }

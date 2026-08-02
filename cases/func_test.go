@@ -1,14 +1,10 @@
 package cases
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/nodes"
-	obb "github.com/lesnikyan/lisapet-go/objects"
-	par "github.com/lesnikyan/lisapet-go/parser"
-	"github.com/stretchr/testify/assert"
 )
 
 /*
@@ -46,77 +42,30 @@ type TTst = struct {
 	res   any    // exp
 }
 
-func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
-	t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
-		clines := par.SplitCode(tt.src[1:])
-		block, err := TreeBlock(clines)
-		assert.Nil(t, err)
-		// t.Log("--- --- --- Do ...")
-		ctx := obb.NewContext(nil)
-		PreloadContext(ctx)
-		terr := block.Do(ctx)
-		if terr != nil {
-			assert.Fail(t2, terr.Error())
-			return
-		}
-		var val any
-		vr := ctx.GetVar(tt.vname)
-		// t.Log("tt#vr", vr)
-		if vr == nil {
-			vel := ctx.GetElem(tt.vname)
-			if vel == nil {
-				assert.Fail(t2, "No expected Var or elem")
-				return
-			}
-			val = vel.V
-			fmt.Printf(" TT#0: %T %v\n", val, val)
-		} else {
-			val = vr.Val
-		}
-		fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
-		switch vobj := val.(type) {
-		case *nodes.Function:
-			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-			assert.Equal(t2, tt.res, vobj.GetName())
-		case *obb.ListVal:
-			fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-			assert.Equal(t2, tt.res, vobj.Elems)
-		case *obb.TupleVal:
-			fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-			tup, ok := tt.res.(*Tup)
-			if !ok {
-				assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
-			}
-			assert.Equal(t2, tup.elems, vobj.Elems)
-		case *obb.DictVal:
-			fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-			tm, tok := tt.res.(map[any]any)
-			assert.True(t2, tok)
-			res := pres(vobj)
-			assert.Equal(t2, tm, res)
-		case int64:
-			fmt.Printf("tt#int#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-			assert.Equal(t2, tt.res, vobj)
-		case string:
-			fmt.Printf("tt#string#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-			assert.Equal(t2, tt.res, vobj)
-		case *obb.Null:
-			fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
-			assert.Equal(t2, tt.res, vobj)
-		default:
-			fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-			assert.Fail(t2, "unknown test result")
-		}
-		// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-	})
-}
-
-func _TestFuncDefNamedArgs(t *testing.T) {
+func TestFuncDefNamedArgs(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
+		// {`
+		// func foo(x, n = 2)
+		// 	x * n
+		// #
+		// r = foo(23)
+		// `, "r", int64(46)},
+		{`
+		func foo(a, b=2, c=100)
+			a * b + c
+		#
+		r = []
+		r <- foo(1)
+		r <- foo(1,5)
+		r <- foo(11, 6, 200)
+		r <- foo(3, 9)
+		r <- foo(3, c=30)
+		r <- foo(4, c=120, b=2)
+		`, "r", Anis(102, 105, 266, 127, 36, 128)},
 		// {``, "r",  int64(205)},
 		// {``, "r",  Anis(11, )},
 	}
@@ -217,68 +166,6 @@ func TestFuncBuiltins(t *testing.T) {
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
-		// t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
-		// 	clines := par.SplitCode(tt.src[1:])
-		// 	block, err := TreeBlock(clines)
-		// 	assert.Nil(t, err)
-		// 	// t.Log("--- --- --- Do ...")
-		// 	ctx := obb.NewContext(nil)
-		// 	PreloadContext(ctx)
-		// 	terr := block.Do(ctx)
-		// 	if terr != nil {
-		// 		assert.Fail(t2, terr.Error())
-		// 		return
-		// 	}
-		// 	var val any
-		// 	vr := ctx.GetVar(tt.vname)
-		// 	// t.Log("tt#vr", vr)
-		// 	if vr == nil {
-		// 		vel := ctx.GetElem(tt.vname)
-		// 		if vel == nil {
-		// 			assert.Fail(t2, "No expected Var or elem")
-		// 			return
-		// 		}
-		// 		val = vel.V
-		// 		fmt.Printf(" TT#0: %T %v\n", val, val)
-		// 	} else {
-		// 		val = vr.Val
-		// 	}
-		// 	fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
-		// 	switch vobj := val.(type) {
-		// 	case *nodes.Function:
-		// 		// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		assert.Equal(t2, tt.res, vobj.GetName())
-		// 	case *obb.ListVal:
-		// 		fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		assert.Equal(t2, tt.res, vobj.Elems)
-		// 	case *obb.TupleVal:
-		// 		fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		tup, ok := tt.res.(*Tup)
-		// 		if !ok {
-		// 			assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
-		// 		}
-		// 		assert.Equal(t2, tup.elems, vobj.Elems)
-		// 	case *obb.DictVal:
-		// 		fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-		// 		tm, tok := tt.res.(map[any]any)
-		// 		assert.True(t2, tok)
-		// 		res := pres(vobj)
-		// 		assert.Equal(t2, tm, res)
-		// 	case int64:
-		// 		fmt.Printf("tt#int#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	case string:
-		// 		fmt.Printf("tt#string#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	case *obb.Null:
-		// 		fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	default:
-		// 		fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Fail(t2, "unknown test result")
-		// 	}
-		// 	// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-		// })
 	}
 	// var aa []any = []any{1, 2, 3}
 	// fmt.Println(aa)
@@ -378,65 +265,6 @@ func TestFuncReturn(t *testing.T) {
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
-		// t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
-		// 	clines := par.SplitCode(tt.src[1:])
-		// 	block, err := TreeBlock(clines)
-		// 	assert.Nil(t, err)
-		// 	// t.Log("--- --- --- Do ...")
-		// 	ctx := obb.NewContext(nil)
-		// 	terr := block.Do(ctx)
-		// 	if terr != nil {
-		// 		assert.Fail(t2, terr.Error())
-		// 	}
-		// 	var val any
-		// 	vr := ctx.GetVar(tt.vname)
-		// 	// t.Log("tt#vr", vr)
-		// 	if vr == nil {
-		// 		vel := ctx.GetElem(tt.vname)
-		// 		if vel == nil {
-		// 			assert.Fail(t2, "No expected Var or elem")
-		// 		}
-		// 		val = vel.V
-		// 		fmt.Printf(" TT#0: %T %v\n", val, val)
-		// 	} else {
-		// 		val = vr.Val
-		// 	}
-		// 	fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
-		// 	switch vobj := val.(type) {
-		// 	case *nodes.Function:
-		// 		// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		assert.Equal(t2, tt.res, vobj.GetName())
-		// 	case *obb.ListVal:
-		// 		fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		assert.Equal(t2, tt.res, vobj.Elems)
-		// 	case *obb.TupleVal:
-		// 		fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		tup, ok := tt.res.(*Tup)
-		// 		if !ok {
-		// 			assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
-		// 		}
-		// 		assert.Equal(t2, tup.elems, vobj.Elems)
-		// 	case *obb.DictVal:
-		// 		fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-		// 		tm, tok := tt.res.(map[any]any)
-		// 		assert.True(t2, tok)
-		// 		res := pres(vobj)
-		// 		assert.Equal(t2, tm, res)
-		// 	case int64:
-		// 		fmt.Printf("tt#int#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	case string:
-		// 		fmt.Printf("tt#string#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	case *obb.Null:
-		// 		fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	default:
-		// 		fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Fail(t2, "unknown test result")
-		// 	}
-		// 	// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-		// })
 	}
 }
 
@@ -500,64 +328,5 @@ func TestFuncDef(t *testing.T) {
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
-		// t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
-		// 	clines := par.SplitCode(tt.src[1:])
-		// 	block, err := TreeBlock(clines)
-		// 	assert.Nil(t, err)
-		// 	// t.Log("--- --- --- Do ...")
-		// 	ctx := obb.NewContext(nil)
-		// 	terr := block.Do(ctx)
-		// 	if terr != nil {
-		// 		assert.Fail(t2, terr.Error())
-		// 	}
-		// 	var val any
-		// 	vr := ctx.GetVar(tt.vname)
-		// 	// t.Log("tt#vr", vr)
-		// 	if vr == nil {
-		// 		vel := ctx.GetElem(tt.vname)
-		// 		if vel == nil {
-		// 			assert.Fail(t2, "No expected Var or elem")
-		// 		}
-		// 		val = vel.V
-		// 		fmt.Printf(" TT#0: %T %v\n", val, val)
-		// 	} else {
-		// 		val = vr.Val
-		// 	}
-		// 	fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
-		// 	switch vobj := val.(type) {
-		// 	case *nodes.Function:
-		// 		// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		assert.Equal(t2, tt.res, vobj.GetName())
-		// 	case *obb.ListVal:
-		// 		fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		assert.Equal(t2, tt.res, vobj.Elems)
-		// 	case *obb.TupleVal:
-		// 		fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-		// 		tup, ok := tt.res.(*Tup)
-		// 		if !ok {
-		// 			assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
-		// 		}
-		// 		assert.Equal(t2, tup.elems, vobj.Elems)
-		// 	case *obb.DictVal:
-		// 		fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-		// 		tm, tok := tt.res.(map[any]any)
-		// 		assert.True(t2, tok)
-		// 		res := pres(vobj)
-		// 		assert.Equal(t2, tm, res)
-		// 	case int64:
-		// 		fmt.Printf("tt#int#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	case string:
-		// 		fmt.Printf("tt#string#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	case *obb.Null:
-		// 		fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
-		// 		assert.Equal(t2, tt.res, vobj)
-		// 	default:
-		// 		fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-		// 		assert.Fail(t2, "unknown test result")
-		// 	}
-		// 	// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-		// })
 	}
 }

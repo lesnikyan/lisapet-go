@@ -124,7 +124,7 @@ func (op *OperBin) Do(cx base.Context) error {
 func ApplyOper(left any, right any, oper Opid) (any, bool) {
 	var res any
 	var ok bool
-	// fmt.Println("ApplyOper#0:", oper, left, right)
+	fmt.Printf("ApplyOper#0: <%v> (%T, %v) (%T, %v) \n", oper, left, left, right, right)
 	// Do operators by type of left operand
 	switch val := left.(type) {
 	case int64:
