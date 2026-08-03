@@ -1,0 +1,75 @@
+package nodes
+
+import (
+	"errors"
+
+	"github.com/lesnikyan/lisapet-go/base"
+)
+
+type NFunc struct {
+	Name  string
+	args  []any                                  // passed args
+	mvals map[string]any                         // passed named args
+	fun   func(base.Context, []any) (any, error) // func-apapter called in Do()
+
+	resV *base.Val
+}
+
+func (fn *NFunc) Do(cx base.Context) error {
+	fn.resV = nil
+	// TODO: named args, vary arg list, multi-result
+	res, err := fn.fun(cx, fn.args)
+	if err != nil {
+		return err
+	}
+	fn.resV = base.NewVal(res)
+	return nil
+}
+
+func (fn *NFunc) Get() *base.Val {
+	if fn.resV == nil {
+		return nil
+	}
+	return fn.resV
+}
+
+func (fn *NFunc) GetName() string {
+	return fn.Name
+}
+
+func (fn *NFunc) SetArgVals(vals []any, mvals map[string]any) {
+	fn.args = vals
+	fn.mvals = mvals
+}
+
+/// ================= Usage Example ====================
+
+// target func example
+func mock_target(arg1 int, arg2 string) bool {
+	res := len(arg2) == arg1
+	return res
+}
+
+// mock example of function-adapter
+func mock_adapter(cx base.Context, args []any) (any, error) {
+	if len(args) != 2 {
+		return false, errors.New("moch_target func: incorrect count of args")
+	}
+	a0, ok := args[0].(int64)
+	if !ok {
+		return false, errors.New("moch_target func: incorrect 1-st arg type")
+	}
+	a1, ok := args[1].(string)
+	if !ok {
+		return false, errors.New("moch_target func: incorrect 2-st arg type")
+	}
+	res := mock_target(int(a0), a1)
+	return res, nil
+}
+
+/// ========================  Add new Builtin func ======================
+
+func BuiltFunc(cx base.Context, name string, adapter func(base.Context, []any) (any, error), resType *base.Type) {
+	nf := &NFunc{Name: name, fun: adapter}
+	cx.AddFunc(nf)
+}
