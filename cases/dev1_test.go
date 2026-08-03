@@ -57,7 +57,7 @@ func TestCaseVal(t *testing.T) {
 		{"Hello!", "Hello!", ""},
 		{"true", true, w},
 		{"false", false, w},
-		{"null", obb.Null{}, w},
+		{"null", Tnull(), w},
 		// {"", 0},
 		// {"", 0},
 		// {"", 0},

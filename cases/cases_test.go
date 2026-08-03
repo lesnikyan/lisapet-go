@@ -4,11 +4,28 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/nodes"
 	obb "github.com/lesnikyan/lisapet-go/objects"
 	par "github.com/lesnikyan/lisapet-go/parser"
 	"github.com/stretchr/testify/assert"
 )
+
+func PreloadContext(cx base.Context) {
+	nodes.PreloadFuncs(cx)
+	nodes.PreloadTypes(cx)
+
+}
+
+type TTst = struct {
+	src   string // code
+	vname string // var
+	res   any    // exp
+}
+
+func Tnull() *obb.Null {
+	return &obb.Null{}
+}
 
 func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 	t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
@@ -59,10 +76,16 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			res := pres(vobj)
 			assert.Equal(t2, tm, res)
 		case int64:
-			fmt.Printf("tt#int#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			fmt.Printf("tt#int  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			assert.Equal(t2, tt.res, vobj)
+		case float64:
+			fmt.Printf("tt#float  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			assert.Equal(t2, tt.res, vobj)
+		case bool:
+			fmt.Printf("tt#bool  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 		case string:
-			fmt.Printf("tt#string#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			fmt.Printf("tt#string  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 		case *obb.Null:
 			fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)

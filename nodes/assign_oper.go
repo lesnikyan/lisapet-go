@@ -37,6 +37,10 @@ func (op *OperAssign) Do(cx base.Context) error {
 	// if rr, ok := rval.(*objects.ListVal); ok {
 	// 	fmt.Printf("Op=Do#2, R-list len = %v \n", len(rr.Elems))
 	// }
+	switch lexp := op.left.(type) {
+	case *OperColon:
+		lexp.Usage = ColonType
+	}
 	err1 := op.left.Do(cx)
 	if err1 != nil {
 		return err1
@@ -52,6 +56,14 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	case *VarExpr:
 		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
 		leftObj = GetVar(lexp, cx)
+	case *OperColon:
+		xres := lexp.Get()
+		if xres == nil {
+			return errors.New("oper assign: no target by colon-expression")
+		}
+		leftObj = xres.V
+		fmt.Printf("OpAsg=#1 OperColon: %T %v \n", leftObj, leftObj)
+		// leftObj = GetVar(lexp, cx)
 	case *ColElemExpr:
 		leftObj = lexp.Get().V
 		fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)

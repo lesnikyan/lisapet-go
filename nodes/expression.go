@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -41,10 +42,12 @@ func (vex *ValExpr) Get() *base.Val {
 
 // *** VarExpr
 type VarExpr struct {
-	name  string
-	vr    *base.Var
-	IsVar bool
-	cxEl  *base.ContextElem
+	name    string
+	vr      *base.Var
+	TypeExp base.Expression
+	IsVar   bool
+	// StrictType bool
+	cxEl *base.ContextElem
 }
 
 func (ex *VarExpr) Do(cx base.Context) error {
@@ -66,6 +69,23 @@ func (ex *VarExpr) Do(cx base.Context) error {
 	case *base.Var:
 		ex.vr = vr
 		ex.IsVar = true
+		if ex.TypeExp != nil {
+			tex := ex.TypeExp
+			err := tex.Do(cx)
+			if err != nil {
+				return errors.New("VarExp Do err 5")
+			}
+			tres := tex.Get()
+			if tres == nil {
+				return errors.New("VarExp Do err 6")
+			}
+			vtype, ok := tres.V.(*base.Type)
+			if !ok {
+				return errors.New("VarExp Do err 7")
+			}
+			vr.Type = vtype
+			vr.StrictType = true
+		}
 	}
 	ex.cxEl = elem
 	// ex.vr = vr

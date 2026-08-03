@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
@@ -33,10 +32,10 @@ func (op *UnaryLeft) Do(cx base.Context) error {
 	rvv := GetExprVal(op.right, cx)
 	var res any
 	var ok bool
-	fmt.Println("UnaryLeft.Do:", op.Oper, rvv)
+	// fmt.Println("UnaryLeft.Do:", op.Oper, rvv)
 	res, ok = LeftOper(op.Oper.Id, rvv)
 	if !ok {
-		return errors.New("Error in bin oper") // TODO: add more informative error
+		return errors.New("Error in unary-Left oper") // TODO: add more informative error
 	}
 	op.res = res
 	return nil

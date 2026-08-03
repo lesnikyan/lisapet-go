@@ -1,9 +1,10 @@
 package base
 
 type Var struct {
-	Val  any
-	Name string
-	Type int
+	Val        any
+	Name       string
+	Type       *Type
+	StrictType bool
 }
 
 type Val struct {
@@ -21,6 +22,8 @@ type Context interface {
 	AddVar(vr *Var)
 	GetVar(name string) *Var
 	AddFunc(fn FuncVal)
+	AddType(tp *Type)
+	GetType(name string) *Type
 	GetElem(name string) *ContextElem
 	SubContext() Context
 }

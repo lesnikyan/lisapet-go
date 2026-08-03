@@ -10,11 +10,22 @@ import (
 
 // ===========
 
+type ColonUsage = int
+
+const (
+	_ ColonUsage = iota + 200
+
+	ColonType // var:type
+	ColonElem // key: val
+)
+
 type OperColon struct {
 	left  base.Expression
 	right base.Expression
 	Oper  *Oper
-	res   any
+	Usage ColonUsage
+
+	res any
 }
 
 func (op *OperColon) SetLeft(xp base.Expression) {
@@ -32,17 +43,54 @@ func (op *OperColon) GetPair() *ColonPair {
 	return &ColonPair{Left: op.left, Right: op.right}
 }
 
-func (op *OperColon) Do(cx base.Context) error {
+func (op *OperColon) DoVar(cx base.Context) error {
+	// fmt.Printf(" ' : ' <DoVar \n")
 	err1 := op.left.Do(cx)
 	if err1 != nil {
 		return err1
 	}
-	err2 := op.right.Do(cx)
+	varx, ok := op.left.(*VarExpr)
+	if !ok {
+		return errors.New("colon: Not var in left")
+	}
+	tupx, ok := op.right.(*VarExpr)
+	if !ok {
+		return errors.New("colon: Not var in left")
+	}
+	varx.NewVar(cx)
+
+	err2 := tupx.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
 		return err2
 	}
+	// tname := tupx.name
+	rtype := cx.GetType(tupx.name)
+	// rval := tupx.Get()
+	// fmt.Printf(" ' : ' DoVar2 (%T, %v) \n", tupx, tupx)
+	// fmt.Printf(" ' : ' DoVar3 (%T, %v) \n", rtype, rtype)
+	if rtype == nil {
+		return errors.New("colon: can't find type")
+	}
+	// fmt.Printf(" ' : ' DoVar4 \n")
 
+	if !ok {
+		return errors.New("colon: right part is not type")
+	}
+	varx.vr.Type = rtype // usage: check type for typed vars
+	varx.vr.StrictType = true
+	op.res = varx.vr
+
+	// varx.vr.StrictType = true
+	return nil
+}
+
+// in base case - declaration of typed var >>  x: int
+func (op *OperColon) Do(cx base.Context) error {
+	switch op.Usage {
+	case ColonType:
+		op.DoVar(cx)
+	}
 	return nil
 }
 
@@ -169,7 +217,7 @@ func (sq *NumSeqExpr) Do(cx base.Context) error {
 		return err
 	}
 	// TODO: implement <n,m> case of left arg
-	fmt.Printf(" SqNum left: %T \n", sq.Left)
+	// fmt.Printf(" SqNum left: %T \n", sq.Left)
 	var start int64 = 0
 	var step int64 = 1
 	switch lExp := sq.Left.(type) {

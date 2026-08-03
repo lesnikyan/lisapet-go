@@ -1,6 +1,8 @@
 package objects
 
 import (
+	"fmt"
+
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -12,6 +14,7 @@ type Context struct {
 	parent *Context
 	vars   map[string]*base.Var
 	funcs  map[string]base.FuncVal
+	types  map[string]*base.Type
 
 	typeNames map[string]*base.Type
 	typeIds   map[int]*base.Type
@@ -19,6 +22,23 @@ type Context struct {
 
 func (cx *Context) SubContext() base.Context {
 	return NewContext(cx)
+}
+
+func (cx *Context) AddType(tp *base.Type) {
+	cx.types[tp.Name] = tp
+}
+
+func (cx *Context) GetType(name string) *base.Type {
+	curCx := cx
+	for curCx != nil {
+		tp, ok := curCx.types[name]
+		if ok {
+			return tp
+		}
+		curCx = curCx.parent
+	}
+	// fmt.Printf("o.Ctx.GetVar no such var: %v \n", name)
+	return nil
 }
 
 func (cx *Context) AddVar(vr *base.Var) {
@@ -64,14 +84,19 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 	curCx := cx
 	for curCx != nil {
 		// fmt.Printf("cx.GetEl#1 vars(%T, %v ) funcs(%T, %v )\n", cx.vars, len(cx.vars), cx.funcs, len(cx.funcs))
-		// aa, ak := curCx.vars[name]
+		aa, ak := curCx.vars[name]
 		// bb, bk := curCx.funcs[name]
+		tt, tk := curCx.types[name]
 
-		// fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, bb, bk)
+		fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, tt, tk)
 		var ok bool
 		vr, ok := curCx.vars[name]
 		if ok {
 			return NewCxElem(vr)
+		}
+		tp, ok := curCx.types[name]
+		if ok {
+			return NewCxElem(tp)
 		}
 		fn, ok := curCx.funcs[name]
 		if ok {
@@ -90,6 +115,7 @@ func NewContext(parent base.Context) *Context {
 	}
 	varMap := map[string]*base.Var{}
 	funMap := map[string]base.FuncVal{}
-	c := Context{parent: octx, vars: varMap, funcs: funMap}
+	typeMap := map[string]*base.Type{}
+	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap}
 	return &c
 }
