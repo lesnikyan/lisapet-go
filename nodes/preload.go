@@ -11,21 +11,21 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "iter", Iter_blin, nil)
 }
 
-func AddType(cx base.Context, name string) {
-	tp := base.DefineType(name, false)
+func AddType(cx base.Context, name string, id base.TypeId) {
+	tp := base.BaseType(name, id)
 	cx.AddType(tp)
 }
 
 func PreloadTypes(cx base.Context) {
-	AddType(cx, "any")
-	AddType(cx, "null")
-	AddType(cx, "int")
-	AddType(cx, "float")
-	AddType(cx, "bool")
-	AddType(cx, "string")
-	AddType(cx, "list")
-	AddType(cx, "tuple")
-	AddType(cx, "dict")
+	AddType(cx, "any", base.TypeAny)
+	AddType(cx, "null", base.TypeNull)
+	AddType(cx, "bool", base.TypeBool)
+	AddType(cx, "int", base.TypeInt)
+	AddType(cx, "float", base.TypeFloat)
+	AddType(cx, "string", base.TypeString)
+	AddType(cx, "list", base.TypeList)
+	AddType(cx, "tuple", base.TypeTuple)
+	AddType(cx, "dict", base.TypeDict)
 	// AddType(cx, "bytes", )
 	// AddType(cx, "glif", )
 	// AddType(cx, "enum", )

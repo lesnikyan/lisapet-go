@@ -2,9 +2,6 @@ package cases
 
 import (
 	"testing"
-
-	"github.com/lesnikyan/lisapet-go/base"
-	"github.com/lesnikyan/lisapet-go/nodes"
 )
 
 /*
@@ -15,7 +12,7 @@ ok 3. func args
 ok 4. return, return with res
 ok 4.1 builtin functions, funcs len, iter
 ok 4.2 named args
-5. default arg val
+ok 5. default arg val
 6. var type
 6.1 arg type
 7. multi assign
@@ -27,33 +24,18 @@ ok 4.2 named args
 
 */
 
-func t1() {
-
-}
-
-func PreloadContext(cx base.Context) {
-	nodes.PreloadFuncs(cx)
-
-}
-
-type TTst = struct {
-	src   string // code
-	vname string // var
-	res   any    // exp
-}
-
 func TestFuncDefNamedArgs(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
-		// {`
-		// func foo(x, n = 2)
-		// 	x * n
-		// #
-		// r = foo(23)
-		// `, "r", int64(46)},
+		{`
+		func foo(x, n = 2)
+			x * n
+		#
+		r = foo(23)
+		`, "r", int64(46)},
 		{`
 		func foo(a, b=2, c=100)
 			a * b + c

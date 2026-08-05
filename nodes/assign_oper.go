@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 type OperAssign struct {
@@ -33,7 +34,7 @@ func (op *OperAssign) Do(cx base.Context) error {
 		return err2
 	}
 	rval := GetExprVal(op.right, cx)
-	fmt.Printf("Op=Do#2, Rexp (%T, %v),  rval (%T, %v) \n", op.right, op.right, rval, rval)
+	// fmt.Printf("Op=Do#2, Rexp (%T, %v),  rval (%T, %v) \n", op.right, op.right, rval, rval)
 	// if rr, ok := rval.(*objects.ListVal); ok {
 	// 	fmt.Printf("Op=Do#2, R-list len = %v \n", len(rr.Elems))
 	// }
@@ -49,6 +50,22 @@ func (op *OperAssign) Do(cx base.Context) error {
 	return nil
 }
 
+// actual for variable, argument, struct method in left of assign
+// prepare and convert val
+// result: isTypeOk, convertedVal
+func PrepareVal(expType base.TypeId, val any) (bool, any) {
+	tv := objects.TypeByVal(val)
+	if tv.Id == expType {
+		return true, val
+	}
+	if !base.TypeCompat(expType, tv.Id) {
+		// fmt.Printf("PrepV=#2 Vla Not compatible Eq: %v == %v %v\n", tv.Id, expType, tv.Id == expType)
+		return false, nil
+	}
+	cval := objects.ConvertByType(expType, val)
+	return true, cval
+}
+
 func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	// rval := GetExprVal(rexpr, cx)
 	var leftObj any
@@ -62,21 +79,37 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 			return errors.New("oper assign: no target by colon-expression")
 		}
 		leftObj = xres.V
-		fmt.Printf("OpAsg=#1 OperColon: %T %v \n", leftObj, leftObj)
+		// fmt.Printf("OpAsg=#1 OperColon: %T %v \n", leftObj, leftObj)
 		// leftObj = GetVar(lexp, cx)
 	case *ColElemExpr:
 		leftObj = lexp.Get().V
-		fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)
+		// fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)
 	}
-	fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+	// fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+	// valTtype := objects.TypeByVal(rval)
 	switch target := leftObj.(type) {
 	// TODO: col[key] = val
 	case *ColElem:
+		// since collections is untyped,  we'll check type
 		target.Set(rval)
 		// TODO: obj.member = val
 	case *base.Var:
-		fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+		// fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+		// cval := rval
+		if target.StrictType {
+			typeOk, cval := PrepareVal(target.Type.Id, rval)
+			if !typeOk {
+				// bad val
+				vt := objects.TypeByVal(rval)
+				fmt.Printf("OP=#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
+				return errors.New("oper assign: incorrecttype of value in right operand")
+			}
+			rval = cval
+		}
 		target.Val = rval
+
+		// case *ObjectMember:
+		// need check type
 	}
 	return nil
 }

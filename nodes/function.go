@@ -12,6 +12,27 @@ import (
 // 	"github.com/lesnikyan/lisapet-go/nodes"
 // )
 
+type ArgExp struct {
+	Name       string
+	VExp       *VarExpr
+	Type       *base.Type
+	StrictType bool
+
+	res any
+}
+
+func (ax *ArgExp) Do(cx base.Context) error {
+	err := ax.VExp.Do(cx)
+	if err != nil {
+		return errors.Join(err, errors.New("ArgExp Do err1"))
+	}
+	return nil
+}
+
+func (ax *ArgExp) Get(cx base.Context) *base.Val {
+	return ax.VExp.Get()
+}
+
 type Function struct {
 	Name string
 
@@ -20,7 +41,7 @@ type Function struct {
 	argVals []any
 	nmVals  map[string]any
 	dfnArgs []base.Expression
-	Args    []*VarExpr
+	Args    []*ArgExp
 
 	Block  *BlockExpr
 	defCtx base.Context
@@ -33,39 +54,103 @@ type Function struct {
 // 3. default arg vals, 4. variative count
 // 5. ovreload by arg count, 6. overload by arg types
 
-func (fn *Function) Init(cx base.Context) error {
-	fn.defVals = make(map[string]*base.Val)
-	nArgs := make([]*VarExpr, len(fn.dfnArgs))
-	for i, ex := range fn.dfnArgs {
-		switch arx := ex.(type) {
-		case *VarExpr:
-			nArgs[i] = arx
+func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error) {
+	switch arx := ex.(type) {
+	case *VarExpr:
+		rex := &ArgExp{Name: arx.name, VExp: arx}
+		return rex, nil
 
-		case *OperAssign:
-			// get var name
-			vx, ok := arx.left.(*VarExpr)
-			if !ok {
-				return errors.New("func init: incorrect left-operand od default arg val")
-			}
-			name := vx.name
-			// get default val
-			err := arx.right.Do(cx)
-			if err != nil {
-				return err
-			}
-			v := arx.right.Get()
-			if v == nil {
-				return errors.New("func init: no value from default-val expression")
-			}
-			fn.defVals[name] = v
-			nArgs[i] = vx
+	case *OperAssign:
+		// var part
+		var lvar *VarExpr
+		var vtype *base.Type
+		strict := false
+		switch cvar := arx.left.(type) {
+		case *VarExpr:
+			vtype = cx.GetType("any")
+			lvar = cvar
 
 		case *OperColon:
-			// typed arg - x : int
+			// Typed Var with default val
 
-		case *TripleDots:
-			// triple-dots arg - nn...
+			lExp, ok := cvar.left.(*VarExpr)
+			if !ok {
+				return nil, errors.New("arg init: err2")
+			}
+			lvar = lExp
+			err := cvar.right.Do(cx)
+			if err != nil {
+				return nil, err
+			}
+			rres := cvar.right.Get()
+			if rres == nil {
+				// no type
+				return nil, errors.New("arg init: err3")
+			}
+			// vtype, ok := rval.V.(*base.Type)
+			tt, ok := rres.V.(*base.Type)
+			if !ok {
+				return nil, errors.New("assign-colon: right part is not type")
+			}
+			vtype = tt
 		}
+
+		name := lvar.name
+		rex := &ArgExp{Name: name, VExp: lvar, Type: vtype, StrictType: strict}
+
+		// get default val
+		err := arx.right.Do(cx)
+		if err != nil {
+			return nil, err
+		}
+		v := arx.right.Get()
+		if v == nil {
+			return nil, errors.New("arg init: no value from default-val expression")
+		}
+		fn.defVals[name] = v
+		// return vx, nil
+		return rex, nil
+
+	case *OperColon:
+		cvar := arx
+		lvar, ok := cvar.left.(*VarExpr)
+		if !ok {
+			return nil, errors.New("arg init: err22")
+		}
+		err := cvar.right.Do(cx)
+		if err != nil {
+			return nil, err
+		}
+		rres := cvar.right.Get()
+		if rres == nil {
+			// no type
+			return nil, errors.New("arg init: err23")
+		}
+		// vtype, ok := rval.V.(*base.Type)
+		tt, ok := rres.V.(*base.Type)
+		if !ok {
+			return nil, errors.New("arg init colon: right part is not type 2")
+		}
+		vtype := tt
+		name := lvar.name
+		rex := &ArgExp{Name: name, VExp: lvar, Type: vtype, StrictType: true}
+		return rex, nil
+
+	case *TripleDots:
+		// triple-dots arg - nn...
+	}
+	return nil, errors.New("arg init: incorrect end of init")
+}
+
+func (fn *Function) Init(cx base.Context) error {
+	fn.defVals = make(map[string]*base.Val)
+	nArgs := make([]*ArgExp, len(fn.dfnArgs))
+	for i, ex := range fn.dfnArgs {
+		argx, err := fn.InitArg(cx, ex)
+		if err != nil {
+			return errors.Join(err, errors.New("func init"))
+		}
+		nArgs[i] = argx
 	}
 	fn.Args = nArgs
 	return nil
@@ -76,27 +161,6 @@ func (fn *Function) SetArgVals(vals []any, nvals map[string]any) {
 	fn.argVals = vals
 	fn.nmVals = nvals
 }
-
-// func (fn *Function) argVar(ex base.Expression, cx base.Context) *base.Var {
-// 	fmt.Printf(" argVar#1 (%T, %v) \n", ex, ex)
-// 	var vr *base.Var
-// 	// var defval any
-// 	switch vex := ex.(type) {
-// 	case *VarExpr:
-// 		// arg defined as ordered: foo(a, b, c)
-// 		vex.NewVar(cx)
-// 		vr = vex.GetVar()
-// 		// case *OperAssign:
-// 		// 	// arg defined with default value foo(named=123)
-// 		// 	vr = fn.argVar(vex.left, cx)
-// 		// case *OperColon:
-// 		// 	// typed arg - x : int
-
-// 		// case *TripleDots:
-// 		// 	// triple-dots arg - nn...
-// 	}
-// 	return vr
-// }
 
 func (fn *Function) getVal(i int, name string) (any, error) {
 
@@ -126,21 +190,11 @@ func (fn *Function) getVal(i int, name string) (any, error) {
 
 // foo(<positional>, <variadic...>, <named=val>)
 func (fn *Function) PrepareArgs(cx base.Context) error {
-	// minArgCount := len(fn.Args) // actual for odered args
-	// if len(fn.argVals) <= minArgCount {
-	// 	return errors.New("Func.prep args: wrong count of arg vals")
-	// }
-	// for i, argv := range fn.argVals {
-
-	// }
-	// args := make([]*base.Var, len(fn.Args))
 	for i, ex := range fn.Args {
 		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, ex, ex)
-		// var vr *base.Var
-
 		// take var
-		ex.NewVar(cx)
-		vr := ex.GetVar()
+		ex.VExp.NewVar(cx)
+		vr := ex.VExp.GetVar()
 		if vr == nil {
 			return errors.New("func prepare: no arg var")
 		}
@@ -215,9 +269,5 @@ func (fn *Function) GetName() string {
 }
 
 func NewFunction(name string, args []base.Expression, block *BlockExpr, ctx base.Context) *Function {
-	// margs := make(map[string]*base.Var)
-	// for _, n := range args {
-	// 	margs[n.Name] = n
-	// }
 	return &Function{Name: name, dfnArgs: args, Block: block, defCtx: ctx}
 }
