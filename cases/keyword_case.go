@@ -84,15 +84,16 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 		switch subs := argExp.(type) {
 		case *nodes.SequenceComma:
 			if len(subs.Subs) > 0 {
+				fmt.Println("FuncCase#01", len(subs.Subs))
 				args = make([]base.Expression, len(subs.Subs))
 				for i, sub := range subs.Subs {
 					switch aex := sub.(type) {
-					case *nodes.VarExpr, *nodes.OperAssign, *nodes.TripleDots:
+					case *nodes.VarExpr, *nodes.OperAssign, *nodes.OperColon, *nodes.TripleDots:
 						args[i] = aex
 					}
 				}
 			}
-		case *nodes.VarExpr:
+		case *nodes.VarExpr, *nodes.OperAssign, *nodes.OperColon, *nodes.TripleDots:
 			args = []base.Expression{subs}
 		}
 	} else {

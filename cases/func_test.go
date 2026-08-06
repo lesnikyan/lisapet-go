@@ -56,6 +56,57 @@ func TestFuncDefNamedArgs(t *testing.T) {
 	}
 }
 
+func TestFuncDefTypedArgs(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x: int)
+			x * 2
+		#
+		r = foo(23)
+		`, "r", int64(46)},
+		{`
+		func foo(x: int, n=2)
+			x * n -1
+		#
+		r = foo(23)
+		`, "r", int64(45)},
+		{`
+		func foo(x: int, y: int)
+			x * y
+		#
+		r = foo(23, 3)
+		`, "r", int64(69)},
+		{`
+		func foo(x: int, y: int = 2)
+			x * y
+		#
+		r = foo(23, 3)
+		`, "r", int64(69)},
+		{`
+		# all cases
+		func foo(a:int, b:int=2, c=100)
+			a * b + c
+		#
+		r = []
+		r <- foo(1)
+		r <- foo(1,5)
+		r <- foo(11, 6, 200)
+		r <- foo(3, 9)
+		r <- foo(3, c=30)
+		r <- foo(4, c=120, b=2)
+		`, "r", Anis(102, 105, 266, 127, 36, 128)},
+		// {``, "r",  int64(205)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestFuncCallNamedArgs(t *testing.T) {
 	tdata := []struct {
 		src   string

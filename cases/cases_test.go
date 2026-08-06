@@ -32,7 +32,7 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		clines := par.SplitCode(tt.src[1:])
 		block, err := TreeBlock(clines)
 		assert.Nil(t, err)
-		// t.Log("--- --- --- Do ...")
+		t.Log("--- --- --- Do ...")
 		ctx := obb.NewContext(nil)
 		PreloadContext(ctx)
 		terr := block.Do(ctx)

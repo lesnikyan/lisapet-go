@@ -68,10 +68,11 @@ func PrepareVal(expType base.TypeId, val any) (bool, any) {
 
 func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	// rval := GetExprVal(rexpr, cx)
+	fmt.Printf(" = AssignVal=#0: (%T %v) = (%T, %v) \n", lexpr, lexpr, rval, rval)
 	var leftObj any
 	switch lexp := lexpr.(type) {
 	case *VarExpr:
-		// fmt.Printf("OpAsg=#0 VarExrp: %T %v \n", lexp, lexp)
+		fmt.Printf("OpAsg=#00 VarExrp: %T %v \n", lexp, lexp)
 		leftObj = GetVar(lexp, cx)
 	case *OperColon:
 		xres := lexp.Get()
@@ -94,7 +95,7 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 		target.Set(rval)
 		// TODO: obj.member = val
 	case *base.Var:
-		// fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+		fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
 		// cval := rval
 		if target.StrictType {
 			typeOk, cval := PrepareVal(target.Type.Id, rval)

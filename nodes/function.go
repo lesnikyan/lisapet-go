@@ -55,6 +55,7 @@ type Function struct {
 // 5. ovreload by arg count, 6. overload by arg types
 
 func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error) {
+	fmt.Printf(" Fu.InitArg#0  argExp=(%T, %v) \n", ex, ex)
 	switch arx := ex.(type) {
 	case *VarExpr:
 		rex := &ArgExp{Name: arx.name, VExp: arx}
@@ -78,17 +79,28 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 				return nil, errors.New("arg init: err2")
 			}
 			lvar = lExp
+			// err := cvar.right.Do(cx)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// rres := cvar.right.Get()
+			// if rres == nil {
+			// 	// no type
+			// 	return nil, errors.New("arg init: err3")
+			// }
+			// // vtype, ok := rval.V.(*base.Type)
+			// tt, ok := rres.V.(*base.Type)
 			err := cvar.right.Do(cx)
 			if err != nil {
 				return nil, err
 			}
-			rres := cvar.right.Get()
-			if rres == nil {
+			rvar, ok := cvar.right.(*VarExpr)
+			if !ok {
 				// no type
-				return nil, errors.New("arg init: err3")
+				fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+				return nil, errors.New("arg init: err111, not a word in right of types arg ")
 			}
-			// vtype, ok := rval.V.(*base.Type)
-			tt, ok := rres.V.(*base.Type)
+			tt := cx.GetType(rvar.name)
 			if !ok {
 				return nil, errors.New("assign-colon: right part is not type")
 			}
@@ -121,19 +133,28 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		if err != nil {
 			return nil, err
 		}
-		rres := cvar.right.Get()
-		if rres == nil {
+		rvar, ok := cvar.right.(*VarExpr)
+		if !ok {
 			// no type
-			return nil, errors.New("arg init: err23")
+			fmt.Printf(" Fu.InitArg.err221  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+			return nil, errors.New("arg init: err221, not a word in right of types arg ")
+		}
+		tt := cx.GetType(rvar.name)
+		if tt == nil {
+			// no type
+			// fmt.Printf(" Fu.InitArg.err23  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+			return nil, errors.New("arg init: err23 ")
 		}
 		// vtype, ok := rval.V.(*base.Type)
-		tt, ok := rres.V.(*base.Type)
-		if !ok {
-			return nil, errors.New("arg init colon: right part is not type 2")
-		}
+		// tt, ok := rres.V.(*base.Type)
+
+		// if !ok {
+		// 	return nil, errors.New("arg init colon: right part is not type 2")
+		// }
 		vtype := tt
 		name := lvar.name
 		rex := &ArgExp{Name: name, VExp: lvar, Type: vtype, StrictType: true}
+		fmt.Printf(" Fu.InitArg#5  n=%s tp=(%T, %v) \n", name, tt, tt)
 		return rex, nil
 
 	case *TripleDots:
@@ -143,6 +164,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 }
 
 func (fn *Function) Init(cx base.Context) error {
+	fmt.Printf(" Fu.Init  deArgLen==%d  \n", len(fn.dfnArgs))
 	fn.defVals = make(map[string]*base.Val)
 	nArgs := make([]*ArgExp, len(fn.dfnArgs))
 	for i, ex := range fn.dfnArgs {
@@ -190,23 +212,28 @@ func (fn *Function) getVal(i int, name string) (any, error) {
 
 // foo(<positional>, <variadic...>, <named=val>)
 func (fn *Function) PrepareArgs(cx base.Context) error {
-	for i, ex := range fn.Args {
-		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, ex, ex)
+	fmt.Printf(" Fu.PArg#0  %d  \n", len(fn.Args))
+	for i, arg := range fn.Args {
+		fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg)
 		// take var
-		ex.VExp.NewVar(cx)
-		vr := ex.VExp.GetVar()
+		arg.VExp.NewVar(cx)
+		vr := arg.VExp.GetVar()
 		if vr == nil {
 			return errors.New("func prepare: no arg var")
 		}
 
 		// get value
-		val, err := fn.getVal(i, vr.Name)
+		val, err := fn.getVal(i, arg.Name)
 		if err != nil {
 			return err
 		}
+		aerr := AssignVal(cx, arg.VExp, val)
+		if aerr != nil {
+			return errors.Join(errors.New("func prep arg: assign arg arror"), aerr)
+		}
 
-		// fmt.Printf(" Fu.PArg#N %d) (%T, %v) = (%T, %v)  \n", i, vr, vr, val, val)
-		vr.Val = val
+		fmt.Printf(" Fu.PArg#N %d) (%T, %v) = (%T, %v)  \n", i, vr, vr, val, val)
+		// vr.Val = val
 	}
 	return nil
 }
