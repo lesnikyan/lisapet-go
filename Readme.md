@@ -24,5 +24,6 @@ raw dev log:
 2026.07.29 Implemented ability to add builtin (preloaded) function. Function can be written with Go lang and preload to execution context. 
 -.-.30 Added builtin functions: `len`, `iter`, `split`, `join`, `replace`, `print`.
 2026.08.01 Implemented named args in function call: `r = foo(1, n=2, m='hello')`
+-.-.03 Aded type ov variable, by `:` operator >> `r: int = 123`
 
 ```

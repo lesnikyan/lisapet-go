@@ -17,11 +17,24 @@ func TestTypesCast(t *testing.T) {
 		vname string
 		res   any
 	}{
-		// {`
-		// r : int = false
-		// `, "r", int64(0)},
-		// {``, "r",  int64(205)},
-		// {``, "r",  float64(205)},
+		{`
+		r : int = false
+		`, "r", int64(0)},
+		{`
+		r: int = null
+		`, "r", int64(0)},
+		{`
+		r: float = 12
+		`, "r", float64(12)},
+		{`
+		r: float = true
+		`, "r", float64(1)},
+		{`
+		r: float = null
+		`, "r", float64(0)},
+		{`
+		r: list = null
+		`, "r", Tnull()},
 		// {``, "r",  float64(205)},
 		// {``, "r",  float64(205)},
 		// {``, "r",  Anis(11, )},
@@ -31,13 +44,12 @@ func TestTypesCast(t *testing.T) {
 	}
 }
 
-func TestTypesVars(t *testing.T) {
+func TestTypesVarsSameType(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
-
 		{`
 		a:int = 123
 		`, "a", int64(123)},
@@ -62,9 +74,6 @@ func TestTypesVars(t *testing.T) {
 		{`
 		r : dict = {'a': 15}
 		`, "r", adk(dk{"a": 15})},
-		{`
-		r: list = null
-		`, "r", Tnull()},
 		// {``, "r",  int64(205)},
 		// {``, "r",  Anis(11, )},
 	}

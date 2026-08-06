@@ -51,7 +51,7 @@ var _operPriorStr = `( ) [ ] { } 1 . 1 ~> 1 ... 1 -x ! ~ 1 ** ^/ 1 * / % 1 + - 1
 
 var _operPriorStr2 = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
-	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
+	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 func: 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
 
 // spec: fun=
 
@@ -395,6 +395,9 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			switch tx {
 			case "=":
 				txex = "func="
+			case ":":
+				txex = "func:"
+
 			}
 		}
 		curpri := getPrior(opris, txex)

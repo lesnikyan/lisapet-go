@@ -1,19 +1,64 @@
 package base
 
 type Type struct {
-	Id   int
+	Id   TypeId
 	Name string
 
 	IsUserDef bool // mostly for users struct
 	Def       any  // pointer to type definition
 }
 
-var typeId = 1001
-
-func DefineType(name string, usdef bool) *Type {
-	return &Type{Name: name, IsUserDef: usdef}
+type TypeInf interface {
+	GetId() TypeId
+	GetName() string
+	IsCustom() bool // if user defined
 }
 
-func CompareType(a *Type, b *Type) bool {
-	return a.Id == b.Id
+type UserType interface {
+	GetInf() TypeInf
+	GetDefinition() any // definition of type (struct def, etc)
 }
+
+type TypeId = int
+
+const (
+	TypeAny TypeId = iota + 1001
+	TypeNull
+	TypeBool
+	TypeInt
+	TypeFloat
+	TypeString
+	TypeList
+	TypeTuple
+	TypeDict
+	TypeBytes
+	TypeGlif
+	TypeFunction
+	TypeEnum
+	TypeGrup
+	TypeMaybe
+	// Last defined type:
+	TypeUndefined TypeId = 2001
+)
+
+var typeId = TypeUndefined
+
+// TODO: resolve possible issues with multi-task access
+func NextTypeId() TypeId {
+	typeId += 1
+	return typeId
+}
+
+func BaseType(name string, id TypeId) *Type {
+	// tid := NextTypeId()
+	return &Type{Id: id, Name: name}
+}
+
+func DefineUserType(name string) *Type {
+	tid := NextTypeId()
+	return &Type{Id: tid, Name: name, IsUserDef: true}
+}
+
+// func CompareType(a *Type, b *Type) bool {
+// 	return a.Id == b.Id
+// }
