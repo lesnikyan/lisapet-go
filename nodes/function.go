@@ -79,17 +79,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 				return nil, errors.New("arg init: err2")
 			}
 			lvar = lExp
-			// err := cvar.right.Do(cx)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// rres := cvar.right.Get()
-			// if rres == nil {
-			// 	// no type
-			// 	return nil, errors.New("arg init: err3")
-			// }
-			// // vtype, ok := rval.V.(*base.Type)
-			// tt, ok := rres.V.(*base.Type)
+
 			err := cvar.right.Do(cx)
 			if err != nil {
 				return nil, err
@@ -105,6 +95,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 				return nil, errors.New("assign-colon: right part is not type")
 			}
 			vtype = tt
+			strict = true
 		}
 
 		name := lvar.name
@@ -216,20 +207,32 @@ func (fn *Function) PrepareArgs(cx base.Context) error {
 	for i, arg := range fn.Args {
 		fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg)
 		// take var
-		arg.VExp.NewVar(cx)
+		if arg.StrictType {
+			arg.VExp.NewVarTyped(cx, arg.Type)
+
+		} else {
+			// cx.GetType("any")
+			arg.VExp.NewVar(cx)
+		}
 		vr := arg.VExp.GetVar()
+		fmt.Printf(" Fu.PArg#2 %d) (%T, %v)  \n", i, vr, vr)
 		if vr == nil {
 			return errors.New("func prepare: no arg var")
 		}
+		// if arg.StrictType {
+		// 	vr.StrictType = true
+		// 	vr.Type = arg.Type
+		// }
 
 		// get value
 		val, err := fn.getVal(i, arg.Name)
 		if err != nil {
 			return err
 		}
-		aerr := AssignVal(cx, arg.VExp, val)
+		fmt.Printf(" Fu.PArg#3 %d) (%T, %v)  \n", i, vr, vr)
+		aerr := SetValTo(vr, val)
 		if aerr != nil {
-			return errors.Join(errors.New("func prep arg: assign arg arror"), aerr)
+			return errors.Join(errors.New("func prep arg: assign arg error"), aerr)
 		}
 
 		fmt.Printf(" Fu.PArg#N %d) (%T, %v) = (%T, %v)  \n", i, vr, vr, val, val)

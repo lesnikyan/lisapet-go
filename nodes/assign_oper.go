@@ -68,12 +68,13 @@ func PrepareVal(expType base.TypeId, val any) (bool, any) {
 
 func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	// rval := GetExprVal(rexpr, cx)
-	fmt.Printf(" = AssignVal=#0: (%T %v) = (%T, %v) \n", lexpr, lexpr, rval, rval)
+	// fmt.Printf(" = AssignVal=#0: (%T %v) = (%T, %v) \n", lexpr, lexpr, rval, rval)
 	var leftObj any
 	switch lexp := lexpr.(type) {
 	case *VarExpr:
-		fmt.Printf("OpAsg=#00 VarExrp: %T %v \n", lexp, lexp)
+		// fmt.Printf("OpAsg=#00 VarExrp: %T %v \n", lexp, lexp)
 		leftObj = GetVar(lexp, cx)
+
 	case *OperColon:
 		xres := lexp.Get()
 		if xres == nil {
@@ -86,7 +87,39 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 		leftObj = lexp.Get().V
 		// fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)
 	}
-	// fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+
+	SetValTo(leftObj, rval)
+	// // fmt.Printf("OP= L: %v = R: %T \n", leftObj, rval)
+	// // valTtype := objects.TypeByVal(rval)
+	// switch target := leftObj.(type) {
+	// // TODO: col[key] = val
+	// case *ColElem:
+	// 	// since collections is untyped,  we'll check type
+	// 	target.Set(rval)
+	// 	// TODO: obj.member = val
+	// case *base.Var:
+	// 	fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+	// 	// cval := rval
+	// 	if target.StrictType {
+	// 		typeOk, cval := PrepareVal(target.Type.Id, rval)
+	// 		if !typeOk {
+	// 			// bad val
+	// 			vt := objects.TypeByVal(rval)
+	// 			fmt.Printf("OP=#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
+	// 			return errors.New("oper assign: incorrecttype of value in right operand")
+	// 		}
+	// 		rval = cval
+	// 	}
+	// 	target.Val = rval
+
+	// 	// case *ObjectMember:
+	// 	// need check type
+	// }
+	return nil
+}
+
+func SetValTo(leftObj any, rval any) error {
+	// fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
 	// valTtype := objects.TypeByVal(rval)
 	switch target := leftObj.(type) {
 	// TODO: col[key] = val
@@ -95,14 +128,14 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 		target.Set(rval)
 		// TODO: obj.member = val
 	case *base.Var:
-		fmt.Printf("OP=#2 L: %T = R: %T \n", target, rval)
+		// fmt.Printf("SetValTo#2 L: (%T, %v) = R: %T \n", target, target, rval)
 		// cval := rval
 		if target.StrictType {
 			typeOk, cval := PrepareVal(target.Type.Id, rval)
 			if !typeOk {
 				// bad val
-				vt := objects.TypeByVal(rval)
-				fmt.Printf("OP=#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
+				// vt := objects.TypeByVal(rval)
+				// fmt.Printf("SetValTo#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
 				return errors.New("oper assign: incorrecttype of value in right operand")
 			}
 			rval = cval

@@ -111,8 +111,15 @@ func (ex *VarExpr) GetElem() *base.ContextElem {
 }
 
 func (ex *VarExpr) NewVar(cx base.Context) {
-	// TODO: take and set Type
 	vr := &base.Var{Name: ex.name}
+	cx.AddVar(vr)
+	ex.vr = vr
+}
+
+func (ex *VarExpr) NewVarTyped(cx base.Context, vtype *base.Type) {
+	// TODO: take and set Type
+	vr := &base.Var{Name: ex.name, Type: vtype, StrictType: true}
+	fmt.Printf("NewVarTyped#0 : %v // %v // %v \n", ex.name, vtype, vr)
 	cx.AddVar(vr)
 	ex.vr = vr
 }

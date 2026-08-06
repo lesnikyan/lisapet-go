@@ -13,10 +13,14 @@ ok 4. return, return with res
 ok 4.1 builtin functions, funcs len, iter
 ok 4.2 named args
 ok 5. default arg val
-6. var type
-6.1 arg type
+ok 6. var type
+ok 6.1 arg type
+6.2 multitype for var
+6.3 multitype for args
 7. multi assign
 8. multi result: return a, b, 10
+
+// n.5.1 return from: match-case
 
 --. variative count of args, triple-dot operator
 -- constructors of builtin types: int(), list(), tuple(), etc
@@ -24,30 +28,36 @@ ok 5. default arg val
 
 */
 
-func TestFuncDefNamedArgs(t *testing.T) {
+func TestFuncCompatibledArgs(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
 		{`
-		func foo(x, n = 2)
-			x * n
+		func foo(x: int)
+			x * 2
 		#
-		r = foo(23)
-		`, "r", int64(46)},
+		r = foo(true)
+		`, "r", int64(2)},
 		{`
-		func foo(a, b=2, c=100)
-			a * b + c
+		func foo(x: int, n=2)
+			x * n + 1
 		#
-		r = []
-		r <- foo(1)
-		r <- foo(1,5)
-		r <- foo(11, 6, 200)
-		r <- foo(3, 9)
-		r <- foo(3, c=30)
-		r <- foo(4, c=120, b=2)
-		`, "r", Anis(102, 105, 266, 127, 36, 128)},
+		r = foo(false)
+		`, "r", int64(1)},
+		{`
+		func foo(x: float, y: float)
+			x * y
+		#
+		r = foo(3, 5)
+		`, "r", float64(15)},
+		{`
+		func foo(x: int, y: int = 2)
+			x + y
+		#
+		r = foo(null, 3)
+		`, "r", int64(3)},
 		// {``, "r",  int64(205)},
 		// {``, "r",  Anis(11, )},
 	}
@@ -55,7 +65,6 @@ func TestFuncDefNamedArgs(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
-
 func TestFuncDefTypedArgs(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -89,6 +98,37 @@ func TestFuncDefTypedArgs(t *testing.T) {
 		{`
 		# all cases
 		func foo(a:int, b:int=2, c=100)
+			a * b + c
+		#
+		r = []
+		r <- foo(1)
+		r <- foo(1,5)
+		r <- foo(11, 6, 200)
+		r <- foo(3, 9)
+		r <- foo(3, c=30)
+		r <- foo(4, c=120, b=2)
+		`, "r", Anis(102, 105, 266, 127, 36, 128)},
+		// {``, "r",  int64(205)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+func TestFuncDefNamedArgs(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x, n = 2)
+			x * n
+		#
+		r = foo(23)
+		`, "r", int64(46)},
+		{`
+		func foo(a, b=2, c=100)
 			a * b + c
 		#
 		r = []
@@ -210,8 +250,6 @@ func TestFuncReturn(t *testing.T) {
 	// ok 3. return from `if`
 	// ok 4. return from `for`, `while`
 	// ok 5. return from deep inner block: for/for/if/if
-	// 5.1 return from: match-case
-	// 6. return set: return a, b, c
 
 	tdata := []struct {
 		src   string
