@@ -36,17 +36,6 @@ func FPrintElems(elems []*lang.Elem) string {
 	return fmt.Sprintf("`%s`", stt)
 }
 
-// func _AssignSubs(elems []*lang.Elem, spres *SplittedRes) {
-// 	if len(spres.Others) > 0 {
-// 		if spres.Others[0][0] < spres.Lowest {
-// 			// posibly multiassign
-// 		} else {
-// 			// leftEls := SkipSpaces(elems[:spres.Lowest])
-// 			// Interpret(leftEls)
-// 		}
-// 	}
-// }
-
 const (
 	opSemicol = ";"
 	opDot     = "."
@@ -127,7 +116,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 			return fnum, true
 		}
 		expr = &nodes.OperDot{} // lambda
-	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%":
+	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%", "|", "&", "^":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
@@ -138,7 +127,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)}
 	case "->":
-		expr = &nodes.OperBin{} // lambda
+		expr = &nodes.LambdaExpr{} // lambda
 	case "<-":
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":

@@ -22,6 +22,8 @@ func floatv(a any) float64 {
 	return 0
 }
 
+// ## + - * / ** ^/ == != < > <= >= %
+// TODO: int: | & ^ << >>
 func binOperInt(opid Opid, a int64, b any) (any, bool) {
 	fmt.Println("binInt:", opid, a, b)
 	switch b := b.(type) {
@@ -37,6 +39,8 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return float64(a) / float64(b), true
 		case OpPow:
 			return int64(math.Pow(float64(a), float64(b))), true
+		case OpRoot:
+			return math.Pow(float64(b), 1/float64(a)), true
 		case OpEqual:
 			return a == b, true
 		case OpNotEqual:
@@ -48,9 +52,19 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 		case OpMore:
 			return a > b, true
 		case OpMoreEqual:
-			return a > b, true
+			return a >= b, true
 		case OpPercent:
 			return a % b, true
+		case OpBitAnd:
+			return a & b, true
+		case OpBitOr:
+			return a | b, true
+		case OpXor:
+			return a ^ b, true
+		case OpBitLShift:
+			return a << b, true
+		case OpBitRShift:
+			return a >> b, true
 		}
 	case float64:
 		switch opid {
@@ -64,6 +78,8 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return float64(a) / b, true
 		case OpPow:
 			return math.Pow(float64(a), b), true
+		case OpRoot:
+			return math.Pow(float64(b), 1/float64(a)), true
 		case OpEqual:
 			return float64(a) == b, true
 		case OpNotEqual:
@@ -95,6 +111,8 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return a / float64(b), true
 		case OpPow:
 			return math.Pow(a, float64(b)), true
+		case OpRoot:
+			return math.Pow(float64(b), 1/float64(a)), true
 		case OpEqual:
 			return a == float64(b), true
 		case OpNotEqual:
@@ -102,11 +120,11 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 		case OpLess:
 			return a < float64(b), true
 		case OpLessEqual:
-			return a < float64(b), true
+			return a <= float64(b), true
 		case OpMore:
-			return a < float64(b), true
+			return a > float64(b), true
 		case OpMoreEqual:
-			return a < float64(b), true
+			return a >= float64(b), true
 		}
 	case float64:
 		switch opid {
@@ -120,6 +138,8 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return float64(a) / float64(b), true
 		case OpPow:
 			return math.Pow(float64(a), float64(b)), true
+		case OpRoot:
+			return math.Pow(b, 1/a), true
 		case OpEqual:
 			return a == b, true
 		case OpNotEqual:
@@ -127,18 +147,24 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 		case OpLess:
 			return a < b, true
 		case OpLessEqual:
-			return a < b, true
+			return a <= b, true
 		case OpMore:
-			return a < b, true
+			return a > b, true
 		case OpMoreEqual:
-			return a < b, true
+			return a >= b, true
 		}
 	}
 	return nil, false
 }
 
+func strLShift(format string, vals []any) string {
+	// TODO: prepare includes
+	return fmt.Sprintf(format, vals...)
+}
+
 func binOperString(opid Opid, a string, b any) (any, bool) {
 	switch b := b.(type) {
+	// operators bitween two strings
 	case string:
 		switch opid {
 		case OpPlus:
@@ -147,7 +173,23 @@ func binOperString(opid Opid, a string, b any) (any, bool) {
 			return strings.Compare(a, b) == 0, true
 		case OpNotEqual:
 			return a != b, true
+		case OpBitLShift:
+			return strLShift(a, []any{b}), true
 		}
+	default:
+		switch opid {
+		// formatting
+		case OpBitLShift:
+			var vals []any
+			switch src := b.(type) {
+			case *ob.ListVal:
+				vals = src.Elems
+			default:
+				vals = []any{b}
+			}
+			return strLShift(a, vals), true
+		}
+
 	}
 	return nil, false
 }
@@ -181,47 +223,3 @@ func binOperFunc(opid Opid, a Function, b any) (any, bool)       { return nil, f
 func binOperStruct(opid Opid, a ob.StructVal, b any) (any, bool) { return nil, false }
 func binOperRegext(opid Opid, a ob.Regexp, b any) (any, bool)    { return nil, false }
 func binOperAny(opid Opid, a any, b any) (any, bool)             { return nil, false }
-
-// func plusIntN(a int64, b any) (any, bool) {
-// 	switch b := b.(type) {
-// 	case int64:
-// 		return a + b, true
-// 	case float64:
-// 		return float64(a) + b, true
-// 	}
-// 	return nil, false
-// }
-
-// func plusFloatN(a float64, b any) (any, bool) {
-// 	switch vb := b.(type) {
-// 	case int64:
-// 		return a + float64(vb), true
-// 	case bool:
-// 		return a + floatv(vb), true
-// 	case float64:
-// 		return a + vb, true
-// 	}
-// 	return nil, false
-// }
-
-// func plusStringN(a string, b any) (any, bool) {
-// 	switch vb := b.(type) {
-// 	case string:
-// 		return a + vb, true
-// 	}
-// 	return nil, false
-// }
-
-// func PlusInt(lvv any, rvv any) (any, bool) {
-
-// 	li, lok := lvv.(int64)
-// 	if !lok {
-// 		return nil, false
-// 	}
-// 	ri, rok := rvv.(int64)
-// 	if !rok {
-// 		return nil, false
-// 	}
-// 	v := li + ri
-// 	return v, true
-// }

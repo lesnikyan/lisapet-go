@@ -65,6 +65,7 @@ func TestFuncCompatibledArgs(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestFuncDefTypedArgs(t *testing.T) {
 	tdata := []struct {
 		src   string
