@@ -2,6 +2,16 @@ package cases
 
 import "testing"
 
+/*
+1. math expr: (...\n...)
+2. tuple, list, dict constructor
+3. control expr sum-expression: if, for, while, func def, func call
+4. generator and comprehension
+*/
+func TestOperUnclosedBrackets(t *testing.T) {
+
+}
+
 func TestOperMath(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -78,13 +88,36 @@ func TestOperMath(t *testing.T) {
 		r <- "a" == "b"
 		`, "r", Anis("other", true, true, true, true, false, false,
 			"a", true, true, true, true, false, false, false)},
-		// {`
-		// r = ["multitype"]
-		// r <- "a" != 1
-		// r <- 1 != 'a'
-		// r <- 1 == 'a'
-		// r <- 'a' == 1
-		// `, "r", Anis("float", true, true, true, true, false, false, "a")},
+		{`
+		r = ["multitype"]
+		r <- "a" != 1
+		r <- 1 != 'a'
+		r <- 1 == 'a'
+		r <- 'a' == 1
+		`, "r", Anis("multitype", true, true, false, false)},
+		{`
+		r = ["collection"]
+		r <- [] == []
+		r <- [1,2,3] ==[1,2,3]
+		r <- (,) == (,)
+		r <- (1,2) == (1,2)
+		r <- {} == {}
+		r <- {1:11, 2:22} == {1:11, 2:22}
+		r <- "a"
+		r <- [] != [1]
+		r <- [] == [1]
+		r <- (,) != (2,)
+		r <- (,) == (3,)
+		r <- {} != {3:33}
+		r <- {} == {4:44}
+		r <- "b"
+		r <- 1 != [1]
+		r <- 2 != {5:55}
+		r <- 3 == (3,'c')
+		r <- (3) == (3,)
+		`, "r", Anis("collection", true, true, true, true, true, true, "a",
+			true, false, true, false, true, false,
+			"b", true, true, false, false)},
 		// {``, "r",  int64(205)},
 		// {``, "r",  Anis(11, )},
 	}

@@ -121,12 +121,10 @@ func (op *OperBin) Do(cx base.Context) error {
 	return nil
 }
 
-// TODO: implement ==, != for all types.
-func Compare(left any, right any, oper Opid) bool {
-	return false
-}
-
 func ApplyOper(left any, right any, oper Opid) (any, bool) {
+	if oper == OpEqual || oper == OpNotEqual {
+		return EqCompare(left, right, oper), true
+	}
 	var res any
 	var ok bool
 	fmt.Printf("ApplyOper#0: <%v> (%T, %v) (%T, %v) \n", oper, left, left, right, right)
