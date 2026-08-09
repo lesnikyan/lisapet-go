@@ -34,5 +34,6 @@ raw dev log:
 -.-.08 Fixed some operators: math, comparison, bitwize.
 -.-.09 Fix of `==`, `!=` for different types: `1 == '1'` => false
 -.-.09 Implement multiassign: `a,b,c = 1, v2, f3()`, `return 1,2,3`, `a, b, c = foo()`
+-.-.- Implement multi assign with unpacking of list / tuple to vars: `a,b,c = [1,2,3]`
 
 ```

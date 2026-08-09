@@ -43,8 +43,8 @@ func (op *OperAssign) Do(cx base.Context) error {
 	if err1 != nil {
 		return err1
 	}
-	AssignVal(cx, op.left, rval)
-	return nil
+	return AssignVal(cx, op.left, rval)
+	// return nil
 }
 
 // actual for variable, argument, struct method in left of assign
@@ -94,12 +94,11 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 		}
 		leftObj = targets
 	}
-	SetValTo(leftObj, rval)
-	return nil
+	return SetValTo(leftObj, rval)
 }
 
 func SetValTo(leftObj any, rval any) error {
-	// fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
+	fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
 	// valTtype := objects.TypeByVal(rval)
 	switch target := leftObj.(type) {
 	// TODO: col[key] = val
@@ -122,17 +121,34 @@ func SetValTo(leftObj any, rval any) error {
 		}
 		target.Val = rval
 	case []*base.Var:
+		var valSet []any
 		switch vals := rval.(type) {
 		case []any:
 			// just vals
-			if len(target) != len(vals) {
-				return errors.New("oper assign: multi, incorrect count of vals")
-			}
-			for i, vr := range target {
-				err := SetValTo(vr, vals[i])
-				if err != nil {
-					return err
-				}
+			valSet = vals
+			// if len(target) != len(vals) {
+			// 	return errors.New("oper assign: multi, incorrect count of vals")
+			// }
+			// for i, vr := range target {
+			// 	err := SetValTo(vr, vals[i])
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// }
+		case *objects.ListVal:
+			valSet = vals.Elems
+		case *objects.TupleVal:
+			valSet = vals.Elems
+		default:
+			return errors.New("oper assign: multi, bad type of right val set")
+		}
+		if len(target) != len(valSet) {
+			return errors.New("oper assign: multi, incorrect count of vals")
+		}
+		for i, vr := range target {
+			err := SetValTo(vr, valSet[i])
+			if err != nil {
+				return err
 			}
 		}
 		// case *ObjectMember:

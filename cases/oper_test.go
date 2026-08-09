@@ -23,11 +23,57 @@ func TestOperUnclosedBrackets(t *testing.T) {
 
 }
 
+func TestOperUnpackCollection(t *testing.T) {
+	// 1. a, b = list
+	// 2. a,b = tuple
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [11, 12]
+		a, b = nn
+		r = [a, b]
+		`, "r", Anis(11, 12)},
+		{`
+		nn = [11, 12, 13]
+		a, b, c = nn
+		r = [a, b, c]
+		`, "r", Anis(11, 12, 13)},
+		{`
+		a, b, c = [11, 12, 13]
+		r = [a, b, c]
+		`, "r", Anis(11, 12, 13)},
+		{`
+		nn = (21, 22)
+		a, b = nn
+		r = [a, b]
+		`, "r", Anis(21, 22)},
+		{`
+		nn = (21, 22, 23)
+		a, b, c = nn
+		r = [a, b, c]
+		`, "r", Anis(21, 22, 23)},
+		{`
+		# long multiassign
+		ss = split('a1,b1,c1,d1,e1,f1,g1,h1,i1,j1,k1,l1,m1,n1,o1,p1', ',')
+		a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p = ss
+		r = [a,b,c,d,e,f,g,h, '>>', i,j,k,l,m,n,o,p]
+		`, "r", Anis("a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+			">>", "i1", "j1", "k1", "l1", "m1", "n1", "o1", "p1")},
+		// {``, "r",  int64(205)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestOperMultiAssign(t *testing.T) {
 	// ok 1. a, b = 1, 2 # vals
 	// ok 2. a, b = v1, v2 # vars
 	// ok 3. a, b = f1(), f2() # func calls
-	// 4. a, b = list | tuple # unpack list, tuple
 	// ok 5. a, b = foo() # multi result from function
 	tdata := []struct {
 		src   string
@@ -68,12 +114,28 @@ func TestOperMultiAssign(t *testing.T) {
 		r = [a, b, c]
 		`, "r", Anis(11, 22, 55)},
 		{`
+		# func multi result
 		func foo(x)
 			x , x + 10, x * 2
 		#
 		a, b, c = foo(15)
 		r = [a, b, c]
 		`, "r", Anis(15, 25, 30)},
+		{`
+		# func multi return
+		func foo(x)
+			if x < 0
+				return x, x * -2
+			x, x * 5
+		#
+		r = []
+		a,b  = foo(3)
+		r <- a
+		r <- b
+		c,d = foo(-7)
+		r <- c
+		r <- d
+		`, "r", Anis(3, 15, -7, 14)},
 		// {``, "r",  int64(205)},
 		// {``, "r",  Anis(11, )},
 	}
