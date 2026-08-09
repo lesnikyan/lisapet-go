@@ -9,7 +9,77 @@ import "testing"
 4. generator and comprehension
 */
 func TestOperUnclosedBrackets(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// {``, "r",  int64(205)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
 
+}
+
+func TestOperMultiAssign(t *testing.T) {
+	// ok 1. a, b = 1, 2 # vals
+	// ok 2. a, b = v1, v2 # vars
+	// ok 3. a, b = f1(), f2() # func calls
+	// 4. a, b = list | tuple # unpack list, tuple
+	// ok 5. a, b = foo() # multi result from function
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a, b = 1, 2
+		r = [a,b]
+		`, "r", Anis(1, 2)},
+		{`
+		a, b, c = 3, 4, 5
+		r = [a, b, c]
+		`, "r", Anis(3, 4, 5)},
+		{`
+		q = 6
+		p = 7
+		t = 8
+		a, b, c = q, p, t
+		r = [a, b, c]
+		`, "r", Anis(6, 7, 8)},
+		{`
+		func f1(x)
+			x + 10
+		#
+		func f2(x)
+			x * 2
+		#
+		a, b, c = f1(2), f2(7), f2(23)
+		r = [a, b, c]
+		`, "r", Anis(12, 14, 46)},
+		{`
+		func foo()
+			11, 22, 55
+		#
+		r = 11112
+		a, b, c = foo()
+		r = [a, b, c]
+		`, "r", Anis(11, 22, 55)},
+		{`
+		func foo(x)
+			x , x + 10, x * 2
+		#
+		a, b, c = foo(15)
+		r = [a, b, c]
+		`, "r", Anis(15, 25, 30)},
+		// {``, "r",  int64(205)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
 }
 
 func TestOperMath(t *testing.T) {

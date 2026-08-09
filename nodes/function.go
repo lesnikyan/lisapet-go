@@ -282,7 +282,7 @@ func (fn *Function) Do(cx base.Context) error {
 	fn.resVal = r
 	if r != nil {
 		fn.res = r.V
-		// fmt.Printf(" - Fu.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fn.res, fn.res)
+		fmt.Printf(" - Fu.Do#5 br(%T : %v) fr(%T : %v) \n", r, r, fn.res, fn.res)
 		return nil
 	}
 

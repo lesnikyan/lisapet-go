@@ -32,5 +32,7 @@ raw dev log:
 -.-.03 Aded type ov variable, by `:` operator >> `r: int = 123`
 -.-.07 Implemented typed arguments (including default vals) and autocasting of compatible types: `x: int = true` => 1
 -.-.08 Fixed some operators: math, comparison, bitwize.
+-.-.09 Fix of `==`, `!=` for different types: `1 == '1'` => false
+-.-.09 Implement multiassign: `a,b,c = 1, v2, f3()`, `return 1,2,3`, `a, b, c = foo()`
 
 ```

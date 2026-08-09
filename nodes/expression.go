@@ -59,12 +59,7 @@ func (ex *VarExpr) Do(cx base.Context) error {
 	if elem == nil {
 		return nil
 	}
-	// vr := cx.GetVar(ex.name)
 	// fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", vr, vr, vr == nil)
-	// if vr == nil {
-	// 	ex.vr = nil
-	// 	return nil
-	// }
 	switch vr := elem.V.(type) {
 	case *base.Var:
 		ex.vr = vr
@@ -102,6 +97,13 @@ func (ex *VarExpr) Get() *base.Val {
 func (ex *VarExpr) GetVar() *base.Var {
 	if ex.vr == nil {
 		return nil
+	}
+	return ex.vr
+}
+
+func (ex *VarExpr) GetOrNewVar(cx base.Context) *base.Var {
+	if ex.vr == nil {
+		ex.NewVar(cx)
 	}
 	return ex.vr
 }
@@ -206,6 +208,27 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		res := vv.res.GetList()
 		fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
 		return res
+	case *SequenceComma:
+		// vals := make([]any, len(vv.Subs))
+		// for i, ex := range vv.Subs {
+		// 	// vex, ok := ex.(*VarExpr)
+		// 	// if !ok {
+		// 	// 	return errors.New("assign: multival, no var in left sequence")
+		// 	// }
+		// 	// vr := vex.GetOrNewVar(cx)
+		// 	val := GetExprVal(ex, cx)
+		// 	// var val any
+		// 	if val == nil {
+		// 		val = &objects.Null{}
+		// 	}
+		// 	vals[i] = val
+		// }
+		vals := vv.GetVals()
+		if vals == nil {
+			return nil
+		}
+		return vals.V
+		// return vals
 	default:
 		return vv.Get().V
 	}
