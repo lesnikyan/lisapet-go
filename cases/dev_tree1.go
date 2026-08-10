@@ -22,18 +22,18 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 	var err error
 	var expr base.Expression
 	var ok bool
-	if IsLKWord(cline.Elems) {
+	if IsLKWord(cline.Elems, prevTree) {
 		// control or definition expression
 		state, err := KWordExp(cline.Elems, prevTree)
+		if err != nil {
+			fmt.Println("Error LKWord!", err)
+			return nil, err
+		}
 		if !state.Done {
 			// unclosed
 			return state, nil
 		}
 		expr = state.Expr
-		if err != nil {
-			fmt.Println("Error LKWord!", err)
-			return nil, err
-		}
 		// fmt.Println("L2E1>", cline.Src, expr, err)
 	} else {
 		if len(cline.Elems) == 1 {
@@ -90,11 +90,15 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		if len(cline.Elems) == 0 {
 			continue
 		}
-		// fmt.Println("\n>>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem))
 		var ltree *LineTree
 		if prevState != nil {
+			// next part of expression
 			ltree = prevState.LTree
+		} else {
+			// new expression
+			cind = cline.Indent
 		}
+		// fmt.Println("\n>>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind)
 		curState, err := Line2Expr(cline, ltree)
 
 		if err != nil {
@@ -119,7 +123,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		}
 		// tp := fmt.Sprintf("%T", expr)
 		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
-		cind = cline.Indent
 		elseInd := false // if expr is `else`
 
 		// fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
@@ -147,6 +150,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				}
 			}
 		}
+		// fmt.Println("Tree,Indent2:", "pLen:", len(parents))
 
 		// fmt.Printf("tree.Block %T: %v .line: (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
 		switch texp := expr.(type) { // cur expr

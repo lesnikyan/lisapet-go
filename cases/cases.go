@@ -60,6 +60,7 @@ type LineTree struct {
 	Finished      bool        // if all operators and brackates was finished
 	Parents       []*OperNode // final chain of parent nodes - right branch of tree
 	BracketsCount int
+	InFuncBr      bool
 	ShiftOpers    map[string]string // what an oper : after what should be shifter
 }
 

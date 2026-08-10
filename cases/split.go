@@ -236,11 +236,15 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	var rNode *OperNode
 	var parents []*OperNode
 	var cNode *OperNode // curent node
+	opcx := 1
 	if prevTree != nil {
 		rNode = prevTree.Tree
 		parents = prevTree.Parents
 		cNode = parents[len(parents)-1]
 		brC = prevTree.BracketsCount
+		if prevTree.InFuncBr {
+			opcx = 3
+		}
 	} else {
 		rNode = &OperNode{prior: 10000, oper: "ЫХ"} // root node
 		parents = []*OperNode{rNode}
@@ -251,7 +255,6 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	// left0 := true
 	var slashLambda bool = false
 
-	opcx := 1
 	var solidEnd = strings.Split(") ] } ... ~>", " ")
 	for i, el := range elems {
 		// curin = i
@@ -383,7 +386,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			continue
 		}
 
-		// log.Println("$102", tx, prevCloseBr)
+		// log.Println("$102", tx, "isBr:", cNode.IsBrackets, fmt.Sprintf("cNode:(%T, %v)", cNode, cNode.oper))
 		// opris = priors2
 		isFuBr := cNode.IsBrackets && cNode.oper == "(" && notEmptyLeft(cNode)
 		txex := tx // changing oper var for special context
@@ -554,5 +557,5 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	}
 	// log.Println("$_split_res:", rNode, rNode.rightNode, "// finised:", finished)
 	// return rNode, nil
-	return &LineTree{Tree: rNode, Finished: finished, Parents: parents, BracketsCount: brC}, nil
+	return &LineTree{Tree: rNode, Finished: finished, Parents: parents, BracketsCount: brC, InFuncBr: opcx == 3}, nil
 }

@@ -36,5 +36,6 @@ raw dev log:
 -.-.09 Implemented multiassign: `a,b,c = 1, v2, f3()`, `return 1,2,3`, `a, b, c = foo()`
 -.-.- Implemented multi assign with unpacking of list / tuple to vars: `a,b,c = [1,2,3]`
 -.-.10 Implemented multiline expressions in brackets: math expr; tuple, list, dict construtors; func call. Cleaned some dev output.
+-.-.- Fix multiline with function definition
 
 ```

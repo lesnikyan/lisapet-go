@@ -20,10 +20,12 @@ import "testing"
 // }
 
 /*
-1. math expr: (...\n...)
-2. tuple, list, dict constructor
-3. control expr sum-expression: if, for, while, func def, func call
-4. generator and comprehension
+ok 1. math expr: (...\n...)
+ok 2. tuple, list, dict constructor
+3. control expr sum-expression: if, for, while,
+ok 4. func def,
+ok 5. func call
+6. generator and comprehension
 */
 func TestOperUnclosedBrackets(t *testing.T) {
 	tdata := []struct {
@@ -62,6 +64,19 @@ func TestOperUnclosedBrackets(t *testing.T) {
 		200,
 		34)
 		`, "r", int64(1234)},
+		{`
+		func foo(a,
+			b)
+			a + b
+		r = foo(1000, 200)
+		`, "r", int64(1200)},
+		{`
+		func foo(a, 
+			b,
+			c=1)
+			a + b + c
+		r = foo(1000, 200)
+		`, "r", int64(1201)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
@@ -69,8 +84,8 @@ func TestOperUnclosedBrackets(t *testing.T) {
 }
 
 func TestOperUnpackCollection(t *testing.T) {
-	// 1. a, b = list
-	// 2. a,b = tuple
+	// ok 1. a, b = list
+	// ok 2. a, b = tuple
 	tdata := []struct {
 		src   string
 		vname string

@@ -35,32 +35,35 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	// var subElems []*lang.Elem
 	// selems := elems
 	elems = SkipSpaces(elems)
-	if len(elems) < 4 {
-		// func name()
-		return nil, errors.New("too small lexem set for func definition")
-	}
+	// if len(elems) < 3 {
+	// 	// func name()
+	// 	return nil, errors.New("too small lexem set for func definition")
+	// }
 
 	var prefTree *LineTree
 	var err1 error
 	// detect method: if has `:` before `()`
 	// fmt.Printf("CaseFunc#1: %s \n", FPrintElems(elems))
-	sigIndex := 1 // start of signature (from name)
-	if len(elems) > 6 {
-		// possible mehod def: `func inst:Type Name()`
-		if elems[2].Type == Lt.Oper && elems[2].Text == opColon {
-			prefTree, err1 = Line2tree(elems[1:4], nil)
-			if err1 != nil {
-				return nil, errors.New("func def: incorrect prefix of method")
+	sigIndex := 0 // start of signature (from name)
+	if kwRoot.BracketsCount == 0 {
+		sigIndex = 1 // start of signature (from name)
+		if len(elems) > 6 {
+			// possible mehod def: `func inst:Type Name()`
+			if elems[2].Type == Lt.Oper && elems[2].Text == opColon {
+				prefTree, err1 = Line2tree(elems[1:4], nil)
+				if err1 != nil {
+					return nil, errors.New("func def: incorrect prefix of method")
+				}
+				sigIndex = 4
+				// TODO: add prefTree to kwRoot
 			}
-			sigIndex = 4
-			// TODO: add prefTree to kwRoot
 		}
 	}
 	// Name
 	name := "f###"
-	if elems[sigIndex].Type == Lt.Word {
-		name = elems[sigIndex].Text
-	}
+	// if elems[sigIndex].Type == Lt.Word {
+	// 	name = elems[sigIndex].Text
+	// }
 	// Args
 	sigTree, err2 := Line2tree(elems[sigIndex:], kwRoot)
 	if err2 != nil {
@@ -75,7 +78,8 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		// fmt.Printf("CaseFunc#5: %T %v \n", fNode, fNode)
 		return nil, errors.New("func def without brackets")
 	}
-	PrintONode(sigTree.Tree, 0)
+	// PrintONode(sigTree.Tree, 0)
+	// PrintONode(fNode, 0)
 	var args []base.Expression
 	// inBrNode := fNode.rightNode
 	if fNode.rightNode != nil || len(fNode.rightElems) > 0 {
@@ -102,6 +106,11 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		// empty args
 	}
 	// expected sigTree: Brackets -> CommaSepSequence
+	if len(fNode.leftElems) == 1 {
+		// should be name
+		name = fNode.leftElems[0].Text
+	}
+	// fmt.Println("FuncCase# name ", name)
 
 	funcDef := nodes.NewFuncDef(name, args)
 	if prefTree != nil {
@@ -118,14 +127,20 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 	if len(elems) > 1 {
 		subElems = elems[1:]
 	}
-	rootNode := &OperNode{oper: "KW", leftElems: []*lang.Elem{elems[0]}, prior: 111}
 	var kwRoot *LineTree
 	if prevTree != nil {
 		kwRoot = prevTree
 	} else {
+		rootNode := &OperNode{oper: "KW", leftElems: []*lang.Elem{elems[0]}, prior: 111}
 		kwRoot = &LineTree{Tree: rootNode, Parents: []*OperNode{rootNode}}
 	}
-	switch elems[0].Text {
+	var kwText string
+	if prevTree != nil && len(prevTree.Tree.leftElems) > 0 {
+		kwText = prevTree.Tree.leftElems[0].Text
+	} else {
+		kwText = elems[0].Text
+	}
+	switch kwText {
 	case kIf:
 		ifTree, err := Line2tree(subElems, kwRoot)
 		if err != nil {
@@ -186,6 +201,7 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 			exp = nodes.NewForSource(subFor)
 		default:
 			err = errors.New("bad sub-expr for `for` expression")
+			return nil, err
 		}
 		return &SplitState{Expr: exp, Done: true}, err
 	case kWhile:
@@ -245,5 +261,5 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 	case kConst:
 	case kRun:
 	}
-	return nil, nil
+	return nil, errors.New("keyword not found")
 }

@@ -431,7 +431,11 @@ grup
 // var keywords = strings.Split("func|if|for|while|match|enum|grup|struct|else|import|return|const|run", "|")
 // var kwMap = List2Keys(keywords)
 
-func IsLKWord(elems []*lang.Elem) bool {
+func IsLKWord(elems []*lang.Elem, prevTree *LineTree) bool {
+	if prevTree != nil && len(prevTree.Tree.leftElems) > 0 {
+		_, ok := kwMap[prevTree.Tree.leftElems[0].Text]
+		return ok
+	}
 	e1 := elems[0]
 	if e1.Type != Lt.Word {
 		return false
@@ -441,7 +445,7 @@ func IsLKWord(elems []*lang.Elem) bool {
 }
 
 func CaseLKeyword(elems []*lang.Elem) (*CaseRes, bool) {
-	if elems[0].Type != Lt.Word || !IsLKWord((elems)) {
+	if elems[0].Type != Lt.Word || !IsLKWord(elems, nil) {
 
 	}
 	var expr base.Expression
