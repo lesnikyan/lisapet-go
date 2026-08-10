@@ -56,10 +56,11 @@ type CaseRes struct {
 }
 
 type LineTree struct {
-	Tree       *OperNode         // parsed tree of operators
-	Finished   bool              // if all operators and brackates was finished
-	Parents    []*OperNode       // final chain of parent nodes - right branch of tree
-	ShiftOpers map[string]string // what an oper : after what should be shifter
+	Tree          *OperNode   // parsed tree of operators
+	Finished      bool        // if all operators and brackates was finished
+	Parents       []*OperNode // final chain of parent nodes - right branch of tree
+	BracketsCount int
+	ShiftOpers    map[string]string // what an oper : after what should be shifter
 }
 
 func PrintOpArg(side string, node *OperNode, elems []*lang.Elem, ind int) {

@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
@@ -121,7 +120,7 @@ func (ex *VarExpr) NewVar(cx base.Context) {
 func (ex *VarExpr) NewVarTyped(cx base.Context, vtype *base.Type) {
 	// TODO: take and set Type
 	vr := &base.Var{Name: ex.name, Type: vtype, StrictType: true}
-	fmt.Printf("NewVarTyped#0 : %v // %v // %v \n", ex.name, vtype, vr)
+	// fmt.Printf("NewVarTyped#0 : %v // %v // %v \n", ex.name, vtype, vr)
 	cx.AddVar(vr)
 	ex.vr = vr
 }
@@ -171,7 +170,7 @@ func GetExprTarget(v base.Expression, cx base.Context) any {
 }
 
 func GetExprVal(v base.Expression, cx base.Context) any {
-	fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
+	// fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
 	var eVal *base.Val
 	switch vv := v.(type) {
 	case *VarExpr:
@@ -198,15 +197,15 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// return eVal.V
 	case *ColElemExpr:
 		eVal = vv.ColRes.Get()
-		fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
+		// fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
 		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
-		fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
+		// fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
 		return eVal.V
 	case *NumSeqExpr:
 		res := vv.res.GetList()
-		fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
+		// fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
 		return res
 	case *SequenceComma:
 		// vals := make([]any, len(vv.Subs))

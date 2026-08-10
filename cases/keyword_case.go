@@ -2,7 +2,6 @@ package cases
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
@@ -28,11 +27,11 @@ const (
 	kRun      = "run"
 )
 
-func CaseIf(tree *LineTree) (base.Expression, error) {
-	return nil, nil
-}
+// func CaseIf(tree *LineTree) (base.Expression, error) {
+// 	return nil, nil
+// }
 
-func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
+func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	// var subElems []*lang.Elem
 	// selems := elems
 	elems = SkipSpaces(elems)
@@ -67,6 +66,9 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 	if err2 != nil {
 		return nil, errors.New("func def: incorrect signature")
 	}
+	if !sigTree.Finished {
+		return &SplitState{Done: false, LTree: sigTree}, nil
+	}
 	fNode := sigTree.Tree.rightNode
 	if !fNode.IsBrackets {
 		// no brackets, so - error
@@ -84,7 +86,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 		switch subs := argExp.(type) {
 		case *nodes.SequenceComma:
 			if len(subs.Subs) > 0 {
-				fmt.Println("FuncCase#01", len(subs.Subs))
+				// fmt.Println("FuncCase#01", len(subs.Subs))
 				args = make([]base.Expression, len(subs.Subs))
 				for i, sub := range subs.Subs {
 					switch aex := sub.(type) {
@@ -105,19 +107,24 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (base.Expression, error) {
 	if prefTree != nil {
 		// method def
 	}
-	return funcDef, nil
+	return &SplitState{Expr: funcDef, Done: true}, nil
 }
 
 var mockErr = errors.New("case mock error")
 
-func KWordExp(elems []*lang.Elem) (base.Expression, error) {
+func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 	var subElems []*lang.Elem
 	// elems = SkipSpaces(elems)
 	if len(elems) > 1 {
 		subElems = elems[1:]
 	}
 	rootNode := &OperNode{oper: "KW", leftElems: []*lang.Elem{elems[0]}, prior: 111}
-	kwRoot := &LineTree{Tree: rootNode, Parents: []*OperNode{rootNode}}
+	var kwRoot *LineTree
+	if prevTree != nil {
+		kwRoot = prevTree
+	} else {
+		kwRoot = &LineTree{Tree: rootNode, Parents: []*OperNode{rootNode}}
+	}
 	switch elems[0].Text {
 	case kIf:
 		ifTree, err := Line2tree(subElems, kwRoot)
@@ -126,6 +133,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		}
 		if !ifTree.Finished {
 			// unclosed expression, need continue on next line...
+			return &SplitState{Done: false, LTree: ifTree}, nil
 		}
 		// exp, err2 := CaseIf(ifRes)
 		subNode := ifTree.Tree
@@ -135,24 +143,24 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			return nil, mockErr
 		}
 		exp := nodes.NewIf(subExp)
-		return exp, nil
+		return &SplitState{Expr: exp, Done: true}, nil
 	case kElse:
 		//
 		exp := nodes.NewElseNode()
 		if len(SkipSpaces(elems)) == 1 {
-			return exp, nil
+			return &SplitState{Expr: exp, Done: true}, nil
 		}
 		// if has inner `if`
-		subExp, err := KWordExp(subElems[1:])
+		subExp, err := KWordExp(subElems[1:], prevTree)
 		if err != nil {
 			// do smth
 		}
-		sub, ok := subExp.(*nodes.IfNode)
+		sub, ok := subExp.Expr.(*nodes.IfNode)
 		if !ok {
 			// do smth
 		}
 		exp.SetSlide(sub)
-		return exp, nil
+		return &SplitState{Expr: exp, Done: true}, nil
 
 	case kFor:
 		forTree, err := Line2tree(subElems[1:], kwRoot)
@@ -161,11 +169,12 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		}
 		if !forTree.Finished {
 			// unclosed expression, need continue on next line...
+			return &SplitState{Done: false, LTree: forTree}, nil
 		}
 		subNode := forTree.Tree
 		// PrintONode(subNode, 0)
 		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
-		fmt.Printf("Case#For1,1: (%T, %v): %v \n", subExp, subExp, ok)
+		// fmt.Printf("Case#For1,1: (%T, %v): %v \n", subExp, subExp, ok)
 		if !ok {
 			return nil, mockErr
 		}
@@ -178,7 +187,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		default:
 			err = errors.New("bad sub-expr for `for` expression")
 		}
-		return exp, err
+		return &SplitState{Expr: exp, Done: true}, err
 	case kWhile:
 		forTree, err := Line2tree(subElems[1:], kwRoot)
 		if err != nil {
@@ -186,29 +195,31 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		}
 		if !forTree.Finished {
 			// unclosed expression, need continue on next line...
+			return &SplitState{Done: false, LTree: forTree}, nil
 		}
 		subNode := forTree.Tree
 		// PrintONode(subNode, 0)
 		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
-		fmt.Printf("Case#While#1: (%T, %v): %v \n", subExp, subExp, ok)
+		// fmt.Printf("Case#While#1: (%T, %v): %v \n", subExp, subExp, ok)
 		if !ok {
 			return nil, mockErr
 		}
 		exp := nodes.NewWhile(subExp)
-		return exp, nil
+		return &SplitState{Expr: exp, Done: true}, nil
 
 	case kFunc:
 		return CaseFunc(elems, kwRoot)
 	case kBreak:
 		exp := &nodes.BreakExp{}
-		return exp, nil
+		return &SplitState{Expr: exp, Done: true}, nil
 	case kContinue:
 		exp := &nodes.ContinueExp{}
-		return exp, nil
+		return &SplitState{Expr: exp, Done: true}, nil
 	case kReturn:
 		subElems = SkipSpaces(subElems)
 		if len(subElems) == 0 {
-			return nodes.NewReturn(nil), nil
+			exp := nodes.NewReturn(nil)
+			return &SplitState{Expr: exp, Done: true}, nil
 		}
 		subTree, err := Line2tree(subElems, kwRoot)
 		if err != nil {
@@ -216,6 +227,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 		}
 		if !subTree.Finished {
 			// unclosed expression, need continue on next line...
+			return &SplitState{Done: false, LTree: subTree}, nil
 		}
 		subNode := subTree.Tree
 		// PrintONode(subNode, 0)
@@ -224,7 +236,7 @@ func KWordExp(elems []*lang.Elem) (base.Expression, error) {
 			return nil, errors.New("Return: bad sub")
 		}
 		exp := nodes.NewReturn(subExp)
-		return exp, nil
+		return &SplitState{Expr: exp, Done: true}, nil
 	case kMatch:
 	case kEnum:
 	case kGrup:

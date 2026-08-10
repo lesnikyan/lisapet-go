@@ -2,6 +2,23 @@ package cases
 
 import "testing"
 
+// func TestDev1(t *testing.T) {
+// 	tdata := []struct {
+// 		src   string
+// 		vname string
+// 		res   any
+// 	}{
+// 		{`
+// 		a = 1
+// 		b = 2
+// 		r = a + b
+// 		`, "r", int64(1234)},
+// 	}
+// 	for i, tt := range tdata {
+// 		RunTCodeVarExp(t, i, tt)
+// 	}
+// }
+
 /*
 1. math expr: (...\n...)
 2. tuple, list, dict constructor
@@ -14,13 +31,41 @@ func TestOperUnclosedBrackets(t *testing.T) {
 		vname string
 		res   any
 	}{
-		// {``, "r",  int64(205)},
-		// {``, "r",  Anis(11, )},
+		{`
+		r = (1 +
+		10 - 5)
+		`, "r", int64(6)},
+		{`
+		r = (100 + 2 *
+		10 - 2 **
+		3)
+		`, "r", int64(112)},
+		{`
+		r = [1, 2,
+		33]
+		`, "r", Anis(1, 2, 33)},
+		{`
+		r = (22, 33,
+		44,
+		55)
+		`, "r", Tanis(22, 33, 44, 55)},
+		{`
+		r = {
+			'a': 11,
+			'b': 12
+		}
+		`, "r", adk(dk{"a": 11, "b": 12})},
+		{`
+		func foo(a, b, c)
+			a + b + c
+		r = foo(1000,
+		200,
+		34)
+		`, "r", int64(1234)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
-
 }
 
 func TestOperUnpackCollection(t *testing.T) {

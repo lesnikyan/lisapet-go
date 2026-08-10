@@ -106,7 +106,7 @@ func DotCaseNum(node *OperNode) *nodes.ValExpr {
 func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	var expr base.OperExpr
 	oper := rNode.oper
-	println("$$PROP#0:", oper)
+	// println("$$PROP#0:", oper)
 	switch oper {
 	case "=":
 		expr = &nodes.OperAssign{Oper: oper}
@@ -144,7 +144,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 
 	}
 	// println("$$PROP#1=:", expr)
-	fmt.Printf("POT#2 %v (%T: %v) \n", oper, expr, expr)
+	// fmt.Printf("POT#2 %v (%T: %v) \n", oper, expr, expr)
 	lArg, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	if lok {
 		expr.SetLeft(lArg)
@@ -157,7 +157,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	if rok {
 		expr.SetRight(rArg)
 	}
-	fmt.Println("POT#10:", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
+	// fmt.Println("POT#10:", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
 
 	return expr, expr != nil
 }
@@ -204,7 +204,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	bt := nodes.GetBrType(rNode.oper)
 	subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
 	lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
-	fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v)\n", oper, lexp, lok, subs, rok)
+	// fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v)\n", oper, lexp, lok, subs, rok)
 	seq, okc := subs.(*nodes.SequenceComma)
 	switch oper {
 	case "(":
@@ -224,7 +224,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 				}
 			}
 			return nodes.NewFuncCall(fEx, fArgs), true
-			return nil, false
+			// return nil, false
 		}
 		if okc {
 			// tuple here
@@ -243,7 +243,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 		}
 
 	}
-	fmt.Printf("PET#2 %T\n", seq)
+	// fmt.Printf("PET#2 %T\n", seq)
 	if !okc {
 		// other non-comma-separated cases
 		// possible empty, 1-elem in sequence, num-seq [a..b]
@@ -266,8 +266,8 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 	// fmt.Println("DEB+++1", rNode.oper)
-	oper := rNode.oper
-	fmt.Printf("PET#0 %v\n", oper)
+	// oper := rNode.oper
+	// fmt.Printf("PET#0 %v\n", oper)
 	switch rNode.oper {
 	case "(", "[", "{":
 		return BracketsExpr(rNode)
@@ -319,13 +319,13 @@ func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 		elems = append(elems, first)
 	}
 	slices.Reverse(elems)
-	fmt.Println("Seq#1:", elems)
+	// fmt.Println("Seq#1:", elems)
 	// sub, ok := OperSub(node.leftNode, node.leftElems)
 	return elems, true
 }
 
 func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
-	fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
+	// fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
 	if node != nil {
 		return ProcExprTree(node)
 	} else if len(elems) > 0 {
