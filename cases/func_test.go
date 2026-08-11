@@ -15,16 +15,16 @@ ok 4.2 named args
 ok 5. default arg val
 ok 6. var type
 ok 6.1 arg type
-7. multi assign
-8. multi result: return a, b, 10
+ok 7. multi assign
+ok 8. multi result: return a, b, 10
 
-// n.5.1 return from: match-case
+9. return from: match-case
 
---. variative count of args, triple-dot operator
--- constructors of builtin types: int(), list(), tuple(), etc
---. func overaload: by arg count, by arg types
-6.2 multitype for var
-6.3 multitype for args
+11. variative count of args, triple-dot operator
+12. constructors of builtin types: int(), list(), tuple(), etc
+13. func overaload: by arg count, by arg types
+14.1 multitype for var
+14.2 multitype for args
 
 */
 

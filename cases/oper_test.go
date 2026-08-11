@@ -22,9 +22,9 @@ import "testing"
 /*
 ok 1. math expr: (...\n...)
 ok 2. tuple, list, dict constructor
-3. control expr sum-expression: if, for, while,
 ok 4. func def,
 ok 5. func call
+3. control expr sum-expression: if, for, while,
 6. generator and comprehension
 */
 func TestOperUnclosedBrackets(t *testing.T) {
