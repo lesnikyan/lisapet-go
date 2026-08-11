@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	ob "github.com/lesnikyan/lisapet-go/objects"
@@ -235,6 +236,27 @@ func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
 		}
 	case OpMinus:
 		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			if len(bval.Elems) != 1 {
+				return nil, false
+			}
+			i := bval.Elems[0]
+			id, ok := i.(int64)
+			if !ok {
+				return nil, false
+			}
+			ii := int(id)
+			if ii >= len(a.Elems) {
+				return nil, false
+			}
+			val := a.Elems[ii]
+			fmt.Printf("rem val: (%T, %v) \n", val, val)
+			rem := slices.Delete(a.Elems, ii, ii+1)
+			a.Elems = rem
+			return val, true
+		}
+
 	case OpPlusAssign:
 		// fmt.Printf("List/ <+=> a:(%T), b:(%T)  \n", a, b)
 		switch bval := b.(type) {

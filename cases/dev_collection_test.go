@@ -19,7 +19,7 @@ constructors:
 
 */
 
-func _TestCollDelElemOper(t *testing.T) {
+func TestCollDelElemOper(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -28,8 +28,12 @@ func _TestCollDelElemOper(t *testing.T) {
 		{`
 		nn = [1,2,3,4,5]
 		nn - [2]
-		`, "nn", Anis(11)},
-		// {``, "r",  Anis(11, )},
+		`, "nn", Anis(1, 2, 4, 5)},
+		{`
+		
+		nn = [1,2,303,4,5]
+		r = nn - [2]
+		`, "r", int64(303)},
 		// {``, "r",  Anis(11, )},
 		// {``, "r",  Anis(11, )},
 		// {``, "r",  Anis(11, )},
