@@ -127,7 +127,7 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 	}
 	var res any
 	var ok bool
-	fmt.Printf("ApplyOper#0: <%v> (%T, %v) (%T, %v) \n", oper, left, left, right, right)
+	// fmt.Printf("ApplyOper#0: <%v> (%T, %v) (%T, %v) \n", oper, left, left, right, right)
 	// Do operators by type of left operand
 	switch val := left.(type) {
 	case int64:
@@ -140,6 +140,10 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 		res, ok = binOperString(oper, val, right)
 	case *ob.ListVal:
 		res, ok = binOperList(oper, val, right)
+	case *ob.TupleVal:
+		res, ok = binOperTuple(oper, val, right)
+	case *ob.DictVal:
+		res, ok = binOperDict(oper, val, right)
 	}
 	return res, ok
 }

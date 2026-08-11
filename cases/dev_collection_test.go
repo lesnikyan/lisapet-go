@@ -19,39 +19,64 @@ constructors:
 
 */
 
-// convert []T to []any
-func Anynn[T any](vals []T) []any {
-	r := make([]any, len(vals))
-	for i, n := range vals {
-		var x any = n
-		switch v := x.(type) {
-		case int:
-			x = int64(v)
-		case []int64:
-			x = Anynn(v)
-		}
-		r[i] = x
+func _TestCollDelElemOper(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [1,2,3,4,5]
+		nn - [2]
+		`, "nn", Anis(11)},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  int64(205)},
 	}
-	return r
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
 }
 
-func Anis(vals ...any) []any {
-	return Anynn(vals)
+func TestListAddOper(t *testing.T) {
+	// list += list
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [1,2,3]
+		x = 1
+		x += 5
+		nn += [15]
+		nn += [16]
+		`, "nn", Anis(1, 2, 3, 15, 16)},
+		{`
+		a = [1,2,3]
+		b = [44, 55]
+		r = a + b
+		`, "r", Anis(1, 2, 3, 44, 55)},
+		{`
+		a = (1,2)
+		b = (33,44)
+		r = a + b
+		`, "r", Tanis(1, 2, 33, 44)},
+		{`
+		r = (1,2)
+		b = (33, 55)
+		r += b
+		`, "r", Tanis(1, 2, 33, 55)},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  Anis(11, )},
+		// {``, "r",  int64(205)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
 }
-
-// for tuples
-
-func Tanis(vals ...any) *Tup {
-	return &Tup{Anynn(vals)}
-}
-
-// func LVals[T any](vals []*base.Val) []any {
-// 	r := make([]any, len(vals))
-// 	for i, n := range vals {
-// 		r[i] = n.V
-// 	}
-// 	return r
-// }
 
 func TestListsCase(t *testing.T) {
 	tdata := []struct {
@@ -233,62 +258,6 @@ func TestTupleCase(t *testing.T) {
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
-}
-
-type dk = map[any]any
-
-func tval(val any) any {
-	var ak any = val
-	switch tk := val.(type) {
-	case int:
-		ak = int64(tk)
-	}
-	return ak
-}
-
-func adk(src dk) dk {
-	res := make(dk)
-	for k, v := range src {
-		var ak any = tval(k)
-		// switch tk := k.(type) {
-		// case int:
-		// 	ak = int64(tk)
-		// }
-		var av any = tval(v)
-		// switch tv := v.(type) {
-		// case int:
-		// 	av = int64(tv)
-		// }
-		res[ak] = av
-	}
-	return res
-}
-
-// prepare test result
-func pres(src any) any {
-	switch val := src.(type) {
-	case int64, string, bool, float64:
-		return val
-	case *obb.ListVal:
-		r := make([]any, len(val.Elems))
-		for i, vv := range val.Elems {
-			r[i] = pres(vv)
-		}
-		return r
-	case *obb.TupleVal:
-		r := make([]any, len(val.Elems))
-		for i, vv := range val.Elems {
-			r[i] = pres(vv)
-		}
-		return r
-	case *obb.DictVal:
-		r := make(map[any]any)
-		for k, v := range val.Vmap {
-			r[pres(k)] = pres(v)
-		}
-		return r
-	}
-	return src
 }
 
 func TestDictCase(t *testing.T) {

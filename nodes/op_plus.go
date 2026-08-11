@@ -215,9 +215,62 @@ func binOperByte(opid Opid, a byte, b any) (any, bool) { return nil, false }
 
 func binOperGlyf(opid Opid, a rune, b any) (any, bool) { return nil, false }
 
-func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool)    { return nil, false }
-func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool)  { return nil, false }
-func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool)    { return nil, false }
+func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
+
+	switch opid {
+	case OpPlus:
+		// fmt.Printf("List/ <+> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			alen := len(a.Elems)
+			vals := make([]any, alen+len(bval.Elems))
+			for i, v := range a.Elems {
+				vals[i] = v
+			}
+			for i, v := range bval.Elems {
+				vals[alen+i] = v
+			}
+			res := ob.NewListVal(vals)
+			return res, true
+		}
+	case OpMinus:
+		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+	case OpPlusAssign:
+		// fmt.Printf("List/ <+=> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			a.Elems = append(a.Elems, bval.Elems...)
+			return a, true
+		}
+	}
+	return nil, false
+
+}
+func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool) {
+	switch opid {
+	case OpPlus:
+		// fmt.Printf("Tuple/ <+> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.TupleVal:
+			alen := len(a.Elems)
+			vals := make([]any, alen+len(bval.Elems))
+			for i, v := range a.Elems {
+				vals[i] = v
+			}
+			for i, v := range bval.Elems {
+				vals[alen+i] = v
+			}
+			res := ob.NewTupleVal(vals)
+			return res, true
+		}
+	}
+	return nil, false
+}
+
+func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool) {
+	return nil, false
+}
+
 func binOperType(opid Opid, a any, b any) (any, bool)            { return nil, false }
 func binOperFunc(opid Opid, a Function, b any) (any, bool)       { return nil, false }
 func binOperStruct(opid Opid, a ob.StructVal, b any) (any, bool) { return nil, false }

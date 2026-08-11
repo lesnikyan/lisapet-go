@@ -185,6 +185,26 @@ var opMAsg = map[Opid]Opid{
 	OpPercentAssign: OpPercent,
 }
 
+// if math-assign operator was overloaded
+// means a += b not equals a = a + b
+func isOverloadedMasgn(a any) bool {
+	switch a.(type) {
+	case *objects.ListVal:
+		return true
+	case *objects.DictVal:
+		return true
+	}
+	return false
+}
+
+func (op *OperBinAssign) OverloadedDo(cx base.Context, lval any, rval any) error {
+	switch lval.(type) {
+	default:
+		ApplyOper(lval, rval, op.Oper.Id)
+	}
+	return nil
+}
+
 func (op *OperBinAssign) Do(cx base.Context) error {
 	err1 := op.left.Do(cx)
 	if err1 != nil {
@@ -196,13 +216,15 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 		return err2
 	}
 	// rval := GetExprVal(op.right, cx)
-
+	lvv := GetExprVal(op.left, cx)
+	rvv := GetExprVal(op.right, cx)
+	if isOverloadedMasgn(lvv) {
+		return op.OverloadedDo(cx, lvv, rvv)
+	}
 	subOper, ok := opMAsg[op.Oper.Id]
 	if !ok {
 		return errors.New("sub oper of math-assign hasn't found")
 	}
-	lvv := GetExprVal(op.left, cx)
-	rvv := GetExprVal(op.right, cx)
 	res, ok := ApplyOper(lvv, rvv, subOper)
 	AssignVal(cx, op.left, res)
 	return nil

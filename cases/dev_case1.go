@@ -107,6 +107,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	var expr base.OperExpr
 	oper := rNode.oper
 	// println("$$PROP#0:", oper)
+	// PrintONode(rNode, 0)
 	switch oper {
 	case "=":
 		expr = &nodes.OperAssign{Oper: oper}
