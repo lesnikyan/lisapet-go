@@ -268,6 +268,34 @@ func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool) {
 }
 
 func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool) {
+	switch opid {
+	case OpPlus:
+		// fmt.Printf("List/ <+> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.DictVal:
+			alen := len(a.Vmap)
+			vals := make(map[any]any, alen+len(bval.Vmap))
+			for k, v := range a.Vmap {
+				vals[k] = v
+			}
+			for k, v := range bval.Vmap {
+				vals[k] = v
+			}
+			res := ob.NewDictVal(vals)
+			return res, true
+		}
+	case OpMinus:
+		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+	case OpPlusAssign:
+		// fmt.Printf("List/ <+=> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.DictVal:
+			for k, v := range bval.Vmap {
+				a.Vmap[k] = v
+			}
+			return a, true
+		}
+	}
 	return nil, false
 }
 

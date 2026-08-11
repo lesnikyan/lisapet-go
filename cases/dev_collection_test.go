@@ -40,8 +40,10 @@ func _TestCollDelElemOper(t *testing.T) {
 	}
 }
 
-func TestListAddOper(t *testing.T) {
+func TestCollectionsAddOper(t *testing.T) {
+	// tuple + tuple
 	// list += list
+	// dict += dict
 	tdata := []struct {
 		src   string
 		vname string
@@ -69,6 +71,16 @@ func TestListAddOper(t *testing.T) {
 		b = (33, 55)
 		r += b
 		`, "r", Tanis(1, 2, 33, 55)},
+		{`
+		a = {'a': 11}
+		b = {'b':22, 'c':33}
+		r = a + b
+		`, "r", adk(dk{"a": 11, "b": 22, "c": 33})},
+		{`
+		r = {'a':11}
+		b = {'b':222, 'c':333}
+		r += b
+		`, "r", adk(dk{"a": 11, "b": 222, "c": 333})},
 		// {``, "r",  Anis(11, )},
 		// {``, "r",  Anis(11, )},
 		// {``, "r",  int64(205)},
