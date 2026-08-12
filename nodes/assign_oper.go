@@ -27,7 +27,7 @@ func (op *OperAssign) Get() *base.Val {
 }
 
 func (op *OperAssign) Do(cx base.Context) error {
-	fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
+	// fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
 	err2 := op.right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
@@ -64,7 +64,7 @@ func PrepareVal(expType base.TypeId, val any) (bool, any) {
 }
 
 func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
-	fmt.Printf(" = AssignVal=#0: (%T %v) = (%T, %v) \n", lexpr, lexpr, rval, rval)
+	// fmt.Printf(" = AssignVal=#0: (%T %v) = (%T, %v) \n", lexpr, lexpr, rval, rval)
 	var leftObj any
 	switch lexp := lexpr.(type) {
 	case *VarExpr:
@@ -98,7 +98,7 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 }
 
 func SetValTo(leftObj any, rval any) error {
-	fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
+	// fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
 	// valTtype := objects.TypeByVal(rval)
 	switch target := leftObj.(type) {
 	// TODO: col[key] = val
@@ -126,15 +126,6 @@ func SetValTo(leftObj any, rval any) error {
 		case []any:
 			// just vals
 			valSet = vals
-			// if len(target) != len(vals) {
-			// 	return errors.New("oper assign: multi, incorrect count of vals")
-			// }
-			// for i, vr := range target {
-			// 	err := SetValTo(vr, vals[i])
-			// 	if err != nil {
-			// 		return err
-			// 	}
-			// }
 		case *objects.ListVal:
 			valSet = vals.Elems
 		case *objects.TupleVal:

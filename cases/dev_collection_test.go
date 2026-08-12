@@ -6,7 +6,7 @@ import (
 
 /*
 TODO:
-1. slice: nn[a : b]
+ok 1. slice: nn[a : b]
 constructors:
 2. list()
 3. dict()
@@ -14,6 +14,38 @@ constructors:
 
 */
 
+// list[a : b], tuple[a, b], string[a, b
+// TODO: slice if arg skipped (means start=0, end=length)
+func TestCollSlice(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [1,2,3,4,5]
+		r = nn[1:3]
+		`, "r", Anis(2, 3)},
+		{`
+		nn = split('a b c d e f g h i j', ' ')
+		r = nn[1:5]
+		`, "r", Anis("b", "c", "d", "e")},
+		{`
+		tt = (1,2,3,4,5,6,7,8,9)
+		r = tt[3:8]
+		`, "r", Tanis(4, 5, 6, 7, 8)},
+		{`
+		s = "Hello test string!"
+		r = s[3: 10]
+		`, "r", "lo test"},
+		// {``, "r",  Anis(11, )},
+		// {``, "r", adk(dk{"a": 11, "c": 33})},
+		// {``, "r",  int64(205)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestCollDelElemOper(t *testing.T) {
 	tdata := []struct {
 		src   string

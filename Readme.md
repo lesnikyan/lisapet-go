@@ -40,5 +40,7 @@ raw dev log:
 -.-.11 Implemented oper + for list, tuple, dict.
 -.-.- Implement oper += for list, dict. It adds elements from right to left arg.
 -.-.12 Implement oper - for list, dict. It deletes element by index/key and returns deteting value.
+-.-.12 Implement slice of list/tuple, with both args: `nn[2: 5]`
+TODO: slice with skipped arg: `nn[:5]`, `nn[3:]`
 
 ```

@@ -200,59 +200,132 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 	return nil, false
 }
 
+// list[index], list[:], dict[key], func(args)
+func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (base.Expression, bool) {
+	fmt.Printf(" ??Coll([>> `%s` \n", oper)
+	// oper := rNode.oper
+	// bt := nodes.GetBrType(rNode.oper)
+	// subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
+	// lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
+	seq, okc := subs.(*nodes.SequenceComma)
+	switch oper {
+	case "(":
+		// if lok {
+		// }
+		// if lok: func call
+		// fmt.Println("Func Call ")
+
+		fEx := lexp
+		var fArgs []base.Expression
+		if subs != nil {
+			// has args
+			if okc {
+				// has more 1 arg
+				fArgs = seq.Subs
+			} else {
+				fArgs = []base.Expression{subs}
+			}
+		}
+		return nodes.NewFuncCall(fEx, fArgs), true
+		// return nil, false
+		// if okc {
+		// 	// tuple here
+		// } else {
+		// 	return &nodes.Brackets{Sub: subs, Type: bt}, true
+		// }
+		// // sub-case of generator: `(: expr ; ..)`
+
+	case "[":
+		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
+		// if lok {
+		// }
+		switch subex := subs.(type) {
+		case *nodes.OperColon:
+			fmt.Printf(" Brackets [OperColon] (%T, %v) \n", subex, subex)
+			return nodes.NewSlice(lexp, subex), true
+		default:
+			fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
+			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
+		}
+		// if okc {
+		// 	// list, not sure
+		// }
+
+	}
+	return nil, false
+}
+
 func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	oper := rNode.oper
 	bt := nodes.GetBrType(rNode.oper)
 	subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
 	lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
-	// fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v)\n", oper, lexp, lok, subs, rok)
 	seq, okc := subs.(*nodes.SequenceComma)
-	switch oper {
-	case "(":
-		if lok {
-			// if lok: func call
-			// fmt.Println("Func Call ")
-
-			fEx := lexp
-			var fArgs []base.Expression
-			if rok {
-				// has args
-				if okc {
-					// has more 1 arg
-					fArgs = seq.Subs
-				} else {
-					fArgs = []base.Expression{subs}
-				}
-			}
-			return nodes.NewFuncCall(fEx, fArgs), true
-			// return nil, false
+	if lok {
+		if !rok {
+			subs = nil
 		}
-		if okc {
-			// tuple here
-		} else {
-			return &nodes.Brackets{Sub: subs, Type: bt}, true
-		}
-		// sub-case of generator: `(: expr ; ..)`
-
-	case "[":
-		if okc {
-			// list, not sure
-		}
-		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
-		if lok {
-			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
-		}
-
+		return BracketsWithLeft(oper, lexp, subs)
 	}
+	fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v) comm: %v\n", oper, lexp, lok, subs, rok, okc)
+	// switch oper {
+	// case "(":
+	// 	if lok {
+	// 		// if lok: func call
+	// 		// fmt.Println("Func Call ")
+
+	// 		fEx := lexp
+	// 		var fArgs []base.Expression
+	// 		if rok {
+	// 			// has args
+	// 			if okc {
+	// 				// has more 1 arg
+	// 				fArgs = seq.Subs
+	// 			} else {
+	// 				fArgs = []base.Expression{subs}
+	// 			}
+	// 		}
+	// 		return nodes.NewFuncCall(fEx, fArgs), true
+	// 		// return nil, false
+	// 	}
+	// 	if okc {
+	// 		// tuple here
+	// 	} else {
+	// 		return &nodes.Brackets{Sub: subs, Type: bt}, true
+	// 	}
+	// 	// sub-case of generator: `(: expr ; ..)`
+
+	// case "[":
+	// 	// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
+	// 	if lok {
+
+	// 		switch subex := subs.(type) {
+	// 		case *nodes.OperColon:
+	// 			fmt.Printf(" Brackets [OperColon] (%T, %v) \n", subex, subex)
+	// 		default:
+	// 			fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
+	// 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
+	// 		}
+	// 	}
+	// 	if okc {
+	// 		// list, not sure
+	// 	}
+
+	// }
 	// fmt.Printf("PET#2 %T\n", seq)
+
 	if !okc {
+		switch oper {
+		case "(":
+			return &nodes.Brackets{Sub: subs, Type: bt}, true
+		case "[":
+			switch subex := subs.(type) {
+			case *nodes.Dots2Expr:
+				return subex.GetNumSeq(), true
+			}
+		}
 		// other non-comma-separated cases
 		// possible empty, 1-elem in sequence, num-seq [a..b]
-
-		dots2, dok := subs.(*nodes.Dots2Expr)
-		if dok {
-			return dots2.GetNumSeq(), true
-		}
 
 		subEx := []base.Expression{}
 		if rok {

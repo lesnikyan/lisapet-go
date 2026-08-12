@@ -125,6 +125,63 @@ func (cc *ColElemExpr) Do(ctx base.Context) error {
 	return nil
 }
 
+// Slice:  collection[ start : end]
+type ColSlice struct {
+	Col  base.Expression // list, dict, tuple, string object
+	Inds *ColonPair      // index or key
+
+	res any // ListVal, TupleVal, string
+}
+
+func (cs *ColSlice) Get() *base.Val {
+	if cs.res == nil {
+		return nil
+	}
+	return base.NewVal(cs.res)
+}
+
+func (cs *ColSlice) Do(cx base.Context) error {
+	cs.res = nil
+	err := cs.Col.Do(cx)
+	if err != nil {
+		return errors.New("slice: bad collection expression")
+	}
+	// colV := cs.Col.Get()
+	colv := GetExprVal(cs.Col, nil)
+	if colv == nil {
+		return errors.New("slice: bad collection expression")
+	}
+	err = cs.Inds.Do(cx)
+	if err != nil {
+		return err
+	}
+	inds := cs.Inds.GetPair()
+	start, ok1 := inds[0].(int64)
+	end, ok2 := inds[1].(int64)
+	if !ok1 || !ok2 {
+		return errors.New("slice: bad indexes in slice")
+	}
+	// col := colV.V
+	// fmt.Printf("ColSlice#src: %T, %v\n", col, col)
+	switch col := colv.(type) {
+	case *objects.ListVal:
+		vals := col.Elems[int(start):int(end)]
+		cs.res = objects.NewListVal(vals)
+	case *objects.TupleVal:
+		vals := col.Elems[int(start):int(end)]
+		cs.res = objects.NewTupleVal(vals)
+	case string:
+		val := col[int(start):int(end)]
+		cs.res = val
+	}
+	return nil
+}
+
+func NewSlice(col base.Expression, sub *OperColon) *ColSlice {
+	inds := sub.GetPair()
+	return &ColSlice{Col: col, Inds: inds}
+}
+
 //==
 
 type TupleExpr struct {

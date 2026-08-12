@@ -208,20 +208,6 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
 		return res
 	case *SequenceComma:
-		// vals := make([]any, len(vv.Subs))
-		// for i, ex := range vv.Subs {
-		// 	// vex, ok := ex.(*VarExpr)
-		// 	// if !ok {
-		// 	// 	return errors.New("assign: multival, no var in left sequence")
-		// 	// }
-		// 	// vr := vex.GetOrNewVar(cx)
-		// 	val := GetExprVal(ex, cx)
-		// 	// var val any
-		// 	if val == nil {
-		// 		val = &objects.Null{}
-		// 	}
-		// 	vals[i] = val
-		// }
 		vals := vv.GetVals()
 		if vals == nil {
 			return nil
@@ -229,6 +215,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		return vals.V
 		// return vals
 	default:
+		// fmt.Printf("GetExprVal#10: %T, %v\n", vv.Get(), vv.Get())
 		return vv.Get().V
 	}
 	if eVal != nil {
