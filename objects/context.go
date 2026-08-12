@@ -1,8 +1,6 @@
 package objects
 
 import (
-	"fmt"
-
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -84,11 +82,11 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 	curCx := cx
 	for curCx != nil {
 		// fmt.Printf("cx.GetEl#1 vars(%T, %v ) funcs(%T, %v )\n", cx.vars, len(cx.vars), cx.funcs, len(cx.funcs))
-		aa, ak := curCx.vars[name]
+		// aa, ak := curCx.vars[name]
+		// tt, tk := curCx.types[name]
 		// bb, bk := curCx.funcs[name]
-		tt, tk := curCx.types[name]
 
-		fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, tt, tk)
+		// fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, tt, tk)
 		var ok bool
 		vr, ok := curCx.vars[name]
 		if ok {

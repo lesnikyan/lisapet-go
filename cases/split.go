@@ -352,7 +352,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 				obj.mem[1][2](3)(4)
 			*/
 			fParent := cNode
-			if prev != nil && (prev.Type == Lt.Word ||
+			if prev != nil && (prev.Type == Lt.Word || prev.Type == Lt.Text ||
 				(prev.Type == Lt.Oper && slices.Contains(solidEnd, prev.Text)) || // ) ] } ~>
 				(prev.Type == Lt.Num && prev.Text[0] == '0')) { // 0x[]
 				// log.Println("$_if_brop1", tx)

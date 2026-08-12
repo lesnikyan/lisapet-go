@@ -39,8 +39,8 @@ raw dev log:
 -.-.- Fix multiline with function definition
 -.-.11 Implemented oper + for list, tuple, dict.
 -.-.- Implement oper += for list, dict. It adds elements from right to left arg.
--.-.12 Implement oper - for list, dict. It deletes element by index/key and returns deteting value.
+-.-.12 Implement oper - for list, dict. It deletes element by index/key and returns deteting value: `listVal - [1]`
 -.-.12 Implement slice of list/tuple, with both args: `nn[2: 5]`
-TODO: slice with skipped arg: `nn[:5]`, `nn[3:]`
+-.-.12: slice with skipped arg: `nn[:5]`, `nn[3:]`, `nn[:]`
 
 ```

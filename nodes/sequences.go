@@ -41,7 +41,15 @@ func (op *OperColon) Get() *base.Val {
 }
 
 func (op *OperColon) GetPair() *ColonPair {
-	return &ColonPair{Left: op.left, Right: op.right}
+	lex := op.left
+	if lex == nil {
+		lex = &EmptyExpr{}
+	}
+	rex := op.right
+	if rex == nil {
+		rex = &EmptyExpr{}
+	}
+	return &ColonPair{Left: lex, Right: rex}
 }
 
 func (op *OperColon) DoVar(cx base.Context) error {

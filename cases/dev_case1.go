@@ -202,19 +202,11 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 
 // list[index], list[:], dict[key], func(args)
 func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (base.Expression, bool) {
-	fmt.Printf(" ??Coll([>> `%s` \n", oper)
-	// oper := rNode.oper
-	// bt := nodes.GetBrType(rNode.oper)
-	// subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
-	// lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
+	// fmt.Printf(" ??Coll([>> `%s` \n", oper)
 	seq, okc := subs.(*nodes.SequenceComma)
 	switch oper {
 	case "(":
-		// if lok {
-		// }
-		// if lok: func call
-		// fmt.Println("Func Call ")
-
+		// func call
 		fEx := lexp
 		var fArgs []base.Expression
 		if subs != nil {
@@ -227,30 +219,19 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 			}
 		}
 		return nodes.NewFuncCall(fEx, fArgs), true
-		// return nil, false
-		// if okc {
-		// 	// tuple here
-		// } else {
-		// 	return &nodes.Brackets{Sub: subs, Type: bt}, true
-		// }
-		// // sub-case of generator: `(: expr ; ..)`
 
 	case "[":
 		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
-		// if lok {
-		// }
 		switch subex := subs.(type) {
 		case *nodes.OperColon:
-			fmt.Printf(" Brackets [OperColon] (%T, %v) \n", subex, subex)
+			// Slice nn[a : b]
+			// fmt.Printf(" Brackets [OperColon] (%T, %v) \n", subex, subex)
 			return nodes.NewSlice(lexp, subex), true
 		default:
-			fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
+			// Elem of collection: var[index|key]
+			// fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
 		}
-		// if okc {
-		// 	// list, not sure
-		// }
-
 	}
 	return nil, false
 }
@@ -261,60 +242,17 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
 	lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	seq, okc := subs.(*nodes.SequenceComma)
+	// PrintONode(rNode, 0)
 	if lok {
 		if !rok {
 			subs = nil
 		}
 		return BracketsWithLeft(oper, lexp, subs)
 	}
-	fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v) comm: %v\n", oper, lexp, lok, subs, rok, okc)
-	// switch oper {
-	// case "(":
-	// 	if lok {
-	// 		// if lok: func call
-	// 		// fmt.Println("Func Call ")
-
-	// 		fEx := lexp
-	// 		var fArgs []base.Expression
-	// 		if rok {
-	// 			// has args
-	// 			if okc {
-	// 				// has more 1 arg
-	// 				fArgs = seq.Subs
-	// 			} else {
-	// 				fArgs = []base.Expression{subs}
-	// 			}
-	// 		}
-	// 		return nodes.NewFuncCall(fEx, fArgs), true
-	// 		// return nil, false
-	// 	}
-	// 	if okc {
-	// 		// tuple here
-	// 	} else {
-	// 		return &nodes.Brackets{Sub: subs, Type: bt}, true
-	// 	}
-	// 	// sub-case of generator: `(: expr ; ..)`
-
-	// case "[":
-	// 	// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
-	// 	if lok {
-
-	// 		switch subex := subs.(type) {
-	// 		case *nodes.OperColon:
-	// 			fmt.Printf(" Brackets [OperColon] (%T, %v) \n", subex, subex)
-	// 		default:
-	// 			fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
-	// 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
-	// 		}
-	// 	}
-	// 	if okc {
-	// 		// list, not sure
-	// 	}
-
-	// }
-	// fmt.Printf("PET#2 %T\n", seq)
+	// fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v) comm: %v\n", oper, lexp, lok, subs, rok, okc)
 
 	if !okc {
+		// non comma-separated cases: (a + b), [1 .. 5]
 		switch oper {
 		case "(":
 			return &nodes.Brackets{Sub: subs, Type: bt}, true
@@ -324,9 +262,9 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 				return subex.GetNumSeq(), true
 			}
 		}
+
 		// other non-comma-separated cases
 		// possible empty, 1-elem in sequence, num-seq [a..b]
-
 		subEx := []base.Expression{}
 		if rok {
 			subEx = append(subEx, subs)
@@ -339,8 +277,6 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 }
 
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
-	// fmt.Println("DEB+++1", rNode.oper)
-	// oper := rNode.oper
 	// fmt.Printf("PET#0 %v\n", oper)
 	switch rNode.oper {
 	case "(", "[", "{":

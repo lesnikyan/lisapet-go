@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -130,7 +131,7 @@ type ColSlice struct {
 	Col  base.Expression // list, dict, tuple, string object
 	Inds *ColonPair      // index or key
 
-	res any // ListVal, TupleVal, string
+	res any // ListVal, TupleVal, string; TODO: xBytes
 }
 
 func (cs *ColSlice) Get() *base.Val {
@@ -153,16 +154,39 @@ func (cs *ColSlice) Do(cx base.Context) error {
 	}
 	err = cs.Inds.Do(cx)
 	if err != nil {
+		fmt.Printf("ColSlice#inds err: %v\n", err)
 		return err
 	}
 	inds := cs.Inds.GetPair()
-	start, ok1 := inds[0].(int64)
-	end, ok2 := inds[1].(int64)
-	if !ok1 || !ok2 {
-		return errors.New("slice: bad indexes in slice")
+	var start int64
+	var end int64
+	i0 := inds[0]
+	i1 := inds[1]
+	switch i0 := i0.(type) {
+	case int64:
+		start = i0
+	case *objects.EmptyVal:
+		start = 0
+	default:
+		return errors.New("slice: bad index start")
 	}
-	// col := colV.V
-	// fmt.Printf("ColSlice#src: %T, %v\n", col, col)
+	switch i1 := i1.(type) {
+	case int64:
+		end = i1
+	case *objects.EmptyVal:
+		switch col := colv.(type) {
+		case *objects.ListVal:
+			end = int64(len(col.Elems))
+		case *objects.TupleVal:
+			end = int64(len(col.Elems))
+		case string:
+			end = int64(len(col))
+		}
+	default:
+		return errors.New("slice: bad index end")
+	}
+
+	fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
 	switch col := colv.(type) {
 	case *objects.ListVal:
 		vals := col.Elems[int(start):int(end)]

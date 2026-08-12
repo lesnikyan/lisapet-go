@@ -14,8 +14,8 @@ constructors:
 
 */
 
-// list[a : b], tuple[a, b], string[a, b
-// TODO: slice if arg skipped (means start=0, end=length)
+// list[a : b], tuple[a, b], string[a, b]
+// if arg skipped nn[2:], nn[:5], nn[:] (means start=0, end=length)
 func TestCollSlice(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -38,9 +38,41 @@ func TestCollSlice(t *testing.T) {
 		s = "Hello test string!"
 		r = s[3: 10]
 		`, "r", "lo test"},
-		// {``, "r",  Anis(11, )},
-		// {``, "r", adk(dk{"a": 11, "c": 33})},
-		// {``, "r",  int64(205)},
+		{`
+		nn = [1,2,3,4,5]
+		r = nn[2:]
+		`, "r", Anis(3, 4, 5)},
+		{`
+		nn = [1,2,3,4,5]
+		r = nn[:3]
+		`, "r", Anis(1, 2, 3)},
+		{`
+		tt = (1,2,3,4,5,6,7)
+		r = tt[3:]
+		`, "r", Tanis(4, 5, 6, 7)},
+		{`
+		tt = (1,2,3,4,5,6,7)
+		r = tt[:4]
+		`, "r", Tanis(1, 2, 3, 4)},
+		{`
+		s = 'ABCDEFGHIJKLMN'
+		r = s[5:]
+		`, "r", "FGHIJKLMN"},
+		{`
+		s = 'ABCDEFGHIJKLMN'
+		r = s[:7]
+		`, "r", "ABCDEFG"},
+		{`
+		nn = [1,2,3,4,5]
+		r = [1,2,3,4,5][1:3]
+		`, "r", Anis(2, 3)},
+		{`
+		r = "Hello test string!"[8:14]
+		`, "r", "st str"},
+		{`
+		nn = [1,2,3,4,5]
+		r = nn[:]
+		`, "r", Anis(1, 2, 3, 4, 5)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

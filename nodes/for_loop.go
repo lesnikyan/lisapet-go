@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -79,13 +78,13 @@ func ForStop(bk *BlockExpr) (bool, *PopUp) {
 	// TODO: return
 	switch pup.Parent {
 	case NodeBreak:
-		fmt.Println("#For.Break")
+		// fmt.Println("#For.Break")
 		return true, nil
 	case NodeContinue:
-		fmt.Println("#For.Continue")
+		// fmt.Println("#For.Continue")
 		return false, nil
 	case NodeReturn:
-		fmt.Println("#For.Return")
+		// fmt.Println("#For.Return")
 		return true, pup
 	}
 	return false, nil
@@ -127,7 +126,7 @@ func (nd *ForCondNode) Loop(cx base.Context) error {
 }
 
 func (nd *ForCondNode) Do(cx base.Context) error {
-	fmt.Println("# FOR")
+	// fmt.Println("# FOR")
 
 	inCx := objects.NewContext(cx)
 	// Init
@@ -224,7 +223,7 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 }
 
 func (nd *ForSourceNode) Do(cx base.Context) error {
-	fmt.Println("# FOR")
+	// fmt.Println("# FOR")
 
 	inCx := objects.NewContext(cx)
 	// Init

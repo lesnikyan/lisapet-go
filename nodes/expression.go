@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 // *** EMPTY
@@ -214,6 +215,8 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		}
 		return vals.V
 		// return vals
+	case *EmptyExpr:
+		return &objects.EmptyVal{}
 	default:
 		// fmt.Printf("GetExprVal#10: %T, %v\n", vv.Get(), vv.Get())
 		return vv.Get().V

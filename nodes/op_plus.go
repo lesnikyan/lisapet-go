@@ -26,7 +26,7 @@ func floatv(a any) float64 {
 // ## + - * / ** ^/ == != < > <= >= %
 // TODO: int: | & ^ << >>
 func binOperInt(opid Opid, a int64, b any) (any, bool) {
-	fmt.Println("binInt:", opid, a, b)
+	// fmt.Println("binInt:", opid, a, b)
 	switch b := b.(type) {
 	case int64:
 		switch opid {
@@ -235,7 +235,7 @@ func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
 			return res, true
 		}
 	case OpMinus:
-		fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
 		switch bval := b.(type) {
 		case *ob.ListVal:
 			if len(bval.Elems) != 1 {
@@ -251,7 +251,7 @@ func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
 				return nil, false
 			}
 			val := a.Elems[ii]
-			fmt.Printf("rem val: (%T, %v) \n", val, val)
+			// fmt.Printf("rem val: (%T, %v) \n", val, val)
 			rem := slices.Delete(a.Elems, ii, ii+1)
 			a.Elems = rem
 			return val, true

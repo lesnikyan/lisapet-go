@@ -55,7 +55,7 @@ type Function struct {
 // 5. ovreload by arg count, 6. overload by arg types
 
 func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error) {
-	fmt.Printf(" Fu.InitArg#0  argExp=(%T, %v) \n", ex, ex)
+	// fmt.Printf(" Fu.InitArg#0  argExp=(%T, %v) \n", ex, ex)
 	switch arx := ex.(type) {
 	case *VarExpr:
 		rex := &ArgExp{Name: arx.name, VExp: arx}
@@ -127,7 +127,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		rvar, ok := cvar.right.(*VarExpr)
 		if !ok {
 			// no type
-			fmt.Printf(" Fu.InitArg.err221  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+			// fmt.Printf(" Fu.InitArg.err221  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
 			return nil, errors.New("arg init: err221, not a word in right of types arg ")
 		}
 		tt := cx.GetType(rvar.name)
@@ -145,7 +145,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		vtype := tt
 		name := lvar.name
 		rex := &ArgExp{Name: name, VExp: lvar, Type: vtype, StrictType: true}
-		fmt.Printf(" Fu.InitArg#5  n=%s tp=(%T, %v) \n", name, tt, tt)
+		// fmt.Printf(" Fu.InitArg#5  n=%s tp=(%T, %v) \n", name, tt, tt)
 		return rex, nil
 
 	case *TripleDots:
@@ -155,7 +155,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 }
 
 func (fn *Function) Init(cx base.Context) error {
-	fmt.Printf(" Fu.Init  deArgLen==%d  \n", len(fn.dfnArgs))
+	// fmt.Printf(" Fu.Init  deArgLen==%d  \n", len(fn.dfnArgs))
 	fn.defVals = make(map[string]*base.Val)
 	nArgs := make([]*ArgExp, len(fn.dfnArgs))
 	for i, ex := range fn.dfnArgs {
@@ -203,9 +203,9 @@ func (fn *Function) getVal(i int, name string) (any, error) {
 
 // foo(<positional>, <variadic...>, <named=val>)
 func (fn *Function) PrepareArgs(cx base.Context) error {
-	fmt.Printf(" Fu.PArg#0  %d  \n", len(fn.Args))
+	// fmt.Printf(" Fu.PArg#0  %d  \n", len(fn.Args))
 	for i, arg := range fn.Args {
-		fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg)
+		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg)
 		// take var
 		if arg.StrictType {
 			arg.VExp.NewVarTyped(cx, arg.Type)
@@ -215,7 +215,7 @@ func (fn *Function) PrepareArgs(cx base.Context) error {
 			arg.VExp.NewVar(cx)
 		}
 		vr := arg.VExp.GetVar()
-		fmt.Printf(" Fu.PArg#2 %d) (%T, %v)  \n", i, vr, vr)
+		// fmt.Printf(" Fu.PArg#2 %d) (%T, %v)  \n", i, vr, vr)
 		if vr == nil {
 			return errors.New("func prepare: no arg var")
 		}
@@ -229,13 +229,13 @@ func (fn *Function) PrepareArgs(cx base.Context) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf(" Fu.PArg#3 %d) (%T, %v)  \n", i, vr, vr)
+		// fmt.Printf(" Fu.PArg#3 %d) (%T, %v)  \n", i, vr, vr)
 		aerr := SetValTo(vr, val)
 		if aerr != nil {
 			return errors.Join(errors.New("func prep arg: assign arg error"), aerr)
 		}
 
-		fmt.Printf(" Fu.PArg#N %d) (%T, %v) = (%T, %v)  \n", i, vr, vr, val, val)
+		// fmt.Printf(" Fu.PArg#N %d) (%T, %v) = (%T, %v)  \n", i, vr, vr, val, val)
 		// vr.Val = val
 	}
 	return nil
@@ -282,7 +282,7 @@ func (fn *Function) Do(cx base.Context) error {
 	fn.resVal = r
 	if r != nil {
 		fn.res = r.V
-		fmt.Printf(" - Fu.Do#5 br(%T : %v) fr(%T : %v) \n", r, r, fn.res, fn.res)
+		// fmt.Printf(" - Fu.Do#5 br(%T : %v) fr(%T : %v) \n", r, r, fn.res, fn.res)
 		return nil
 	}
 
