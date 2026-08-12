@@ -16,7 +16,12 @@ type Val interface {
 	GetVal() any
 }
 
+// null value
 type Null struct {
+}
+
+// internal value, can be produced from EmptyExpr
+type EmptyVal struct {
 }
 
 type StructVal struct {

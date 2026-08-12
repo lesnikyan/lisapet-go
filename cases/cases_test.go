@@ -17,18 +17,102 @@ func PreloadContext(cx base.Context) {
 
 }
 
+// convert []T to []any
+func Anynn[T any](vals []T) []any {
+	r := make([]any, len(vals))
+	for i, n := range vals {
+		var x any = n
+		switch v := x.(type) {
+		case int:
+			x = int64(v)
+		case []int64:
+			x = Anynn(v)
+		}
+		r[i] = x
+	}
+	return r
+}
+
+func Anis(vals ...any) []any {
+	return Anynn(vals)
+}
+
+// for tuples
+
+func Tanis(vals ...any) *Tup {
+	return &Tup{Anynn(vals)}
+}
+
 type TTst = struct {
 	src   string // code
 	vname string // var
 	res   any    // exp
 }
 
+type dk = map[any]any
+
+func tval(val any) any {
+	var ak any = val
+	switch tk := val.(type) {
+	case int:
+		ak = int64(tk)
+	}
+	return ak
+}
+
+func adk(src dk) dk {
+	res := make(dk)
+	for k, v := range src {
+		var ak any = tval(k)
+		var av any = tval(v)
+		res[ak] = av
+	}
+	return res
+}
+
+// prepare test result
+func pres(src any) any {
+	switch val := src.(type) {
+	case int64, string, bool, float64:
+		return val
+	case *obb.ListVal:
+		r := make([]any, len(val.Elems))
+		for i, vv := range val.Elems {
+			r[i] = pres(vv)
+		}
+		return r
+	case *obb.TupleVal:
+		r := make([]any, len(val.Elems))
+		for i, vv := range val.Elems {
+			r[i] = pres(vv)
+		}
+		return r
+	case *obb.DictVal:
+		r := make(map[any]any)
+		for k, v := range val.Vmap {
+			r[pres(k)] = pres(v)
+		}
+		return r
+	}
+	return src
+}
+
 func Tnull() *obb.Null {
 	return &obb.Null{}
 }
 
+func TrunkString(s string) string {
+	sRns := []rune(s)
+	n := 100
+	if len(sRns) < 100 {
+		n = len(sRns)
+	}
+	cr := sRns[:n]
+	return string(cr)
+}
+
 func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
-	t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
+	t.Run(fmt.Sprintf("Test, %d) %s >>", i, TrunkString(tt.src)), func(t2 *testing.T) {
 		clines := par.SplitCode(tt.src[1:])
 		block, err := TreeBlock(clines)
 		assert.Nil(t, err)

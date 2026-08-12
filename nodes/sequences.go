@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 	ob "github.com/lesnikyan/lisapet-go/objects"
 )
 
@@ -40,7 +41,15 @@ func (op *OperColon) Get() *base.Val {
 }
 
 func (op *OperColon) GetPair() *ColonPair {
-	return &ColonPair{Left: op.left, Right: op.right}
+	lex := op.left
+	if lex == nil {
+		lex = &EmptyExpr{}
+	}
+	rex := op.right
+	if rex == nil {
+		rex = &EmptyExpr{}
+	}
+	return &ColonPair{Left: lex, Right: rex}
 }
 
 func (op *OperColon) DoVar(cx base.Context) error {
@@ -94,6 +103,8 @@ func (op *OperColon) Do(cx base.Context) error {
 	return nil
 }
 
+// Commas
+
 type SequenceComma struct {
 	Subs []base.Expression
 	res  any
@@ -102,12 +113,28 @@ type SequenceComma struct {
 }
 
 func (cs *SequenceComma) Get() *base.Val {
-	// TODO
+	vals := cs.GetVals()
+	return vals
+}
+
+func (cs *SequenceComma) GetVals() *base.Val {
+	// return array of vals, used as internal value for other expressions
+	vals := make([]any, len(cs.Subs))
+	for i, ex := range cs.Subs {
+		val := GetExprVal(ex, nil)
+		// var val any
+		if val == nil {
+			val = &objects.Null{}
+		}
+		vals[i] = val
+	}
+	cs.res = vals
 	return base.NewVal(cs.res)
 }
 
 func (cs *SequenceComma) Do(ctx base.Context) error {
 	// TODO: loop processing over subs
+	cs.res = nil
 	var err error
 	for _, sub := range cs.Subs {
 		err = sub.Do(ctx)
@@ -127,6 +154,8 @@ func (cs *SequenceComma) SetSubs(elems []base.Expression) {
 	// copy(subs, elems)
 	cs.Subs = elems
 }
+
+// Semicolons
 
 type SequenceSemicolon struct {
 	Subs []base.Expression

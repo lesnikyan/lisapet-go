@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"fmt"
-
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -53,7 +51,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 	hasRes := true // most expressions has result
 	var popUp NodeType = 0
 	for _, exp := range bk.subs {
-		fmt.Printf("Bl.Do#0: %T, %v\n", exp, exp)
+		// fmt.Printf("Bl.Do#0: %T, %v\n", exp, exp)
 		err := exp.Do(cx)
 		if err != nil {
 			return err
@@ -93,7 +91,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			}
 			// other resulting expressions: func def, func call, operators, value, if-else, match, etc
 		case *ForCondNode:
-			fmt.Printf("Block.Loop node \n")
+			// fmt.Printf("Block.Loop node \n")
 
 			inPup := cur.GetPopUp()
 			if inPup != nil {
@@ -102,7 +100,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			}
 			hasRes = false
 		case *ForSourceNode:
-			fmt.Printf("Block.Loop node \n")
+			// fmt.Printf("Block.Loop node \n")
 
 			inPup := cur.GetPopUp()
 			if inPup != nil {

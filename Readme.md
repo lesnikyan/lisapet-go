@@ -1,3 +1,8 @@
+
+## Overview.
+Go-lang implementation of `Lisapet` programming language.
+
+
 raw dev log:
 ```
 0. I resigned myself to writing this with Go...
@@ -23,7 +28,19 @@ raw dev log:
 2026.07.27 Implemented command `return`, `return` with value. Fixed `if` `for` blocks for `return`.
 2026.07.29 Implemented ability to add builtin (preloaded) function. Function can be written with Go lang and preload to execution context. 
 -.-.30 Added builtin functions: `len`, `iter`, `split`, `join`, `replace`, `print`.
-2026.08.01 Implemented named args in function call: `r = foo(1, n=2, m='hello')`
+-.08.01 Implemented named args in function call: `r = foo(1, n=2, m='hello')`
 -.-.03 Aded type ov variable, by `:` operator >> `r: int = 123`
+-.-.07 Implemented typed arguments (including default vals) and autocasting of compatible types: `x: int = true` => 1
+-.-.08 Fixed some operators: math, comparison, bitwize.
+-.-.09 Fix of `==`, `!=` for different types: `1 == '1'` => false
+-.-.09 Implemented multiassign: `a,b,c = 1, v2, f3()`, `return 1,2,3`, `a, b, c = foo()`
+-.-.- Implemented multi assign with unpacking of list / tuple to vars: `a,b,c = [1,2,3]`
+-.-.10 Implemented multiline expressions in brackets: math expr; tuple, list, dict construtors; func call. Cleaned some dev output.
+-.-.- Fix multiline with function definition
+-.-.11 Implemented oper + for list, tuple, dict.
+-.-.- Implement oper += for list, dict. It adds elements from right to left arg.
+-.-.12 Implement oper - for list, dict. It deletes element by index/key and returns deteting value: `listVal - [1]`
+-.-.12 Implement slice of list/tuple, with both args: `nn[2: 5]`
+-.-.12: slice with skipped arg: `nn[:5]`, `nn[3:]`, `nn[:]`
 
 ```

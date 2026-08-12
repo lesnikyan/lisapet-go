@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -123,6 +124,86 @@ func (cc *ColElemExpr) Do(ctx base.Context) error {
 	// cc.Src = sval
 	cc.ColRes = &ColElem{Src: sval, KVal: kval}
 	return nil
+}
+
+// Slice:  collection[ start : end]
+type ColSlice struct {
+	Col  base.Expression // list, dict, tuple, string object
+	Inds *ColonPair      // index or key
+
+	res any // ListVal, TupleVal, string; TODO: xBytes
+}
+
+func (cs *ColSlice) Get() *base.Val {
+	if cs.res == nil {
+		return nil
+	}
+	return base.NewVal(cs.res)
+}
+
+func (cs *ColSlice) Do(cx base.Context) error {
+	cs.res = nil
+	err := cs.Col.Do(cx)
+	if err != nil {
+		return errors.New("slice: bad collection expression")
+	}
+	// colV := cs.Col.Get()
+	colv := GetExprVal(cs.Col, nil)
+	if colv == nil {
+		return errors.New("slice: bad collection expression")
+	}
+	err = cs.Inds.Do(cx)
+	if err != nil {
+		fmt.Printf("ColSlice#inds err: %v\n", err)
+		return err
+	}
+	inds := cs.Inds.GetPair()
+	var start int64
+	var end int64
+	i0 := inds[0]
+	i1 := inds[1]
+	switch i0 := i0.(type) {
+	case int64:
+		start = i0
+	case *objects.EmptyVal:
+		start = 0
+	default:
+		return errors.New("slice: bad index start")
+	}
+	switch i1 := i1.(type) {
+	case int64:
+		end = i1
+	case *objects.EmptyVal:
+		switch col := colv.(type) {
+		case *objects.ListVal:
+			end = int64(len(col.Elems))
+		case *objects.TupleVal:
+			end = int64(len(col.Elems))
+		case string:
+			end = int64(len(col))
+		}
+	default:
+		return errors.New("slice: bad index end")
+	}
+
+	fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
+	switch col := colv.(type) {
+	case *objects.ListVal:
+		vals := col.Elems[int(start):int(end)]
+		cs.res = objects.NewListVal(vals)
+	case *objects.TupleVal:
+		vals := col.Elems[int(start):int(end)]
+		cs.res = objects.NewTupleVal(vals)
+	case string:
+		val := col[int(start):int(end)]
+		cs.res = val
+	}
+	return nil
+}
+
+func NewSlice(col base.Expression, sub *OperColon) *ColSlice {
+	inds := sub.GetPair()
+	return &ColSlice{Col: col, Inds: inds}
 }
 
 //==

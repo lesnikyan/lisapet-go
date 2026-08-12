@@ -34,13 +34,13 @@ type ContextElem struct {
 
 type Expression interface {
 	Do(Context) error
+	Get() *Val
 	/*
 		Get() in cases:
 		- value
 		- definition object
 		- target object (for change)
 	*/
-	Get() *Val
 }
 
 type Block interface {

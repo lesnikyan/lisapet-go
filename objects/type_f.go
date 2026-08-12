@@ -34,10 +34,38 @@ func TypeByVal(val any) *TypeInfo {
 	case base.FuncVal:
 		return NewTypeInf("function", base.TypeFunction)
 		// case *Maybe:
-		// 	return NewTypeInf("int", base.TypeInt)
+		// 	return NewTypeInf("int", base.TypeMaybe)
 	}
 
 	return NewTypeInf("undefined", base.TypeUndefined)
+}
+
+func TypeIdByVal(val any) base.TypeId {
+	// TODO: if StructInstance - return ID of struct definition
+	switch val.(type) {
+	case int64:
+		return base.TypeInt
+	case float64:
+		return base.TypeFloat
+	case bool:
+		return base.TypeBool
+	case string:
+		return base.TypeString
+	case *Null:
+		return base.TypeNull
+	case *ListVal:
+		return base.TypeList
+	case *TupleVal:
+		return base.TypeTuple
+	case *DictVal:
+		return base.TypeDict
+	case base.FuncVal:
+		return base.TypeFunction
+		// case *Maybe:
+		// 	return base.TypeMaybe
+	}
+
+	return base.TypeUndefined
 }
 
 func bool2int(v bool) int64 {

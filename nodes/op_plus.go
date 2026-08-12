@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	ob "github.com/lesnikyan/lisapet-go/objects"
@@ -22,8 +23,10 @@ func floatv(a any) float64 {
 	return 0
 }
 
+// ## + - * / ** ^/ == != < > <= >= %
+// TODO: int: | & ^ << >>
 func binOperInt(opid Opid, a int64, b any) (any, bool) {
-	fmt.Println("binInt:", opid, a, b)
+	// fmt.Println("binInt:", opid, a, b)
 	switch b := b.(type) {
 	case int64:
 		switch opid {
@@ -37,6 +40,8 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return float64(a) / float64(b), true
 		case OpPow:
 			return int64(math.Pow(float64(a), float64(b))), true
+		case OpRoot:
+			return math.Pow(float64(b), 1/float64(a)), true
 		case OpEqual:
 			return a == b, true
 		case OpNotEqual:
@@ -48,9 +53,19 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 		case OpMore:
 			return a > b, true
 		case OpMoreEqual:
-			return a > b, true
+			return a >= b, true
 		case OpPercent:
 			return a % b, true
+		case OpBitAnd:
+			return a & b, true
+		case OpBitOr:
+			return a | b, true
+		case OpXor:
+			return a ^ b, true
+		case OpBitLShift:
+			return a << b, true
+		case OpBitRShift:
+			return a >> b, true
 		}
 	case float64:
 		switch opid {
@@ -64,6 +79,8 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 			return float64(a) / b, true
 		case OpPow:
 			return math.Pow(float64(a), b), true
+		case OpRoot:
+			return math.Pow(float64(b), 1/float64(a)), true
 		case OpEqual:
 			return float64(a) == b, true
 		case OpNotEqual:
@@ -95,6 +112,8 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return a / float64(b), true
 		case OpPow:
 			return math.Pow(a, float64(b)), true
+		case OpRoot:
+			return math.Pow(float64(b), 1/float64(a)), true
 		case OpEqual:
 			return a == float64(b), true
 		case OpNotEqual:
@@ -102,11 +121,11 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 		case OpLess:
 			return a < float64(b), true
 		case OpLessEqual:
-			return a < float64(b), true
+			return a <= float64(b), true
 		case OpMore:
-			return a < float64(b), true
+			return a > float64(b), true
 		case OpMoreEqual:
-			return a < float64(b), true
+			return a >= float64(b), true
 		}
 	case float64:
 		switch opid {
@@ -120,6 +139,8 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 			return float64(a) / float64(b), true
 		case OpPow:
 			return math.Pow(float64(a), float64(b)), true
+		case OpRoot:
+			return math.Pow(b, 1/a), true
 		case OpEqual:
 			return a == b, true
 		case OpNotEqual:
@@ -127,18 +148,24 @@ func binOperFloat(opid Opid, a float64, b any) (any, bool) {
 		case OpLess:
 			return a < b, true
 		case OpLessEqual:
-			return a < b, true
+			return a <= b, true
 		case OpMore:
-			return a < b, true
+			return a > b, true
 		case OpMoreEqual:
-			return a < b, true
+			return a >= b, true
 		}
 	}
 	return nil, false
 }
 
+func strLShift(format string, vals []any) string {
+	// TODO: prepare includes
+	return fmt.Sprintf(format, vals...)
+}
+
 func binOperString(opid Opid, a string, b any) (any, bool) {
 	switch b := b.(type) {
+	// operators bitween two strings
 	case string:
 		switch opid {
 		case OpPlus:
@@ -147,7 +174,23 @@ func binOperString(opid Opid, a string, b any) (any, bool) {
 			return strings.Compare(a, b) == 0, true
 		case OpNotEqual:
 			return a != b, true
+		case OpBitLShift:
+			return strLShift(a, []any{b}), true
 		}
+	default:
+		switch opid {
+		// formatting
+		case OpBitLShift:
+			var vals []any
+			switch src := b.(type) {
+			case *ob.ListVal:
+				vals = src.Elems
+			default:
+				vals = []any{b}
+			}
+			return strLShift(a, vals), true
+		}
+
 	}
 	return nil, false
 }
@@ -173,55 +216,128 @@ func binOperByte(opid Opid, a byte, b any) (any, bool) { return nil, false }
 
 func binOperGlyf(opid Opid, a rune, b any) (any, bool) { return nil, false }
 
-func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool)    { return nil, false }
-func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool)  { return nil, false }
-func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool)    { return nil, false }
+func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
+
+	switch opid {
+	case OpPlus:
+		// fmt.Printf("List/ <+> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			alen := len(a.Elems)
+			vals := make([]any, alen+len(bval.Elems))
+			for i, v := range a.Elems {
+				vals[i] = v
+			}
+			for i, v := range bval.Elems {
+				vals[alen+i] = v
+			}
+			res := ob.NewListVal(vals)
+			return res, true
+		}
+	case OpMinus:
+		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			if len(bval.Elems) != 1 {
+				return nil, false
+			}
+			i := bval.Elems[0]
+			id, ok := i.(int64)
+			if !ok {
+				return nil, false
+			}
+			ii := int(id)
+			if ii >= len(a.Elems) {
+				return nil, false
+			}
+			val := a.Elems[ii]
+			// fmt.Printf("rem val: (%T, %v) \n", val, val)
+			rem := slices.Delete(a.Elems, ii, ii+1)
+			a.Elems = rem
+			return val, true
+		}
+
+	case OpPlusAssign:
+		// fmt.Printf("List/ <+=> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			a.Elems = append(a.Elems, bval.Elems...)
+			return a, true
+		}
+	}
+	return nil, false
+
+}
+func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool) {
+	switch opid {
+	case OpPlus:
+		// fmt.Printf("Tuple/ <+> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.TupleVal:
+			alen := len(a.Elems)
+			vals := make([]any, alen+len(bval.Elems))
+			for i, v := range a.Elems {
+				vals[i] = v
+			}
+			for i, v := range bval.Elems {
+				vals[alen+i] = v
+			}
+			res := ob.NewTupleVal(vals)
+			return res, true
+		}
+	}
+	return nil, false
+}
+
+func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool) {
+	switch opid {
+	case OpPlus:
+		// fmt.Printf("Dict/ <+> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.DictVal:
+			alen := len(a.Vmap)
+			vals := make(map[any]any, alen+len(bval.Vmap))
+			for k, v := range a.Vmap {
+				vals[k] = v
+			}
+			for k, v := range bval.Vmap {
+				vals[k] = v
+			}
+			res := ob.NewDictVal(vals)
+			return res, true
+		}
+	case OpMinus:
+		// fmt.Printf("Dict/ <-> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			if len(bval.Elems) != 1 {
+				return nil, false
+			}
+			k := bval.Elems[0]
+			val, ok := a.Vmap[k]
+			if !ok {
+				// no val, no changes
+				return nil, true
+			}
+			// fmt.Printf("rem k: (%T, %v) val: (%T, %v) \n", k, k, val, val)
+			delete(a.Vmap, k)
+			return val, true
+		}
+	case OpPlusAssign:
+		// fmt.Printf("Dict/ <+=> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.DictVal:
+			for k, v := range bval.Vmap {
+				a.Vmap[k] = v
+			}
+			return a, true
+		}
+	}
+	return nil, false
+}
+
 func binOperType(opid Opid, a any, b any) (any, bool)            { return nil, false }
 func binOperFunc(opid Opid, a Function, b any) (any, bool)       { return nil, false }
 func binOperStruct(opid Opid, a ob.StructVal, b any) (any, bool) { return nil, false }
 func binOperRegext(opid Opid, a ob.Regexp, b any) (any, bool)    { return nil, false }
 func binOperAny(opid Opid, a any, b any) (any, bool)             { return nil, false }
-
-// func plusIntN(a int64, b any) (any, bool) {
-// 	switch b := b.(type) {
-// 	case int64:
-// 		return a + b, true
-// 	case float64:
-// 		return float64(a) + b, true
-// 	}
-// 	return nil, false
-// }
-
-// func plusFloatN(a float64, b any) (any, bool) {
-// 	switch vb := b.(type) {
-// 	case int64:
-// 		return a + float64(vb), true
-// 	case bool:
-// 		return a + floatv(vb), true
-// 	case float64:
-// 		return a + vb, true
-// 	}
-// 	return nil, false
-// }
-
-// func plusStringN(a string, b any) (any, bool) {
-// 	switch vb := b.(type) {
-// 	case string:
-// 		return a + vb, true
-// 	}
-// 	return nil, false
-// }
-
-// func PlusInt(lvv any, rvv any) (any, bool) {
-
-// 	li, lok := lvv.(int64)
-// 	if !lok {
-// 		return nil, false
-// 	}
-// 	ri, rok := rvv.(int64)
-// 	if !rok {
-// 		return nil, false
-// 	}
-// 	v := li + ri
-// 	return v, true
-// }

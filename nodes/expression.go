@@ -2,9 +2,9 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 // *** EMPTY
@@ -59,12 +59,7 @@ func (ex *VarExpr) Do(cx base.Context) error {
 	if elem == nil {
 		return nil
 	}
-	// vr := cx.GetVar(ex.name)
 	// fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", vr, vr, vr == nil)
-	// if vr == nil {
-	// 	ex.vr = nil
-	// 	return nil
-	// }
 	switch vr := elem.V.(type) {
 	case *base.Var:
 		ex.vr = vr
@@ -106,6 +101,13 @@ func (ex *VarExpr) GetVar() *base.Var {
 	return ex.vr
 }
 
+func (ex *VarExpr) GetOrNewVar(cx base.Context) *base.Var {
+	if ex.vr == nil {
+		ex.NewVar(cx)
+	}
+	return ex.vr
+}
+
 func (ex *VarExpr) GetElem() *base.ContextElem {
 	return ex.cxEl
 }
@@ -119,7 +121,7 @@ func (ex *VarExpr) NewVar(cx base.Context) {
 func (ex *VarExpr) NewVarTyped(cx base.Context, vtype *base.Type) {
 	// TODO: take and set Type
 	vr := &base.Var{Name: ex.name, Type: vtype, StrictType: true}
-	fmt.Printf("NewVarTyped#0 : %v // %v // %v \n", ex.name, vtype, vr)
+	// fmt.Printf("NewVarTyped#0 : %v // %v // %v \n", ex.name, vtype, vr)
 	cx.AddVar(vr)
 	ex.vr = vr
 }
@@ -169,7 +171,7 @@ func GetExprTarget(v base.Expression, cx base.Context) any {
 }
 
 func GetExprVal(v base.Expression, cx base.Context) any {
-	fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
+	// fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
 	var eVal *base.Val
 	switch vv := v.(type) {
 	case *VarExpr:
@@ -196,17 +198,27 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// return eVal.V
 	case *ColElemExpr:
 		eVal = vv.ColRes.Get()
-		fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
+		// fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
 		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
-		fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
+		// fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
 		return eVal.V
 	case *NumSeqExpr:
 		res := vv.res.GetList()
-		fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
+		// fmt.Printf("GetExp.NumSeq# len: %v\n", len(res.Elems))
 		return res
+	case *SequenceComma:
+		vals := vv.GetVals()
+		if vals == nil {
+			return nil
+		}
+		return vals.V
+		// return vals
+	case *EmptyExpr:
+		return &objects.EmptyVal{}
 	default:
+		// fmt.Printf("GetExprVal#10: %T, %v\n", vv.Get(), vv.Get())
 		return vv.Get().V
 	}
 	if eVal != nil {

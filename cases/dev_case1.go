@@ -36,17 +36,6 @@ func FPrintElems(elems []*lang.Elem) string {
 	return fmt.Sprintf("`%s`", stt)
 }
 
-// func _AssignSubs(elems []*lang.Elem, spres *SplittedRes) {
-// 	if len(spres.Others) > 0 {
-// 		if spres.Others[0][0] < spres.Lowest {
-// 			// posibly multiassign
-// 		} else {
-// 			// leftEls := SkipSpaces(elems[:spres.Lowest])
-// 			// Interpret(leftEls)
-// 		}
-// 	}
-// }
-
 const (
 	opSemicol = ";"
 	opDot     = "."
@@ -117,7 +106,8 @@ func DotCaseNum(node *OperNode) *nodes.ValExpr {
 func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	var expr base.OperExpr
 	oper := rNode.oper
-	println("$$PROP#0:", oper)
+	// println("$$PROP#0:", oper)
+	// PrintONode(rNode, 0)
 	switch oper {
 	case "=":
 		expr = &nodes.OperAssign{Oper: oper}
@@ -127,7 +117,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 			return fnum, true
 		}
 		expr = &nodes.OperDot{} // lambda
-	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%":
+	case "*", "/", "+", "-", "**", "^/", "<<", ">>", "%", "|", "&", "^":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
@@ -138,7 +128,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)}
 	case "->":
-		expr = &nodes.OperBin{} // lambda
+		expr = &nodes.LambdaExpr{} // lambda
 	case "<-":
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
@@ -155,7 +145,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 
 	}
 	// println("$$PROP#1=:", expr)
-	fmt.Printf("POT#2 %v (%T: %v) \n", oper, expr, expr)
+	// fmt.Printf("POT#2 %v (%T: %v) \n", oper, expr, expr)
 	lArg, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	if lok {
 		expr.SetLeft(lArg)
@@ -168,7 +158,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	if rok {
 		expr.SetRight(rArg)
 	}
-	fmt.Println("POT#10:", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
+	// fmt.Println("POT#10:", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
 
 	return expr, expr != nil
 }
@@ -210,60 +200,71 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 	return nil, false
 }
 
+// list[index], list[:], dict[key], func(args)
+func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (base.Expression, bool) {
+	// fmt.Printf(" ??Coll([>> `%s` \n", oper)
+	seq, okc := subs.(*nodes.SequenceComma)
+	switch oper {
+	case "(":
+		// func call
+		fEx := lexp
+		var fArgs []base.Expression
+		if subs != nil {
+			// has args
+			if okc {
+				// has more 1 arg
+				fArgs = seq.Subs
+			} else {
+				fArgs = []base.Expression{subs}
+			}
+		}
+		return nodes.NewFuncCall(fEx, fArgs), true
+
+	case "[":
+		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
+		switch subex := subs.(type) {
+		case *nodes.OperColon:
+			// Slice nn[a : b]
+			// fmt.Printf(" Brackets [OperColon] (%T, %v) \n", subex, subex)
+			return nodes.NewSlice(lexp, subex), true
+		default:
+			// Elem of collection: var[index|key]
+			// fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
+			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
+		}
+	}
+	return nil, false
+}
+
 func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	oper := rNode.oper
 	bt := nodes.GetBrType(rNode.oper)
 	subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
 	lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
-	fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v)\n", oper, lexp, lok, subs, rok)
 	seq, okc := subs.(*nodes.SequenceComma)
-	switch oper {
-	case "(":
-		if lok {
-			// if lok: func call
-			// fmt.Println("Func Call ")
-
-			fEx := lexp
-			var fArgs []base.Expression
-			if rok {
-				// has args
-				if okc {
-					// has more 1 arg
-					fArgs = seq.Subs
-				} else {
-					fArgs = []base.Expression{subs}
-				}
-			}
-			return nodes.NewFuncCall(fEx, fArgs), true
-			return nil, false
+	// PrintONode(rNode, 0)
+	if lok {
+		if !rok {
+			subs = nil
 		}
-		if okc {
-			// tuple here
-		} else {
-			return &nodes.Brackets{Sub: subs, Type: bt}, true
-		}
-		// sub-case of generator: `(: expr ; ..)`
-
-	case "[":
-		if okc {
-			// list, not sure
-		}
-		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
-		if lok {
-			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
-		}
-
+		return BracketsWithLeft(oper, lexp, subs)
 	}
-	fmt.Printf("PET#2 %T\n", seq)
+	// fmt.Printf("BEx#1 < %s >  L(%T %v), R(%T %v) comm: %v\n", oper, lexp, lok, subs, rok, okc)
+
 	if !okc {
+		// non comma-separated cases: (a + b), [1 .. 5]
+		switch oper {
+		case "(":
+			return &nodes.Brackets{Sub: subs, Type: bt}, true
+		case "[":
+			switch subex := subs.(type) {
+			case *nodes.Dots2Expr:
+				return subex.GetNumSeq(), true
+			}
+		}
+
 		// other non-comma-separated cases
 		// possible empty, 1-elem in sequence, num-seq [a..b]
-
-		dots2, dok := subs.(*nodes.Dots2Expr)
-		if dok {
-			return dots2.GetNumSeq(), true
-		}
-
 		subEx := []base.Expression{}
 		if rok {
 			subEx = append(subEx, subs)
@@ -276,9 +277,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 }
 
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
-	// fmt.Println("DEB+++1", rNode.oper)
-	oper := rNode.oper
-	fmt.Printf("PET#0 %v\n", oper)
+	// fmt.Printf("PET#0 %v\n", oper)
 	switch rNode.oper {
 	case "(", "[", "{":
 		return BracketsExpr(rNode)
@@ -330,13 +329,13 @@ func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 		elems = append(elems, first)
 	}
 	slices.Reverse(elems)
-	fmt.Println("Seq#1:", elems)
+	// fmt.Println("Seq#1:", elems)
 	// sub, ok := OperSub(node.leftNode, node.leftElems)
 	return elems, true
 }
 
 func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
-	fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
+	// fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
 	if node != nil {
 		return ProcExprTree(node)
 	} else if len(elems) > 0 {
@@ -442,7 +441,11 @@ grup
 // var keywords = strings.Split("func|if|for|while|match|enum|grup|struct|else|import|return|const|run", "|")
 // var kwMap = List2Keys(keywords)
 
-func IsLKWord(elems []*lang.Elem) bool {
+func IsLKWord(elems []*lang.Elem, prevTree *LineTree) bool {
+	if prevTree != nil && len(prevTree.Tree.leftElems) > 0 {
+		_, ok := kwMap[prevTree.Tree.leftElems[0].Text]
+		return ok
+	}
 	e1 := elems[0]
 	if e1.Type != Lt.Word {
 		return false
@@ -452,7 +455,7 @@ func IsLKWord(elems []*lang.Elem) bool {
 }
 
 func CaseLKeyword(elems []*lang.Elem) (*CaseRes, bool) {
-	if elems[0].Type != Lt.Word || !IsLKWord((elems)) {
+	if elems[0].Type != Lt.Word || !IsLKWord(elems, nil) {
 
 	}
 	var expr base.Expression
