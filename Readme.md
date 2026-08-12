@@ -37,5 +37,8 @@ raw dev log:
 -.-.- Implemented multi assign with unpacking of list / tuple to vars: `a,b,c = [1,2,3]`
 -.-.10 Implemented multiline expressions in brackets: math expr; tuple, list, dict construtors; func call. Cleaned some dev output.
 -.-.- Fix multiline with function definition
+-.-.11 Implemented oper + for list, tuple, dict.
+-.-.- Implement oper += for list, dict. It adds elements from right to left arg.
+-.-.12 Implement oper - for list, dict. It deletes element by index/key and returns deteting value.
 
 ```

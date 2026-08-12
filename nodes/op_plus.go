@@ -235,7 +235,7 @@ func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
 			return res, true
 		}
 	case OpMinus:
-		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+		fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
 		switch bval := b.(type) {
 		case *ob.ListVal:
 			if len(bval.Elems) != 1 {
@@ -292,7 +292,7 @@ func binOperTuple(opid Opid, a *ob.TupleVal, b any) (any, bool) {
 func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool) {
 	switch opid {
 	case OpPlus:
-		// fmt.Printf("List/ <+> a:(%T), b:(%T)  \n", a, b)
+		// fmt.Printf("Dict/ <+> a:(%T), b:(%T)  \n", a, b)
 		switch bval := b.(type) {
 		case *ob.DictVal:
 			alen := len(a.Vmap)
@@ -307,9 +307,24 @@ func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool) {
 			return res, true
 		}
 	case OpMinus:
-		// fmt.Printf("List/ <-> a:(%T), b:(%T)  \n", a, b)
+		// fmt.Printf("Dict/ <-> a:(%T), b:(%T)  \n", a, b)
+		switch bval := b.(type) {
+		case *ob.ListVal:
+			if len(bval.Elems) != 1 {
+				return nil, false
+			}
+			k := bval.Elems[0]
+			val, ok := a.Vmap[k]
+			if !ok {
+				// no val, no changes
+				return nil, true
+			}
+			// fmt.Printf("rem k: (%T, %v) val: (%T, %v) \n", k, k, val, val)
+			delete(a.Vmap, k)
+			return val, true
+		}
 	case OpPlusAssign:
-		// fmt.Printf("List/ <+=> a:(%T), b:(%T)  \n", a, b)
+		// fmt.Printf("Dict/ <+=> a:(%T), b:(%T)  \n", a, b)
 		switch bval := b.(type) {
 		case *ob.DictVal:
 			for k, v := range bval.Vmap {
