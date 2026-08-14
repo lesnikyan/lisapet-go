@@ -2,7 +2,6 @@ package cases
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
@@ -110,24 +109,11 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	return &SplitState{Expr: funcDef, Done: true}, nil
 }
 
-// func StructField(exp base.Expression) {
-// 	switch elem := exp.(type) {
-// 	// case *nodes.SequenceComma:
-// 	// 	// several fields
-// 	// 	elem.Subs
-// 	case *nodes.VarExpr:
-// 		// 1 field no type
-
-// 	case *nodes.OperColon:
-// 		// 1 typed field
-// 	}
-// }
-
 // struct StrName(Parent) a, b, c:int
 // struct StrName c:int
 func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 
-	fmt.Printf("Case#Struct#0: '%v' : (%v) \n", elems[0].Text, Lt.TName(elems[0].Type))
+	// fmt.Printf("Case#Struct#0: '%v' : (%v) \n", elems[0].Text, Lt.TName(elems[0].Type))
 	elems = SkipSpaces(elems)
 	name := "s#"
 	fIndex := 2 // field start index
@@ -159,7 +145,7 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		return &SplitState{Done: false, LTree: nTree}, nil
 	}
 
-	PrintONode(nTree.Tree, 0)
+	// PrintONode(nTree.Tree, 0)
 	var args []base.Expression
 	subNode := nTree.Tree
 	// PrintONode(subNode, 0)

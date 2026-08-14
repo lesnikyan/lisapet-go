@@ -27,7 +27,7 @@ func (op *OperAssign) Get() *base.Val {
 }
 
 func (op *OperAssign) Do(cx base.Context) error {
-	fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
+	// fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
 	err2 := op.right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
@@ -80,6 +80,8 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	case *ColElemExpr:
 		leftObj = lexp.Get().V
 		// fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)
+	case *OperDot:
+		leftObj = lexp.GetMember()
 	case *SequenceComma:
 		// a, b, c = expr
 		// expr: comma-sequence, list, tuple
@@ -106,6 +108,8 @@ func SetValTo(leftObj any, rval any) error {
 		// since collections is untyped,  we'll check type
 		target.Set(rval)
 		// TODO: obj.member = val
+	case *objects.StrMember:
+		target.Set(rval)
 	case *base.Var:
 		// fmt.Printf("SetValTo#2 L: (%T, %v) = R: %T \n", target, target, rval)
 		// cval := rval

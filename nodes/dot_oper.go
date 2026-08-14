@@ -30,6 +30,15 @@ func (op *OperDot) Get() *base.Val {
 	return nil
 }
 
+func (op *OperDot) GetMember() *objects.StrMember {
+	switch mb := op.res.(type) {
+	case *objects.StrMember:
+		// fmt.Printf(" <.> Get mb:(%T, %v) \n", mb, mb)
+		return mb
+	}
+	return nil
+}
+
 func (op *OperDot) Set(val *base.Val) error {
 	switch mb := op.res.(type) {
 	case *objects.StrMember:
@@ -65,7 +74,7 @@ func (op *OperDot) Do(cx base.Context) error {
 			op.res = mth // method found
 			return nil
 		}
-		return errors.New("OperDot: member in struct not found")
+		return fmt.Errorf("OperDot: member `%s` in struct not found", mname)
 
 	default:
 		return errors.New("OperDot: unknown type of object " + fmt.Sprintf("%T", obj))

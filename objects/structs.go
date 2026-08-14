@@ -131,9 +131,9 @@ func (mb *StrMember) Get() *base.Val {
 	return nil
 }
 
-func (mb *StrMember) Set(val *base.Val) error {
+func (mb *StrMember) Set(val any) error {
 	if mb.Field != "" {
-		return mb.Obj.Set(mb.Field, val.V)
+		return mb.Obj.Set(mb.Field, val)
 	}
 	return nil
 }
