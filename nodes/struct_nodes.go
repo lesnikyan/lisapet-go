@@ -1,0 +1,136 @@
+package nodes
+
+import (
+	"errors"
+
+	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
+)
+
+// struct StrName(Parent) a, b, c:int
+type StructDefExpr struct {
+	Name   string
+	Fields []base.Expression // var, var:type
+
+	res *objects.StructDef
+}
+
+func (se *StructDefExpr) Get() *base.Val {
+	if se.res == nil {
+		return nil
+	}
+	return base.NewVal(se.res)
+}
+
+func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, error) {
+	anyT := cx.GetType("any")
+	if anyT == nil {
+		return nil, errors.New("struct def: any type not defined")
+	}
+	fields := make([]*objects.StructField, len(se.Fields))
+	for i, ex := range se.Fields {
+		var name string
+		var ftype *base.Type
+		switch fex := ex.(type) {
+		case *VarExpr:
+			// untyped field, type = any
+			name = fex.name
+			ftype = anyT
+		case *OperColon:
+			lexp, ok := fex.left.(*VarExpr) // field
+			if !ok {
+				// strange case
+				return nil, errors.New("struct def: bad syntax of field name in `field:type`")
+			}
+			name = lexp.name
+			rexp, ok := fex.right.(*VarExpr) // type
+			if !ok {
+				// strange case
+				return nil, errors.New("struct def: bad syntax of type name in `field:type`")
+			}
+			et := cx.GetElem(rexp.name)
+			if et == nil {
+				// type not found
+			}
+			ft, ok := et.V.(*base.Type)
+			if !ok {
+				// not type
+				return nil, errors.New("struct def: bad type name in `field:type`")
+			}
+			ftype = ft
+		default:
+			return nil, errors.New("struct def: incorrect expression instead of field")
+		}
+		defv := base.DefaultVal(ftype.Id)
+		fld := &objects.StructField{Name: name, Type: ftype, DefVal: defv}
+		fields[i] = fld
+	}
+	return fields, nil
+}
+
+func (se *StructDefExpr) Do(cx base.Context) error {
+	se.res = nil
+	// TODO: convert Fields to []*StructField
+	fields, err := se.StrDefArgs(cx)
+	if err != nil {
+		return nil
+	}
+	sdef := objects.NewSructDef(se.Name, fields)
+	stype := base.DefineUserType(se.Name, sdef)
+	cx.AddType(stype)
+	return nil
+}
+
+// /
+// StrName{a:2, b:5}
+type StructConstr struct {
+	Name   string
+	Args   []*OperColon
+	ArgMap map[string]any
+
+	res *objects.StructInst
+}
+
+func (se *StructConstr) Get() *base.Val {
+	if se.res == nil {
+		return nil
+	}
+	return base.NewVal(se.res)
+}
+
+func (se *StructConstr) Do(cx base.Context) error {
+	se.res = nil
+	tel := cx.GetType(se.Name)
+	if tel == nil {
+		return errors.New("struct: type not found")
+	}
+	if tel.Def == nil {
+		return errors.New("struct: type dont have definition")
+	}
+	sdef, ok := tel.Def.(*objects.StructDef)
+	if !ok {
+		return errors.New("struct: type definition not a struct")
+	}
+	args := make(map[string]any)
+	for _, arg := range se.Args {
+		nexp, ok := arg.left.(*VarExpr)
+		if !ok {
+			return errors.New("struct: bad field name")
+		}
+		arn := nexp.GetName()
+		arg.right.Do(cx)
+		rv := arg.right.Get()
+		if rv == nil {
+			// no val
+			errors.New("struct: no val of expression in: `field: val`")
+		}
+		args[arn] = rv.V
+	}
+	se.res = sdef.NewInstance(args)
+
+	return nil
+}
+
+func NewStructConstr(name string, args []*OperColon) *StructConstr {
+	return &StructConstr{Name: name, Args: args}
+}

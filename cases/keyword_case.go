@@ -2,6 +2,7 @@ package cases
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
@@ -32,14 +33,7 @@ const (
 // }
 
 func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
-	// var subElems []*lang.Elem
-	// selems := elems
 	elems = SkipSpaces(elems)
-	// if len(elems) < 3 {
-	// 	// func name()
-	// 	return nil, errors.New("too small lexem set for func definition")
-	// }
-
 	var prefTree *LineTree
 	var err1 error
 	// detect method: if has `:` before `()`
@@ -61,9 +55,6 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	}
 	// Name
 	name := "f###"
-	// if elems[sigIndex].Type == Lt.Word {
-	// 	name = elems[sigIndex].Text
-	// }
 	// Args
 	sigTree, err2 := Line2tree(elems[sigIndex:], kwRoot)
 	if err2 != nil {
@@ -117,6 +108,82 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		// method def
 	}
 	return &SplitState{Expr: funcDef, Done: true}, nil
+}
+
+// func StructField(exp base.Expression) {
+// 	switch elem := exp.(type) {
+// 	// case *nodes.SequenceComma:
+// 	// 	// several fields
+// 	// 	elem.Subs
+// 	case *nodes.VarExpr:
+// 		// 1 field no type
+
+// 	case *nodes.OperColon:
+// 		// 1 typed field
+// 	}
+// }
+
+// struct StrName(Parent) a, b, c:int
+// struct StrName c:int
+func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
+
+	fmt.Printf("Case#Struct#0: '%v' : (%v) \n", elems[0].Text, Lt.TName(elems[0].Type))
+	elems = SkipSpaces(elems)
+	name := "s#"
+	fIndex := 2 // field start index
+	// normally struct definition placed in 1 line, or uses block-syntax
+	if kwRoot.BracketsCount == 0 {
+		if elems[1].Type != Lt.Word {
+			return nil, errors.New("keyword struct: bad name in definition")
+		}
+		name = elems[1].Text
+		// if brackets after name - split parent part and fields part
+		if elems[2].Type == Lt.Oper {
+			if elems[2].Text != "{" {
+				// bad syntax
+				return nil, errors.New("Bad syntax of struct case")
+			}
+			// make Parent sub
+			// fIndex = elem after brackets
+		}
+	}
+
+	// expecting comma-separated sequence
+	nTree, err := Line2tree(elems[fIndex:], kwRoot)
+	if err != nil {
+		// do smth
+		return nil, err
+	}
+
+	if !nTree.Finished {
+		return &SplitState{Done: false, LTree: nTree}, nil
+	}
+
+	PrintONode(nTree.Tree, 0)
+	var args []base.Expression
+	subNode := nTree.Tree
+	// PrintONode(subNode, 0)
+	subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+	// fmt.Printf("Case#Struct#1: (%T, %v): %v \n", subExp, subExp, ok)
+	if !ok {
+		return nil, mockErr
+	}
+	switch argExp := subExp.(type) {
+	case *nodes.SequenceComma:
+		// several fields
+		args = make([]base.Expression, len(argExp.Subs))
+		for i, arg := range argExp.Subs {
+			args[i] = arg
+		}
+	case *nodes.VarExpr:
+		// 1 field no type
+		args = []base.Expression{argExp}
+	case *nodes.OperColon:
+		// 1 typed field
+		args = []base.Expression{argExp}
+	}
+	strDef := &nodes.StructDefExpr{Name: name, Fields: args}
+	return &SplitState{Expr: strDef, Done: true}, nil
 }
 
 var mockErr = errors.New("case mock error")
@@ -257,6 +324,8 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 	case kEnum:
 	case kGrup:
 	case kStruct:
+		// struct StrName(Parent) a, b, c:int
+		return CaseStructDef(elems, kwRoot)
 	case kImport:
 	case kConst:
 	case kRun:

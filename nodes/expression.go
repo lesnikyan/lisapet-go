@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -50,6 +51,9 @@ type VarExpr struct {
 	cxEl *base.ContextElem
 }
 
+func (ex *VarExpr) GetName() string {
+	return ex.name
+}
 func (ex *VarExpr) Do(cx base.Context) error {
 	ex.IsVar = false
 	ex.vr = nil
@@ -171,7 +175,7 @@ func GetExprTarget(v base.Expression, cx base.Context) any {
 }
 
 func GetExprVal(v base.Expression, cx base.Context) any {
-	// fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
+	fmt.Printf("GetExprVal#0: %T, %v\n", v, v)
 	var eVal *base.Val
 	switch vv := v.(type) {
 	case *VarExpr:

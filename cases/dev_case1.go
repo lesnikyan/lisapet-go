@@ -200,9 +200,9 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 	return nil, false
 }
 
-// list[index], list[:], dict[key], func(args)
+// list[index], list[:], dict[key], func(args), StructType{args}
 func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (base.Expression, bool) {
-	// fmt.Printf(" ??Coll([>> `%s` \n", oper)
+	fmt.Printf(" ??Coll([>> `%s` (%T, %v) \n", oper, subs, subs)
 	seq, okc := subs.(*nodes.SequenceComma)
 	switch oper {
 	case "(":
@@ -232,6 +232,45 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 			// fmt.Printf(" Brack [??] (%T, %v) \n", subex, subex)
 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
 		}
+	case "{":
+		// fmt.Printf("BEx#4 struct %s  %T %v\n", oper, lexp, lok)
+		var args []*nodes.OperColon
+		var name string
+		nexp, ok := lexp.(*nodes.VarExpr)
+		if !ok {
+			return nil, false
+		}
+		name = nexp.GetName()
+
+		switch subex := subs.(type) {
+		case *nodes.OperColon:
+			// struct: Type{name : val}
+			fmt.Printf(" Brackets {OperColon} (%T, %v) \n", subex, subex)
+			args = []*nodes.OperColon{subex}
+			// return nil, true
+		case *nodes.SequenceComma:
+			// struct: Type{name : val}
+			fmt.Printf(" Brackets {,,} (%T, %v) \n", subex, subex)
+			args = make([]*nodes.OperColon, len(subex.Subs))
+			for i, sb := range subex.Subs {
+				if colx, ok := sb.(*nodes.OperColon); ok {
+					args[i] = colx
+				} else {
+					return nil, false
+				}
+			}
+			// return nil, true
+		case *nodes.EmptyExpr:
+			// Elem of collection: var[index|key]
+			fmt.Printf(" Brack {} (%T, %v) \n", subex, subex)
+			args = []*nodes.OperColon{}
+		default:
+			// Bad case
+			fmt.Printf(" Brack default (%T, %v) \n", subex, subex)
+			args = []*nodes.OperColon{}
+			// return nil, false
+		}
+		return nodes.NewStructConstr(name, args), true
 	}
 	return nil, false
 }

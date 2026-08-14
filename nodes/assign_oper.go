@@ -27,7 +27,7 @@ func (op *OperAssign) Get() *base.Val {
 }
 
 func (op *OperAssign) Do(cx base.Context) error {
-	// fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
+	fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
 	err2 := op.right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
