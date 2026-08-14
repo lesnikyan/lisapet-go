@@ -2,6 +2,66 @@ package cases
 
 import "testing"
 
+func TestStructFieldGet(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a:int
+		t = T1{a: 5}
+		r = t.a
+		`, "r", int64(5)},
+		{`
+		struct T1 a:bool
+		t = T1{a: true}
+		r = t.a
+		`, "r", true},
+		{`
+		struct T1 a:string
+		t = T1{a: 'Bambarbia'}
+		r = t.a
+		`, "r", "Bambarbia"},
+		{`
+		struct T1 a:list
+		t = T1{a: [1,2,3]}
+		r = t.a
+		`, "r", Anis(1, 2, 3)},
+		{`
+		struct T1 a:tuple
+		t = T1{a: (1,2,31)}
+		r = t.a
+		`, "r", Tanis(1, 2, 31)},
+		{`
+		struct T1 a:dict
+		t = T1{a: {'b':222}}
+		r = t.a
+		`, "r", adk(dk{"b": 222})},
+		{`
+		struct T1 a:int
+		struct T2 b: T1
+		
+		t1 = T1{a: 24}
+		t = T2{b: t1}
+		r = t.b
+		`, "r", Stf("T1", dk{"a": 24})},
+		{`
+		struct T1 a:int
+		struct T2 b: T1
+		
+		t1 = T1{a: 25}
+		t = T2{b: t1}
+		r = t.b.a
+		`, "r", int64(25)},
+		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
+		// {``, "r",  int64(205)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestStructDef(t *testing.T) {
 	tdata := []struct {
 		src   string

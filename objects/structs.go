@@ -20,8 +20,23 @@ type StructDef struct {
 	FNames []string
 	Fields map[string]*StructField
 
-	Methods []*base.FuncVal
+	Methods []*Method
 	methMap map[string]int
+}
+
+func (sd *StructDef) HasMethod(name string) bool {
+	// TODO: recursive search here and in parents
+	if _, ok := sd.methMap[name]; ok {
+		return true
+	}
+	return false
+}
+
+func (sd *StructDef) GetMethod(name string) *Method {
+	if mind, ok := sd.methMap[name]; ok {
+		return sd.Methods[mind]
+	}
+	return nil
 }
 
 func (sd *StructDef) NewInstance(args map[string]any) *StructInst {
@@ -55,6 +70,7 @@ type StructInst struct {
 }
 
 func (st *StructInst) Get(name string) *base.Val {
+	// fmt.Printf(" st.Get n=`%s` (%T, %v) \n", name, st.Def, st.Def)
 	if !slices.Contains(st.Def.FNames, name) {
 		panic("No such field in struct")
 	}
@@ -69,5 +85,55 @@ func (st *StructInst) Get(name string) *base.Val {
 func (st *StructInst) Set(name string, val any) error {
 	// TODO: check field type and compatibility
 	st.Vals[name] = val
+	return nil
+}
+
+func (st *StructInst) GetMember(name string) *StrMember {
+	if slices.Contains(st.Def.FNames, name) {
+		return &StrMember{Obj: st, Field: name}
+	}
+	if st.Def.HasMethod(name) {
+		mt := st.Def.GetMethod(name)
+		if mt != nil {
+			return &StrMember{Obj: st, Method: mt}
+		}
+	}
+	return nil
+}
+
+func (st *StructInst) GetMethod(name string) *Method {
+
+	return nil
+}
+
+type Method struct {
+	Func base.FuncVal
+}
+
+// type Member interface {
+// 	*StructField
+// 	*Method
+// }
+
+type StrMember struct {
+	Obj    *StructInst
+	Field  string
+	Method *Method
+}
+
+func (mb *StrMember) Get() *base.Val {
+	if mb.Field != "" {
+		return mb.Obj.Get(mb.Field)
+	}
+	if mb.Method != nil {
+		return base.NewVal(mb.Method)
+	}
+	return nil
+}
+
+func (mb *StrMember) Set(val *base.Val) error {
+	if mb.Field != "" {
+		return mb.Obj.Set(mb.Field, val.V)
+	}
 	return nil
 }

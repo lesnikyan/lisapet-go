@@ -119,12 +119,12 @@ func (se *StructConstr) Do(cx base.Context) error {
 		}
 		arn := nexp.GetName()
 		arg.right.Do(cx)
-		rv := arg.right.Get()
+		rv := GetExprVal(arg.right, nil)
 		if rv == nil {
 			// no val
-			errors.New("struct: no val of expression in: `field: val`")
+			return errors.New("struct: no val of expression in: `field: val`")
 		}
-		args[arn] = rv.V
+		args[arn] = rv
 	}
 	se.res = sdef.NewInstance(args)
 
