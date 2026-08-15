@@ -127,12 +127,18 @@ func ConvertByType(exp base.TypeId, val any) any {
 // prepare and convert val
 // result: isTypeOk, convertedVal
 func PrepareVal(expType base.TypeId, val any) (bool, any) {
-	if st, ok := val.(*StructInst); ok {
-		// if struct value
-		if st.Def.Id == expType {
-			return true, val
+	if expType > base.TypeStructBase {
+		if null, ok := val.(*Null); ok {
+			return true, null
 		}
-		// TODO: if parent
+		if st, ok := val.(*StructInst); ok {
+			// if struct value
+			if st.Def.Id == expType {
+				return true, val
+			}
+			// TODO: if parent
+		}
+
 	}
 	tv := TypeByVal(val)
 	if tv.Id == expType {

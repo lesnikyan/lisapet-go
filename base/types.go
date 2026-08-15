@@ -38,10 +38,11 @@ const (
 	TypeGrup
 	TypeMaybe
 	// Last defined type:
-	TypeUndefined TypeId = 2001
+	TypeUndefined  TypeId = 2001
+	TypeStructBase TypeId = 5000
 )
 
-var typeId = TypeUndefined
+var typeId = TypeStructBase
 
 // TODO: resolve possible issues with multi-task access
 func NextTypeId() TypeId {

@@ -25,6 +25,22 @@ func TestStructTyping(t *testing.T) {
 		r.s = "Nya"
 		r.nn = [2,3,44]
 		`, "r", Stf("T", dk{"a": 1, "b": 5.0, "s": "Nya", "nn": Anis(2, 3, 44)})},
+		{`
+		struct A a: int
+		struct T obj: A
+		r = T{obj: null}
+		`, "r", Stf("T", dk{"obj": Tnull()})},
+		{`
+		struct A a: int
+		struct T obj: A
+		r = T{}
+		`, "r", Stf("T", dk{"obj": Tnull()})},
+		{`
+		struct A a: int
+		struct T obj: A
+		r = T{}
+		r.obj = null
+		`, "r", Stf("T", dk{"obj": Tnull()})},
 		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
 	}
 	for i, tt := range tdata {

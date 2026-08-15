@@ -44,7 +44,7 @@ raw dev log:
 -.-.12: slice with skipped arg: `nn[:5]`, `nn[3:]`, `nn[:]`
 -.08.14 Add structs `struct TName a:type, b: type`, struct constructor `v = TName{a: 1, b: 2}`. Get / Set field value.
 -.-.15 Implemented type check and conversion a compatible values: in struct constructor, if setting value of field. 
-    Fixed type check for struct instances.
+    Fixed type check for struct instances. Fixed default value for structs as `null`.
 -.
 
 TODO:

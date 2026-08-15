@@ -62,7 +62,13 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 		default:
 			return nil, errors.New("struct def: incorrect expression instead of field")
 		}
-		defv := base.DefaultVal(ftype.Id)
+		var defv any
+		// simple check, if Id in range of user-defined types
+		if ftype.Id > base.TypeStructBase {
+			defv = &objects.Null{}
+		} else {
+			defv = base.DefaultVal(ftype.Id)
+		}
 		fld := &objects.StructField{Name: name, Type: ftype, DefVal: defv}
 		fields[i] = fld
 	}
