@@ -148,29 +148,6 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 	return res, ok
 }
 
-// **********************************
-
-type OperDot struct {
-	left  base.Expression
-	right base.Expression
-	res   any
-}
-
-func (op *OperDot) SetLeft(xp base.Expression) {
-	op.left = xp
-}
-func (op *OperDot) SetRight(xp base.Expression) {
-	op.right = xp
-}
-
-func (op *OperDot) Get() *base.Val {
-	return base.NewVal(op.res)
-}
-
-func (op *OperDot) Do(cx base.Context) error {
-	return nil
-}
-
 // ===============
 var n = LeftArrow{}
 

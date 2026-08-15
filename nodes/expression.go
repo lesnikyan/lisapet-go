@@ -50,6 +50,9 @@ type VarExpr struct {
 	cxEl *base.ContextElem
 }
 
+func (ex *VarExpr) GetName() string {
+	return ex.name
+}
 func (ex *VarExpr) Do(cx base.Context) error {
 	ex.IsVar = false
 	ex.vr = nil
@@ -215,6 +218,8 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		}
 		return vals.V
 		// return vals
+	case *StructConstr:
+		return vv.Get().V
 	case *EmptyExpr:
 		return &objects.EmptyVal{}
 	default:

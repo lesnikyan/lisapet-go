@@ -38,10 +38,11 @@ const (
 	TypeGrup
 	TypeMaybe
 	// Last defined type:
-	TypeUndefined TypeId = 2001
+	TypeUndefined  TypeId = 2001
+	TypeStructBase TypeId = 5000
 )
 
-var typeId = TypeUndefined
+var typeId = TypeStructBase
 
 // TODO: resolve possible issues with multi-task access
 func NextTypeId() TypeId {
@@ -54,11 +55,41 @@ func BaseType(name string, id TypeId) *Type {
 	return &Type{Id: id, Name: name}
 }
 
-func DefineUserType(name string) *Type {
+func DefineUserType(name string, def any) *Type {
 	tid := NextTypeId()
-	return &Type{Id: tid, Name: name, IsUserDef: true}
+	return &Type{Id: tid, Name: name, IsUserDef: true, Def: def}
 }
 
 // func CompareType(a *Type, b *Type) bool {
 // 	return a.Id == b.Id
 // }
+
+func DefaultVal(ti TypeId) any {
+	switch ti {
+	case TypeBool:
+		return false
+	case TypeInt:
+		return int64(0)
+	case TypeFloat:
+		return float64(0)
+	case TypeString:
+		return ""
+	case TypeList:
+		return nil // maybe []
+	case TypeTuple:
+		return nil
+	case TypeDict:
+		return nil
+	case TypeBytes:
+		return nil
+	case TypeGlif:
+		return 0
+	case TypeFunction:
+		return nil
+	case TypeEnum:
+		return nil
+	case TypeGrup:
+		return nil
+	}
+	return nil
+}

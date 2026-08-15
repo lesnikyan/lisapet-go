@@ -72,6 +72,7 @@ func adk(src dk) dk {
 
 // prepare test result
 func pres(src any) any {
+	// fmt.Printf("pres#1: (%T, %v) \n", src, src)
 	switch val := src.(type) {
 	case int64, string, bool, float64:
 		return val
@@ -93,6 +94,16 @@ func pres(src any) any {
 			r[pres(k)] = pres(v)
 		}
 		return r
+	case *obb.StructInst:
+		// r := make(map[string]any)
+		r := make(dk)
+		for k, v := range val.Vals {
+			r[k] = pres(v)
+		}
+		tst := Stf(val.Def.Name, r)
+		return tst
+		// default:
+		// 	fmt.Println("pres: no case")
 	}
 	return src
 }
@@ -109,6 +120,23 @@ func TrunkString(s string) string {
 	}
 	cr := sRns[:n]
 	return string(cr)
+}
+
+type TStruct struct {
+	Name string // type name
+	Vals map[string]any
+}
+
+// test object of Struct and fields
+func Stf(name string, vals dk) *TStruct {
+	dd := adk(vals)
+	svals := map[string]any{}
+	for k, v := range dd {
+		if name, ok := k.(string); ok {
+			svals[name] = v
+		}
+	}
+	return &TStruct{Name: name, Vals: svals}
 }
 
 func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
@@ -144,8 +172,12 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 			assert.Equal(t2, tt.res, vobj.GetName())
 		case *obb.ListVal:
-			fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-			assert.Equal(t2, tt.res, vobj.Elems)
+			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+			tres := pres(vobj)
+			res, ok := tres.([]any)
+			assert.True(t2, ok)
+			fmt.Printf("tt#ListVal#2  (%T, %v)   len: %d \n", res, res, len(res))
+			assert.Equal(t2, tt.res, res)
 		case *obb.TupleVal:
 			fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 			tup, ok := tt.res.(*Tup)
@@ -174,8 +206,18 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		case *obb.Null:
 			fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
 			assert.Equal(t2, tt.res, vobj)
+		case *obb.StructInst:
+			fmt.Printf("tt#StructInst  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// tt.res.(*obb.StructInst)
+			ts, tok := tt.res.(*TStruct)
+			assert.True(t2, tok)
+			assert.Equal(t2, ts.Name, vobj.Def.Name)
+			tstr := pres(vobj)
+			assert.Equal(t2, ts, tstr)
+
 		default:
 			fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+
 			assert.Fail(t2, "unknown test result")
 		}
 		// fmt.Println("tt3>", vr, vr.Name, vr.Val)

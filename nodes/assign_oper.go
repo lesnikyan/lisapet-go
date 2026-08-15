@@ -47,22 +47,6 @@ func (op *OperAssign) Do(cx base.Context) error {
 	// return nil
 }
 
-// actual for variable, argument, struct method in left of assign
-// prepare and convert val
-// result: isTypeOk, convertedVal
-func PrepareVal(expType base.TypeId, val any) (bool, any) {
-	tv := objects.TypeByVal(val)
-	if tv.Id == expType {
-		return true, val
-	}
-	if !base.TypeCompat(expType, tv.Id) {
-		// fmt.Printf("PrepV=#2 Vla Not compatible Eq: %v == %v %v\n", tv.Id, expType, tv.Id == expType)
-		return false, nil
-	}
-	cval := objects.ConvertByType(expType, val)
-	return true, cval
-}
-
 func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	// fmt.Printf(" = AssignVal=#0: (%T %v) = (%T, %v) \n", lexpr, lexpr, rval, rval)
 	var leftObj any
@@ -80,6 +64,8 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	case *ColElemExpr:
 		leftObj = lexp.Get().V
 		// fmt.Printf("OpAsg=#0 ColEl Ex: (%T %v) Elm (%T, %v) \n", lexp, lexp, leftObj, leftObj)
+	case *OperDot:
+		leftObj = lexp.GetMember()
 	case *SequenceComma:
 		// a, b, c = expr
 		// expr: comma-sequence, list, tuple
@@ -106,11 +92,13 @@ func SetValTo(leftObj any, rval any) error {
 		// since collections is untyped,  we'll check type
 		target.Set(rval)
 		// TODO: obj.member = val
+	case *objects.StrMember:
+		return target.Set(rval)
 	case *base.Var:
 		// fmt.Printf("SetValTo#2 L: (%T, %v) = R: %T \n", target, target, rval)
 		// cval := rval
 		if target.StrictType {
-			typeOk, cval := PrepareVal(target.Type.Id, rval)
+			typeOk, cval := objects.PrepareVal(target.Type.Id, rval)
 			if !typeOk {
 				// bad val
 				// vt := objects.TypeByVal(rval)
