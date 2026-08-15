@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -77,6 +78,7 @@ func (se *StructDefExpr) Do(cx base.Context) error {
 	}
 	sdef := objects.NewSructDef(se.Name, fields)
 	stype := base.DefineUserType(se.Name, sdef)
+	sdef.Id = stype.Id
 	cx.AddType(stype)
 	return nil
 }
@@ -124,7 +126,15 @@ func (se *StructConstr) Do(cx base.Context) error {
 			// no val
 			return errors.New("struct: no val of expression in: `field: val`")
 		}
-		args[arn] = rv
+		sf, ok := sdef.Fields[arn]
+		if !ok {
+			return fmt.Errorf("struct: incorrect field name `%s`", arn)
+		}
+		tOk, val := objects.PrepareVal(sf.Type.Id, rv)
+		if !tOk {
+			return fmt.Errorf("struct: incorrect type for field `%s`", arn)
+		}
+		args[arn] = val
 	}
 	se.res = sdef.NewInstance(args)
 

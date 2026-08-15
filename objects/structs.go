@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -19,6 +20,7 @@ type StructDef struct {
 	Name   string
 	FNames []string
 	Fields map[string]*StructField
+	Id     base.TypeId
 
 	Methods []*Method
 	methMap map[string]int
@@ -84,6 +86,15 @@ func (st *StructInst) Get(name string) *base.Val {
 
 func (st *StructInst) Set(name string, val any) error {
 	// TODO: check field type and compatibility
+
+	sf, ok := st.Def.Fields[name]
+	if !ok {
+		return fmt.Errorf("struct: incorrect field name `%s`", name)
+	}
+	tOk, val := PrepareVal(sf.Type.Id, val)
+	if !tOk {
+		return fmt.Errorf("struct: incorrect type for field `%s`", name)
+	}
 	st.Vals[name] = val
 	return nil
 }

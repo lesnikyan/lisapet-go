@@ -2,17 +2,47 @@ package cases
 
 import "testing"
 
+func TestStructTyping(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T a: int
+		r = T{a: true}
+		# r.a = true
+		`, "r", Stf("T", dk{"a": 1})},
+		{`
+		struct T a: float
+		r = T{a: 25}
+		`, "r", Stf("T", dk{"a": 25.0})},
+		{`
+		struct T a: int, b: float, s: string, nn: list
+		r = T{}
+		r.a = true
+		r.b = 5
+		r.s = "Nya"
+		r.nn = [2,3,44]
+		`, "r", Stf("T", dk{"a": 1, "b": 5.0, "s": "Nya", "nn": Anis(2, 3, 44)})},
+		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestStructFieldSet(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
-		// {`
-		// struct T a: int
-		// r = T{a: 21}
-		// r.a = 23
-		// `, "r", Stf("T", dk{"a": 23})},
+		{`
+		struct T a: int
+		r = T{a: 21}
+		r.a = 23
+		`, "r", Stf("T", dk{"a": 23})},
 		{`
 		struct T a: int, b: bool, s: string, nn: list
 		r = T{}
@@ -30,6 +60,7 @@ func TestStructFieldSet(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestStructFieldGet(t *testing.T) {
 	tdata := []struct {
 		src   string

@@ -1,6 +1,8 @@
 package objects
 
-import "github.com/lesnikyan/lisapet-go/base"
+import (
+	"github.com/lesnikyan/lisapet-go/base"
+)
 
 type TypeInfo struct {
 	Id   base.TypeId
@@ -119,4 +121,27 @@ func ConvertByType(exp base.TypeId, val any) any {
 
 	}
 	return nil
+}
+
+// actual for variable, argument, struct method in left of assign
+// prepare and convert val
+// result: isTypeOk, convertedVal
+func PrepareVal(expType base.TypeId, val any) (bool, any) {
+	if st, ok := val.(*StructInst); ok {
+		// if struct value
+		if st.Def.Id == expType {
+			return true, val
+		}
+		// TODO: if parent
+	}
+	tv := TypeByVal(val)
+	if tv.Id == expType {
+		return true, val
+	}
+	if !base.TypeCompat(expType, tv.Id) {
+		// fmt.Printf("PrepV=#2 Vla Not compatible Eq: %v == %v %v\n", tv.Id, expType, tv.Id == expType)
+		return false, nil
+	}
+	cval := ConvertByType(expType, val)
+	return true, cval
 }
