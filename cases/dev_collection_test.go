@@ -14,6 +14,63 @@ constructors:
 
 */
 
+func TestCollBlockConstr(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = []
+			"aaaaaaaaaa"
+			"bbbbbbbbbb"
+			"cccccccccc"
+			"dddddddddd"
+			"xxxxxxxxxx"
+			"zzzzzzzzzz"
+		`, "nn", Anis("aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc", "dddddddddd", "xxxxxxxxxx", "zzzzzzzzzz")},
+		{`
+		nn = []
+			132
+			2 * 100 + 7 * 5 - 1
+			300+40+5
+		`, "nn", Anis(132, 234, 345)},
+		{`
+		nn = [123]
+			200 + 34
+			300+40+5
+		#
+		`, "nn", Anis(123, 234, 345)},
+		{`
+		nn = (,)
+			132
+			2 * 100 + 7 * 5 - 1
+			300+40+5
+		`, "nn", Tanis(132, 234, 345)},
+		{`
+		nn = (11,22)
+			132
+			2 * 100 + 36
+			300+40+5
+		`, "nn", Tanis(11, 22, 132, 236, 345)},
+		{`
+		nn = {}
+			'AA': "Hello Alladin!"
+			'BB': "Hello Barbara!"
+			'CC': "Hello Centaur!"
+			'DD': "Hello Dambldor!"
+		`, "nn", adk(dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!", "CC": "Hello Centaur!", "DD": "Hello Dambldor!"})},
+		{`
+		nn = {'00':'Zero point', '11':'Eleven elefants'}
+			'AA': "Hello Alladin!"
+			'BB': "Hello Barbara!"
+		`, "nn", adk(dk{"00": "Zero point", "11": "Eleven elefants", "AA": "Hello Alladin!", "BB": "Hello Barbara!"})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 // list[a : b], tuple[a, b], string[a, b]
 // if arg skipped nn[2:], nn[:5], nn[:] (means start=0, end=length)
 func TestCollSlice(t *testing.T) {

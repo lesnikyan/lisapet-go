@@ -35,8 +35,8 @@ func OperArgsInfo(expr any) string {
 	var opStr string
 	switch exx := expr.(type) {
 	case *OperAssign:
-		aL = OperArgsInfo(exx.left)
-		aR = OperArgsInfo(exx.right)
+		aL = OperArgsInfo(exx.Left)
+		aR = OperArgsInfo(exx.Right)
 		opStr = exx.Oper
 	case *OperBin:
 		aL = OperArgsInfo(exx.left)

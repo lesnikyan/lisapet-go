@@ -67,6 +67,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 			}
 		}
 	default:
+		// fmt.Printf("!!trying append to non-collection: (%T, %v) v(%T, %v) \n", targ, targ, rvv, rvv)
 		return errors.New("trying append to non-collection")
 	}
 	return nil

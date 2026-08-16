@@ -8,9 +8,22 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
+type SuperExpr interface {
+	Add(sub base.Expression)
+}
+
 type ListExpr struct {
-	Seq *SequenceComma
-	res *objects.ListVal
+	Seq  *SequenceComma
+	Subs []base.Expression
+	res  *objects.ListVal
+}
+
+func (cs *ListExpr) Add(sub base.Expression) {
+	if cs.Subs == nil {
+		cs.Subs = []base.Expression{}
+	}
+	fmt.Printf("[] List Add: (%T, %v)  \n", sub, sub)
+	cs.Subs = append(cs.Subs, sub)
 }
 
 func (cs *ListExpr) Get() *base.Val {
@@ -18,8 +31,12 @@ func (cs *ListExpr) Get() *base.Val {
 }
 
 func (cs *ListExpr) Do(ctx base.Context) error {
-	res := make([]any, len(cs.Seq.Subs))
-	for i, ex := range cs.Seq.Subs {
+	src := make([]base.Expression, len(cs.Seq.Subs))
+	copy(src, cs.Seq.Subs)
+	src = append(src, cs.Subs...)
+	res := make([]any, len(src))
+	// fmt.Println("[] List Do:", len(src))
+	for i, ex := range src {
 		err := ex.Do(ctx)
 		if err != nil {
 			return err
@@ -126,7 +143,7 @@ func (cc *ColElemExpr) Do(ctx base.Context) error {
 	return nil
 }
 
-// Slice:  collection[ start : end]
+// ----  Slice:  collection[ start : end]
 type ColSlice struct {
 	Col  base.Expression // list, dict, tuple, string object
 	Inds *ColonPair      // index or key
@@ -206,11 +223,19 @@ func NewSlice(col base.Expression, sub *OperColon) *ColSlice {
 	return &ColSlice{Col: col, Inds: inds}
 }
 
-//==
+//===== Tuple
 
 type TupleExpr struct {
-	Seq *SequenceComma
-	res *objects.TupleVal
+	Seq  *SequenceComma
+	Subs []base.Expression
+	res  *objects.TupleVal
+}
+
+func (cs *TupleExpr) Add(sub base.Expression) {
+	if cs.Subs == nil {
+		cs.Subs = []base.Expression{}
+	}
+	cs.Subs = append(cs.Subs, sub)
 }
 
 func (cs *TupleExpr) Get() *base.Val {
@@ -218,8 +243,12 @@ func (cs *TupleExpr) Get() *base.Val {
 }
 
 func (cs *TupleExpr) Do(ctx base.Context) error {
-	res := make([]any, len(cs.Seq.Subs))
-	for i, ex := range cs.Seq.Subs {
+	src := make([]base.Expression, len(cs.Seq.Subs))
+	copy(src, cs.Seq.Subs)
+	src = append(src, cs.Subs...)
+	res := make([]any, len(src))
+	// fmt.Println("(,) Tuple Do:", len(src))
+	for i, ex := range src {
 		err := ex.Do(ctx)
 		if err != nil {
 			return err
@@ -229,6 +258,8 @@ func (cs *TupleExpr) Do(ctx base.Context) error {
 	cs.res = objects.NewTupleVal(res)
 	return nil
 }
+
+//==== ColonPair
 
 type ColonPair struct {
 	Left  base.Expression
@@ -256,11 +287,19 @@ func (cp *ColonPair) Do(ctx base.Context) error {
 	return nil
 }
 
-// {dict}
+//==== {dict}
 
 type DictExpr struct {
-	Seq *SequenceComma
-	res *objects.DictVal
+	Seq  *SequenceComma
+	Subs []base.Expression
+	res  *objects.DictVal
+}
+
+func (cs *DictExpr) Add(sub base.Expression) {
+	if cs.Subs == nil {
+		cs.Subs = []base.Expression{}
+	}
+	cs.Subs = append(cs.Subs, sub)
 }
 
 func (cs *DictExpr) Get() *base.Val {
@@ -268,8 +307,12 @@ func (cs *DictExpr) Get() *base.Val {
 }
 
 func (cs *DictExpr) Do(ctx base.Context) error {
-	res := make(map[any]any, len(cs.Seq.Subs)) // TODO: think about constraints of key type
-	for _, ex := range cs.Seq.Subs {
+	// TODO: think about constraints of key type
+	src := make([]base.Expression, len(cs.Seq.Subs))
+	copy(src, cs.Seq.Subs)
+	src = append(src, cs.Subs...)
+	res := make(map[any]any, len(src))
+	for _, ex := range src {
 		opcol, ok := ex.(*OperColon)
 		if !ok {
 			return errors.New("Incorest subelement of dict expression")

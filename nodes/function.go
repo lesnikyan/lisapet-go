@@ -66,7 +66,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		var lvar *VarExpr
 		var vtype *base.Type
 		strict := false
-		switch cvar := arx.left.(type) {
+		switch cvar := arx.Left.(type) {
 		case *VarExpr:
 			vtype = cx.GetType("any")
 			lvar = cvar
@@ -102,11 +102,11 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		rex := &ArgExp{Name: name, VExp: lvar, Type: vtype, StrictType: strict}
 
 		// get default val
-		err := arx.right.Do(cx)
+		err := arx.Right.Do(cx)
 		if err != nil {
 			return nil, err
 		}
-		v := arx.right.Get()
+		v := arx.Right.Get()
 		if v == nil {
 			return nil, errors.New("arg init: no value from default-val expression")
 		}
