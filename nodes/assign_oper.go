@@ -18,7 +18,7 @@ type OperAssign struct {
 func (op *OperAssign) AddToRight(xp base.Expression) {
 	// fmt.Println("OpAssign. AddTL:", xp)
 	switch lex := op.Right.(type) {
-	case SuperExpr:
+	case base.SuperExpr:
 		lex.Add(xp)
 	}
 }
@@ -32,10 +32,10 @@ func (op *OperAssign) SetRight(xp base.Expression) {
 
 func (op *OperAssign) Add(sub base.Expression) {}
 
-func (op *OperAssign) IsParent() bool {
-	// don't used as Block by default
-	return false
-}
+// func (op *OperAssign) IsParent() bool {
+// 	// don't used as Block by default
+// 	return false
+// }
 
 func (op *OperAssign) Get() *base.Val {
 	return base.NewVal(op.res) // make sense for last expression in the Block

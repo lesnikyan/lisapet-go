@@ -14,6 +14,77 @@ constructors:
 5. Block in block: list:dict,tuple; dict: dict,list...
 */
 
+func TestCollBlockNested(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = []
+			[1,2,3]
+			[4,5,6]
+		`, "nn", Anis(Anis(1, 2, 3), Anis(4, 5, 6))},
+		{`
+		nn = []
+			[]
+				1
+				2
+				3
+			[]
+				4
+				5
+				6
+		`, "nn", Anis(Anis(1, 2, 3), Anis(4, 5, 6))},
+		{`
+		nn = [77]
+			[88]
+				1
+				2
+				3
+			[99]
+				4
+				5
+				6
+		`, "nn", Anis(77, Anis(88, 1, 2, 3), Anis(99, 4, 5, 6))},
+
+		{`
+		nn = (111,222)
+			(1,2,3)
+			(4,5,6)
+		`, "nn", Tanis(111, 222, Tanis(1, 2, 3), Tanis(4, 5, 6))},
+
+		{`
+		nn = (,)
+			(,)
+				1
+				2
+				3
+			(,)
+				4
+				5
+				6
+		`, "nn", Tanis(Tanis(1, 2, 3), Tanis(4, 5, 6))},
+
+		// {`
+		// nn = {}
+		// 	'k': {}
+		// 		'AA': "Hello Alladin!"
+		// 		'BB': "Hello Barbara!"
+		// 	'k': {}
+		// 		'CC': "Hello Centaur!"
+		// 		'DD': "Hello Dambldor!"
+		// `, "nn", adk(dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!", "CC": "Hello Centaur!", "DD": "Hello Dambldor!"})},
+		// {`
+		// nn = {'00':'Zero point', '11':'Eleven elefants'}
+		// 	'AA': "Hello Alladin!"
+		// 	'BB': "Hello Barbara!"
+		// `, "nn", adk(dk{"00": "Zero point", "11": "Eleven elefants", "AA": "Hello Alladin!", "BB": "Hello Barbara!"})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestCollBlockConstr(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -274,15 +345,6 @@ func TestListsCase(t *testing.T) {
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
-}
-
-type Tup struct {
-	elems []any
-}
-
-func tanynn[T any](vals []T) *Tup {
-	vv := Anynn(vals)
-	return &Tup{elems: vv}
 }
 
 func TestTupleCase(t *testing.T) {

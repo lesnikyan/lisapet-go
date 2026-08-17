@@ -71,7 +71,7 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 }
 
 type BlockLink struct {
-	elem   base.Block
+	elem   base.SuperExpr
 	indent int
 }
 
@@ -184,16 +184,17 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 
 		case base.Block:
 			nblock.elem.Add(expr)
+			fmt.Printf("tree. base.Block: %T is parrent of %T (add?:%v)\n", texp, expr, texp.IsParent())
 			if texp.IsParent() {
-				// fmt.Printf("tree. expr base.Block: %T is parrent \n", texp)
+				fmt.Printf("tree. expr base.Block: %T is parrent \n", texp)
 				bl := &BlockLink{elem: texp, indent: cind}
 				parents = append(parents, bl)
 				nblock = bl
 			}
 		default:
-			// fmt.Printf("tree.def nblock: %T: %v ex (%T: %v) ; %d >> %d  \n", nblock.elem, nblock.elem, texp, texp, nblock.indent, cind)
+			fmt.Printf("tree.def nblock: %T: %v ex (%T: %v) ; %d >> %d  \n", nblock.elem, nblock.elem, texp, texp, nblock.indent, cind)
 			if prevExpr != nil && cind > prevExpr.indent {
-				// fmt.Printf("tree.def sub-expression indent %T > %T > %T \n", nblock.elem, prevExpr.elem, expr)
+				fmt.Printf("tree.def sub-expression indent %T > %T > %T \n", nblock.elem, prevExpr.elem, expr)
 				switch upar := prevExpr.elem.(type) {
 				case *nodes.OperAssign:
 					// fmt.Printf("tree.def prev:OperAssign Right: %T  \n", upar.Right)
@@ -203,13 +204,29 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 						parents = append(parents, bl)
 						nblock = bl
 					}
+				case *nodes.ListExpr:
+					bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+					parents = append(parents, bl)
+					nblock = bl
+				case *nodes.TupleExpr:
+					bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+					parents = append(parents, bl)
+					nblock = bl
+				case *nodes.DictExpr:
+					bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+					parents = append(parents, bl)
+					nblock = bl
 				}
 			}
 
-			// fmt.Printf("tree.def Add... : %T  \n", nblock.elem)
+			fmt.Printf("tree.def Add... : %T  %T \n", nblock.elem, expr)
 			switch parn := nblock.elem.(type) {
 			case *nodes.OperAssign:
 				parn.AddToRight(expr)
+			case *nodes.ListExpr, *nodes.TupleExpr, *nodes.DictExpr:
+				parn.Add(expr)
+			case base.SuperExpr:
+				parn.Add(expr)
 			default:
 				parn.Add(expr)
 			}

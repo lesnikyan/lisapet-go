@@ -8,10 +8,6 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
-type SuperExpr interface {
-	Add(sub base.Expression)
-}
-
 type ListExpr struct {
 	Seq  *SequenceComma
 	Subs []base.Expression
@@ -22,13 +18,18 @@ func (cs *ListExpr) Add(sub base.Expression) {
 	if cs.Subs == nil {
 		cs.Subs = []base.Expression{}
 	}
-	// fmt.Printf("[] List Add: (%T, %v)  \n", sub, sub)
+	fmt.Printf("[] List Add: (%T, %v)  \n", sub, sub)
 	cs.Subs = append(cs.Subs, sub)
 }
 
 func (cs *ListExpr) Get() *base.Val {
 	return base.NewVal(cs.res)
 }
+
+// func (op *ListExpr) IsParent() bool {
+// 	// don't used as Block by default
+// 	return false
+// }
 
 func (cs *ListExpr) Do(ctx base.Context) error {
 	src := make([]base.Expression, len(cs.Seq.Subs))
@@ -231,6 +232,11 @@ type TupleExpr struct {
 	res  *objects.TupleVal
 }
 
+// func (op *TupleExpr) IsParent() bool {
+// 	// don't used as Block by default
+// 	return false
+// }
+
 func (cs *TupleExpr) Add(sub base.Expression) {
 	if cs.Subs == nil {
 		cs.Subs = []base.Expression{}
@@ -293,6 +299,11 @@ type DictExpr struct {
 	Seq  *SequenceComma
 	Subs []base.Expression
 	res  *objects.DictVal
+}
+
+func (op *DictExpr) IsParent() bool {
+	// don't used as Block by default
+	return false
 }
 
 func (cs *DictExpr) Add(sub base.Expression) {
