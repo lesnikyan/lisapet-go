@@ -22,7 +22,7 @@ func (cs *ListExpr) Add(sub base.Expression) {
 	if cs.Subs == nil {
 		cs.Subs = []base.Expression{}
 	}
-	fmt.Printf("[] List Add: (%T, %v)  \n", sub, sub)
+	// fmt.Printf("[] List Add: (%T, %v)  \n", sub, sub)
 	cs.Subs = append(cs.Subs, sub)
 }
 
@@ -203,7 +203,7 @@ func (cs *ColSlice) Do(cx base.Context) error {
 		return errors.New("slice: bad index end")
 	}
 
-	fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
+	// fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
 	switch col := colv.(type) {
 	case *objects.ListVal:
 		vals := col.Elems[int(start):int(end)]

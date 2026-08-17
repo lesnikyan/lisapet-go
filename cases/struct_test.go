@@ -2,6 +2,91 @@ package cases
 
 import "testing"
 
+// TODO: block constructs in block struct
+
+func TestStructBlockInst(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: float
+		r = T1{}
+			a: 22
+		`, "r", Stf("T1", dk{"a": 22, "b": 0.0})},
+		{`
+		struct T1 a: int, aa: string, b: float, c: bool
+		r = T1{c: true}
+			a: 22
+			b: 10.
+			aa: 'Hello block'
+		`, "r", Stf("T1", dk{"a": 22, "aa": `Hello block`, "b": 10.0, "c": true})},
+		{`
+		struct T1
+			a: int
+			b: int
+			c: int
+			d: int
+			e: int
+			f: int
+			g: int
+			h: int
+			i: int
+			j: int
+			aa: string
+		x = 5
+		r = T1{}
+			a: 11
+			b: 22
+			c: 33
+			d: 44
+			e: 55
+			f: 66
+			g: 77
+			h: 88
+			i: 99
+			j: 100 + x
+			aa: 'Hello block'
+		`, "r", Stf("T1", dk{"a": 11, "aa": "Hello block", "b": 22, "c": 33, "d": 44, "e": 55, "f": 66, "g": 77, "h": 88, "i": 99, "j": 105})},
+		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestStructBlockDef(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1
+			a: int
+			b: float
+		r = T1{a: 22}
+		`, "r", Stf("T1", dk{"a": 22, "b": 0.0})},
+		{`
+		struct T1 a: int, aa: int
+			b: float
+			c: bool
+		r = T1{a: 22}
+		`, "r", Stf("T1", dk{"a": 22, "aa": 0, "b": 0.0, "c": false})},
+		{`
+		struct T1 a: int, aa: string
+			b: float
+			c: bool
+		r = T1{b: 2.2, c: true}
+		`, "r", Stf("T1", dk{"a": 0, "aa": "", "b": 2.2, "c": true})},
+		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestStructTyping(t *testing.T) {
 	tdata := []struct {
 		src   string

@@ -70,7 +70,7 @@ func (op *OperColon) DoVar(cx base.Context) error {
 
 	err2 := tupx.Do(cx)
 	if err2 != nil {
-		fmt.Println("OpAssign.R error", err2)
+		fmt.Println("OperColon.R error", err2)
 		return err2
 	}
 	// tname := tupx.name

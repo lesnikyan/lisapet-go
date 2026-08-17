@@ -12,8 +12,21 @@ import (
 type StructDefExpr struct {
 	Name   string
 	Fields []base.Expression // var, var:type
+	Subs   []base.Expression
 
 	res *objects.StructDef
+}
+
+func (op *StructDefExpr) IsParent() bool {
+	// don't used as Block by default
+	return true
+}
+
+func (cs *StructDefExpr) Add(sub base.Expression) {
+	if cs.Subs == nil {
+		cs.Subs = []base.Expression{}
+	}
+	cs.Subs = append(cs.Subs, sub)
 }
 
 func (se *StructDefExpr) Get() *base.Val {
@@ -28,8 +41,14 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 	if anyT == nil {
 		return nil, errors.New("struct def: any type not defined")
 	}
-	fields := make([]*objects.StructField, len(se.Fields))
-	for i, ex := range se.Fields {
+	// fsource := make([]base.Expression, lfd+len(se.Subs))
+	// copy(fsource[:lfd], se.Subs)
+	lfd := len(se.Fields)
+	fsource := make([]base.Expression, lfd)
+	copy(fsource, se.Fields)
+	fsource = append(fsource, se.Subs...)
+	fields := make([]*objects.StructField, len(fsource))
+	for i, ex := range fsource {
 		var name string
 		var ftype *base.Type
 		switch fex := ex.(type) {
@@ -60,7 +79,7 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 			}
 			ftype = ft
 		default:
-			return nil, errors.New("struct def: incorrect expression instead of field")
+			return nil, fmt.Errorf("struct def: incorrect expression (%T) instead of field", fex)
 		}
 		var defv any
 		// simple check, if Id in range of user-defined types
@@ -77,10 +96,10 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 
 func (se *StructDefExpr) Do(cx base.Context) error {
 	se.res = nil
-	// TODO: convert Fields to []*StructField
+	// convert Fields to []*StructField
 	fields, err := se.StrDefArgs(cx)
 	if err != nil {
-		return nil
+		return err
 	}
 	sdef := objects.NewSructDef(se.Name, fields)
 	stype := base.DefineUserType(se.Name, sdef)
@@ -95,8 +114,18 @@ type StructConstr struct {
 	Name   string
 	Args   []*OperColon
 	ArgMap map[string]any
+	Subs   []*OperColon
 
 	res *objects.StructInst
+}
+
+func (cs *StructConstr) Add(sub base.Expression) {
+	if cs.Subs == nil {
+		cs.Subs = []*OperColon{}
+	}
+	if arg, ok := sub.(*OperColon); ok {
+		cs.Subs = append(cs.Subs, arg)
+	}
 }
 
 func (se *StructConstr) Get() *base.Val {
@@ -109,6 +138,7 @@ func (se *StructConstr) Get() *base.Val {
 func (se *StructConstr) Do(cx base.Context) error {
 	se.res = nil
 	tel := cx.GetType(se.Name)
+	// fmt.Printf("StructConstr.Do %T, %v name=`%s` \n", tel, tel, se.Name)
 	if tel == nil {
 		return errors.New("struct: type not found")
 	}
@@ -119,8 +149,14 @@ func (se *StructConstr) Do(cx base.Context) error {
 	if !ok {
 		return errors.New("struct: type definition not a struct")
 	}
+	lfd := len(se.Args)
+	fsource := make([]*OperColon, lfd)
+	copy(fsource, se.Args)
+	fsource = append(fsource, se.Subs...)
+	// fields := make([]*objects.StructField, len(fsource))
+	// for i, ex := range fsource {
 	args := make(map[string]any)
-	for _, arg := range se.Args {
+	for _, arg := range fsource {
 		nexp, ok := arg.left.(*VarExpr)
 		if !ok {
 			return errors.New("struct: bad field name")

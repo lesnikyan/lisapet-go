@@ -11,7 +11,7 @@ constructors:
 2. list()
 3. dict()
 4. tuple()
-
+5. Block in block: list:dict,tuple; dict: dict,list...
 */
 
 func TestCollBlockConstr(t *testing.T) {

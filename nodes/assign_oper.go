@@ -16,7 +16,7 @@ type OperAssign struct {
 }
 
 func (op *OperAssign) AddToRight(xp base.Expression) {
-	fmt.Println("OpAssign. AddTL:", xp)
+	// fmt.Println("OpAssign. AddTL:", xp)
 	switch lex := op.Right.(type) {
 	case SuperExpr:
 		lex.Add(xp)
@@ -42,7 +42,7 @@ func (op *OperAssign) Get() *base.Val {
 }
 
 func (op *OperAssign) Do(cx base.Context) error {
-	// fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
+	// fmt.Printf("Op=Do %T, %v \n", op.Right, op.Right)
 	err2 := op.Right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
@@ -206,7 +206,7 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 	}
 	err2 := op.right.Do(cx)
 	if err2 != nil {
-		fmt.Println("OpAssign.R error", err2)
+		fmt.Println("OperBinAssign.R error", err2)
 		return err2
 	}
 	// rval := GetExprVal(op.right, cx)
