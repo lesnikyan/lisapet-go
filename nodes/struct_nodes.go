@@ -57,13 +57,13 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 			name = fex.name
 			ftype = anyT
 		case *OperColon:
-			lexp, ok := fex.left.(*VarExpr) // field
+			lexp, ok := fex.Left.(*VarExpr) // field
 			if !ok {
 				// strange case
 				return nil, errors.New("struct def: bad syntax of field name in `field:type`")
 			}
 			name = lexp.name
-			rexp, ok := fex.right.(*VarExpr) // type
+			rexp, ok := fex.Right.(*VarExpr) // type
 			if !ok {
 				// strange case
 				return nil, errors.New("struct def: bad syntax of type name in `field:type`")
@@ -157,13 +157,13 @@ func (se *StructConstr) Do(cx base.Context) error {
 	// for i, ex := range fsource {
 	args := make(map[string]any)
 	for _, arg := range fsource {
-		nexp, ok := arg.left.(*VarExpr)
+		nexp, ok := arg.Left.(*VarExpr)
 		if !ok {
 			return errors.New("struct: bad field name")
 		}
 		arn := nexp.GetName()
-		arg.right.Do(cx)
-		rv := GetExprVal(arg.right, nil)
+		arg.Right.Do(cx)
+		rv := GetExprVal(arg.Right, nil)
 		if rv == nil {
 			// no val
 			return errors.New("struct: no val of expression in: `field: val`")

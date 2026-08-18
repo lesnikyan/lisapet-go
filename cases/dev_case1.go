@@ -554,13 +554,3 @@ func InterpretLine(elems []*lang.Elem) (*CaseRes, error) {
 	}
 	return nil, nil
 }
-
-// func InterpretLine2(relems []*lang.Elem) {
-// 	elems := SkipSpaces(relems)
-// 	if IsLKWord(elems) {
-// 		KWordExp(elems)
-// 	} else {
-// 		// operator operator expr
-// 		CaseBinOper(elems)
-// 	}
-// }

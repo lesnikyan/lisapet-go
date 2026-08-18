@@ -47,8 +47,8 @@ func OperArgsInfo(expr any) string {
 		aR = OperArgsInfo(exx.right)
 		opStr = exx.Oper.Sign
 	case *OperColon:
-		aL = OperArgsInfo(exx.left)
-		aR = OperArgsInfo(exx.right)
+		aL = OperArgsInfo(exx.Left)
+		aR = OperArgsInfo(exx.Right)
 		opStr = exx.Oper.Sign
 	case *LeftArrow:
 		aL = OperArgsInfo(exx.left)

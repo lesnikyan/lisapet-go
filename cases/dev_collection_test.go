@@ -55,6 +55,18 @@ func TestCollBlockNested(t *testing.T) {
 		`, "nn", Tanis(111, 222, Tanis(1, 2, 3), Tanis(4, 5, 6))},
 
 		{`
+		# deep case
+		nn = (,)
+			[]
+				(,)
+					[]
+						(,)
+							[]
+								4
+								5
+		`, "nn", Tanis(Anis(Tanis(Anis(Tanis(Anis(4, 5))))))},
+
+		{`
 		nn = (,)
 			(,)
 				1
@@ -66,20 +78,64 @@ func TestCollBlockNested(t *testing.T) {
 				6
 		`, "nn", Tanis(Tanis(1, 2, 3), Tanis(4, 5, 6))},
 
-		// {`
-		// nn = {}
-		// 	'k': {}
-		// 		'AA': "Hello Alladin!"
-		// 		'BB': "Hello Barbara!"
-		// 	'k': {}
-		// 		'CC': "Hello Centaur!"
-		// 		'DD': "Hello Dambldor!"
-		// `, "nn", adk(dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!", "CC": "Hello Centaur!", "DD": "Hello Dambldor!"})},
-		// {`
-		// nn = {'00':'Zero point', '11':'Eleven elefants'}
-		// 	'AA': "Hello Alladin!"
-		// 	'BB': "Hello Barbara!"
-		// `, "nn", adk(dk{"00": "Zero point", "11": "Eleven elefants", "AA": "Hello Alladin!", "BB": "Hello Barbara!"})},
+		{`
+		nn = {}
+			'k1': {}
+				'AA': "Hello Alladin!"
+				'BB': "Hello Barbara!"
+			'k2': {}
+				'CC': "Hello Centaur!"
+				'DD': "Hello Dambldor!"
+		#
+		`, "nn", adk(dk{
+			"k1": dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!"},
+			"k2": dk{"CC": "Hello Centaur!", "DD": "Hello Dambldor!"}})},
+
+		{`
+		nn = {'00':'Zero point', '11':'Eleven elefants'}
+			'H1':{}
+				'AA': "Hello Alladin!"
+			'H2':{}
+				'BB': "Hello Barbara!"
+		`, "nn", adk(dk{
+			"00": "Zero point", "11": "Eleven elefants",
+			"H1": adk(dk{"AA": "Hello Alladin!"}),
+			"H2": adk(dk{"BB": "Hello Barbara!"})})},
+		{`
+		# deep case
+		nn = {}
+			'k1': {}
+				'k2': {}
+					'k3': {}
+						'k4': {}
+							'k5': {}
+								'AA': "Hello Alladin!"
+								'BB': "Hello Barbara!"
+		#
+		`, "nn", adk(dk{
+			"k1": adk(dk{
+				"k2": adk(dk{
+					"k3": adk(dk{
+						"k4": adk(dk{
+							"k5": dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!"},
+						})})})})})},
+
+		{`
+		# combi
+		nn = {'o1':[-1,-2]}
+			'L1': []
+				(1,2,3)
+			'D2':{}
+			 	'T3':(4,5,6)
+			'T4': (,)
+				7
+				888
+		`, "nn", adk(dk{
+			"o1": Anis(-1, -2),
+			"L1": Anis(Tanis(1, 2, 3)),
+			"D2": adk(dk{"T3": Tanis(4, 5, 6)}),
+			"T4": Tanis(7, 888),
+		})},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

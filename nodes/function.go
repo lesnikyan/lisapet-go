@@ -74,20 +74,20 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		case *OperColon:
 			// Typed Var with default val
 
-			lExp, ok := cvar.left.(*VarExpr)
+			lExp, ok := cvar.Left.(*VarExpr)
 			if !ok {
 				return nil, errors.New("arg init: err2")
 			}
 			lvar = lExp
 
-			err := cvar.right.Do(cx)
+			err := cvar.Right.Do(cx)
 			if err != nil {
 				return nil, err
 			}
-			rvar, ok := cvar.right.(*VarExpr)
+			rvar, ok := cvar.Right.(*VarExpr)
 			if !ok {
 				// no type
-				fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+				fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.Right, cvar.Right)
 				return nil, errors.New("arg init: err111, not a word in right of types arg ")
 			}
 			tt := cx.GetType(rvar.name)
@@ -116,15 +116,15 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 
 	case *OperColon:
 		cvar := arx
-		lvar, ok := cvar.left.(*VarExpr)
+		lvar, ok := cvar.Left.(*VarExpr)
 		if !ok {
 			return nil, errors.New("arg init: err22")
 		}
-		err := cvar.right.Do(cx)
+		err := cvar.Right.Do(cx)
 		if err != nil {
 			return nil, err
 		}
-		rvar, ok := cvar.right.(*VarExpr)
+		rvar, ok := cvar.Right.(*VarExpr)
 		if !ok {
 			// no type
 			// fmt.Printf(" Fu.InitArg.err221  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)

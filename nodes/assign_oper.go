@@ -22,6 +22,9 @@ func (op *OperAssign) AddToRight(xp base.Expression) {
 		lex.Add(xp)
 	}
 }
+
+func (op *OperAssign) Add(sub base.Expression) {}
+
 func (op *OperAssign) SetLeft(xp base.Expression) {
 	op.Left = xp
 }
@@ -29,8 +32,6 @@ func (op *OperAssign) SetLeft(xp base.Expression) {
 func (op *OperAssign) SetRight(xp base.Expression) {
 	op.Right = xp
 }
-
-func (op *OperAssign) Add(sub base.Expression) {}
 
 // func (op *OperAssign) IsParent() bool {
 // 	// don't used as Block by default
