@@ -2,7 +2,65 @@ package cases
 
 import "testing"
 
-// TODO: block constructs in block struct
+func TestNestedStructConstr(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: bool
+		struct T2 t: T1, c: string
+		#
+		r = T2{}
+			t: T1{}
+				a: 11
+				b: true
+			c: "Hey!"
+		#
+		`, "r", Stf("T2", dk{"t": Stf("T1", dk{"a": 11, "b": true}), "c": "Hey!"})},
+		{`
+		# empty sub elements
+		struct T1 a: list, b: tuple
+		struct T2 t: T1, d: dict
+		#
+		r = T2{}
+			t: T1{}
+				a: []
+					#
+				b: (,)
+					#
+			d: {}
+				#
+		#
+		`, "r", Stf("T2", dk{"t": Stf("T1", dk{"a": Anis(), "b": Tanis()}), "d": dk{}})},
+		{`
+		struct T1 a: list, b: tuple
+		struct T2 t: T1, d: dict
+		#
+		r = T2{}
+			t: T1{}
+				a: []
+					11
+					22
+				b: (,)
+					33
+					44
+			d: {}
+				55: 5005
+				'Mg': "Bombarda!"
+				'TT': T1{}
+					a: [101]
+					b: (102,)
+		#
+		`, "r", Stf("T2", dk{
+			"t": Stf("T1", dk{"a": Anis(11, 22), "b": Tanis(33, 44)}),
+			"d": dk{55: 5005, "Mg": "Bombarda!", "TT": Stf("T1", dk{"a": Anis(101), "b": Tanis(102)})}})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestStructBlockInst(t *testing.T) {
 	tdata := []struct {

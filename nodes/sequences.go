@@ -30,7 +30,7 @@ type OperColon struct {
 }
 
 func (op *OperColon) AddToRight(xp base.Expression) {
-	fmt.Println("OperAssign. AddTR:", xp)
+	// fmt.Println("OperColon. AddTR:", xp)
 	switch lex := op.Right.(type) {
 	case base.SuperExpr:
 		lex.Add(xp)

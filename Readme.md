@@ -48,9 +48,7 @@ raw dev log:
 -.-.16 Implemented block-syntax for constructors of collections: list, dict, tuple
 -.-.17 Implemented block-syntax for struct constructor, struct definition
 -.-.18 Implemented nested case of block-syntax of collections: dict, list, tuple
-
-TODO: block-syntax for: 
-    nested block of struct constructors
+    nested block of struct constructors is Done.
 
 TODO:
 - Struct methods.

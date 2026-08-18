@@ -245,7 +245,7 @@ func (fn *Function) Do(cx base.Context) error {
 	fn.res = nil
 	fn.resVal = nil
 
-	fmt.Printf(" ---- Fu.Do#1 \n")
+	// fmt.Printf(" ---- Fu.Do#1 \n")
 
 	// inner context
 	inCx := fn.defCtx.SubContext()

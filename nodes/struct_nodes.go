@@ -159,7 +159,7 @@ func (se *StructConstr) Do(cx base.Context) error {
 	for _, arg := range fsource {
 		nexp, ok := arg.Left.(*VarExpr)
 		if !ok {
-			return errors.New("struct: bad field name")
+			return fmt.Errorf("struct constr: bad field name expr: %T", arg.Left)
 		}
 		arn := nexp.GetName()
 		arg.Right.Do(cx)

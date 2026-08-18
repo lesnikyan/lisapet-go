@@ -7,11 +7,11 @@ import (
 /*
 TODO:
 ok 1. slice: nn[a : b]
+ok 5. Block in block: list:dict,tuple; dict: dict,list...
 constructors:
 2. list()
 3. dict()
 4. tuple()
-5. Block in block: list:dict,tuple; dict: dict,list...
 */
 
 func TestCollBlockNested(t *testing.T) {
@@ -141,6 +141,7 @@ func TestCollBlockNested(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestCollBlockConstr(t *testing.T) {
 	tdata := []struct {
 		src   string
