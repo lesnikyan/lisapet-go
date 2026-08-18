@@ -71,7 +71,12 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 }
 
 type BlockLink struct {
-	elem   base.Block
+	elem   base.SuperExpr
+	indent int
+}
+
+type ExprLink struct {
+	elem   base.Expression
 	indent int
 }
 
@@ -86,6 +91,8 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 	parents := []*BlockLink{nblock}
 	cind := firstIndent
 	var prevState *SplitState
+	var prevExpr *ExprLink
+	var nExpr *ExprLink
 	for _, cline := range clines {
 		if len(cline.Elems) == 0 {
 			continue
@@ -121,6 +128,8 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			// possibly: commented line
 			continue
 		}
+		prevExpr = nExpr
+		nExpr = &ExprLink{elem: expr, indent: cind}
 		// tp := fmt.Sprintf("%T", expr)
 		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
 		elseInd := false // if expr is `else`
@@ -143,7 +152,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				}
 				// pfound = () || ()
 				if pfound {
-					// TODO: resolve cases: else, else if
 					nblock = parents[i]
 					parents = parents[:i+1]
 					break
@@ -176,15 +184,73 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 
 		case base.Block:
 			nblock.elem.Add(expr)
+			// fmt.Printf("tree. base.Block: %T is parrent of %T (add?:%v)\n", texp, expr, texp.IsParent())
 			if texp.IsParent() {
+				// fmt.Printf("tree. expr base.Block: %T is parrent \n", texp)
 				bl := &BlockLink{elem: texp, indent: cind}
 				parents = append(parents, bl)
 				nblock = bl
 			}
 		default:
-			// fmt.Printf("tree.def Add: %T: %v .Add (%T: %v)  \n", nblock.elem, nblock.elem, texp, texp)
-			nblock.elem.Add(expr)
+			// fmt.Printf("tree.def nblock: %T: %v ex (%T: %v) ; %d >> %d  \n", nblock.elem, nblock.elem, texp, texp, nblock.indent, cind)
+			if prevExpr != nil && cind > prevExpr.indent {
+				// fmt.Printf("tree.def sub-expression indent %T > %T > %T \n", nblock.elem, prevExpr.elem, expr)
+				switch upar := prevExpr.elem.(type) {
+				case *nodes.OperAssign:
+					// fmt.Printf("tree.def prev:OperAssign Right: %T  \n", upar.Right)
+					if IsConstruct(upar.Right) {
+						// if construct: [] (,) {} T{}
+						bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+						parents = append(parents, bl)
+						nblock = bl
+					}
+				case *nodes.OperColon:
+					// fmt.Printf("tree.def *O-Colon : %T  %T \n", upar, expr)
+					if IsConstruct(upar.Right) {
+						bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+						parents = append(parents, bl)
+						nblock = bl
+					}
+
+				case *nodes.ListExpr:
+					bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+					parents = append(parents, bl)
+					nblock = bl
+				case *nodes.TupleExpr:
+					bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+					parents = append(parents, bl)
+					nblock = bl
+				case *nodes.DictExpr:
+					bl := &BlockLink{elem: upar, indent: prevExpr.indent}
+					parents = append(parents, bl)
+					nblock = bl
+				}
+			}
+
+			// fmt.Printf("tree.def Add... : %T  %T \n", nblock.elem, expr)
+			switch parn := nblock.elem.(type) {
+			case *nodes.OperAssign:
+				parn.AddToRight(expr)
+			case *nodes.OperColon:
+				parn.AddToRight(expr)
+			case *nodes.ListExpr, *nodes.TupleExpr, *nodes.DictExpr:
+				parn.Add(expr)
+			case base.SuperExpr:
+				parn.Add(expr)
+			default:
+				parn.Add(expr)
+			}
 		}
 	}
 	return top, nil
+}
+
+func IsConstruct(ex base.Expression) bool {
+	switch ex.(type) {
+	case *nodes.ListExpr, *nodes.TupleExpr, *nodes.DictExpr:
+		return true
+	case *nodes.StructConstr:
+		return true
+	}
+	return false
 }

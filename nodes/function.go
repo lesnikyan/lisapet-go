@@ -66,7 +66,7 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		var lvar *VarExpr
 		var vtype *base.Type
 		strict := false
-		switch cvar := arx.left.(type) {
+		switch cvar := arx.Left.(type) {
 		case *VarExpr:
 			vtype = cx.GetType("any")
 			lvar = cvar
@@ -74,20 +74,20 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		case *OperColon:
 			// Typed Var with default val
 
-			lExp, ok := cvar.left.(*VarExpr)
+			lExp, ok := cvar.Left.(*VarExpr)
 			if !ok {
 				return nil, errors.New("arg init: err2")
 			}
 			lvar = lExp
 
-			err := cvar.right.Do(cx)
+			err := cvar.Right.Do(cx)
 			if err != nil {
 				return nil, err
 			}
-			rvar, ok := cvar.right.(*VarExpr)
+			rvar, ok := cvar.Right.(*VarExpr)
 			if !ok {
 				// no type
-				fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+				fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.Right, cvar.Right)
 				return nil, errors.New("arg init: err111, not a word in right of types arg ")
 			}
 			tt := cx.GetType(rvar.name)
@@ -102,11 +102,11 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 		rex := &ArgExp{Name: name, VExp: lvar, Type: vtype, StrictType: strict}
 
 		// get default val
-		err := arx.right.Do(cx)
+		err := arx.Right.Do(cx)
 		if err != nil {
 			return nil, err
 		}
-		v := arx.right.Get()
+		v := arx.Right.Get()
 		if v == nil {
 			return nil, errors.New("arg init: no value from default-val expression")
 		}
@@ -116,15 +116,15 @@ func (fn *Function) InitArg(cx base.Context, ex base.Expression) (*ArgExp, error
 
 	case *OperColon:
 		cvar := arx
-		lvar, ok := cvar.left.(*VarExpr)
+		lvar, ok := cvar.Left.(*VarExpr)
 		if !ok {
 			return nil, errors.New("arg init: err22")
 		}
-		err := cvar.right.Do(cx)
+		err := cvar.Right.Do(cx)
 		if err != nil {
 			return nil, err
 		}
-		rvar, ok := cvar.right.(*VarExpr)
+		rvar, ok := cvar.Right.(*VarExpr)
 		if !ok {
 			// no type
 			// fmt.Printf(" Fu.InitArg.err221  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
@@ -245,7 +245,7 @@ func (fn *Function) Do(cx base.Context) error {
 	fn.res = nil
 	fn.resVal = nil
 
-	fmt.Printf(" ---- Fu.Do#1 \n")
+	// fmt.Printf(" ---- Fu.Do#1 \n")
 
 	// inner context
 	inCx := fn.defCtx.SubContext()

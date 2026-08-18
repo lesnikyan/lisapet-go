@@ -7,12 +7,197 @@ import (
 /*
 TODO:
 ok 1. slice: nn[a : b]
+ok 5. Block in block: list:dict,tuple; dict: dict,list...
 constructors:
 2. list()
 3. dict()
 4. tuple()
-
 */
+
+func TestCollBlockNested(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = []
+			[1,2,3]
+			[4,5,6]
+		`, "nn", Anis(Anis(1, 2, 3), Anis(4, 5, 6))},
+		{`
+		nn = []
+			[]
+				1
+				2
+				3
+			[]
+				4
+				5
+				6
+		`, "nn", Anis(Anis(1, 2, 3), Anis(4, 5, 6))},
+		{`
+		nn = [77]
+			[88]
+				1
+				2
+				3
+			[99]
+				4
+				5
+				6
+		`, "nn", Anis(77, Anis(88, 1, 2, 3), Anis(99, 4, 5, 6))},
+
+		{`
+		nn = (111,222)
+			(1,2,3)
+			(4,5,6)
+		`, "nn", Tanis(111, 222, Tanis(1, 2, 3), Tanis(4, 5, 6))},
+
+		{`
+		# deep case
+		nn = (,)
+			[]
+				(,)
+					[]
+						(,)
+							[]
+								4
+								5
+		`, "nn", Tanis(Anis(Tanis(Anis(Tanis(Anis(4, 5))))))},
+
+		{`
+		nn = (,)
+			(,)
+				1
+				2
+				3
+			(,)
+				4
+				5
+				6
+		`, "nn", Tanis(Tanis(1, 2, 3), Tanis(4, 5, 6))},
+
+		{`
+		nn = {}
+			'k1': {}
+				'AA': "Hello Alladin!"
+				'BB': "Hello Barbara!"
+			'k2': {}
+				'CC': "Hello Centaur!"
+				'DD': "Hello Dambldor!"
+		#
+		`, "nn", adk(dk{
+			"k1": dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!"},
+			"k2": dk{"CC": "Hello Centaur!", "DD": "Hello Dambldor!"}})},
+
+		{`
+		nn = {'00':'Zero point', '11':'Eleven elefants'}
+			'H1':{}
+				'AA': "Hello Alladin!"
+			'H2':{}
+				'BB': "Hello Barbara!"
+		`, "nn", adk(dk{
+			"00": "Zero point", "11": "Eleven elefants",
+			"H1": adk(dk{"AA": "Hello Alladin!"}),
+			"H2": adk(dk{"BB": "Hello Barbara!"})})},
+		{`
+		# deep case
+		nn = {}
+			'k1': {}
+				'k2': {}
+					'k3': {}
+						'k4': {}
+							'k5': {}
+								'AA': "Hello Alladin!"
+								'BB': "Hello Barbara!"
+		#
+		`, "nn", adk(dk{
+			"k1": adk(dk{
+				"k2": adk(dk{
+					"k3": adk(dk{
+						"k4": adk(dk{
+							"k5": dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!"},
+						})})})})})},
+
+		{`
+		# combi
+		nn = {'o1':[-1,-2]}
+			'L1': []
+				(1,2,3)
+			'D2':{}
+			 	'T3':(4,5,6)
+			'T4': (,)
+				7
+				888
+		`, "nn", adk(dk{
+			"o1": Anis(-1, -2),
+			"L1": Anis(Tanis(1, 2, 3)),
+			"D2": adk(dk{"T3": Tanis(4, 5, 6)}),
+			"T4": Tanis(7, 888),
+		})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestCollBlockConstr(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = []
+			"aaaaaaaaaa"
+			"bbbbbbbbbb"
+			"cccccccccc"
+			"dddddddddd"
+			"xxxxxxxxxx"
+			"zzzzzzzzzz"
+		`, "nn", Anis("aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc", "dddddddddd", "xxxxxxxxxx", "zzzzzzzzzz")},
+		{`
+		nn = []
+			132
+			2 * 100 + 7 * 5 - 1
+			300+40+5
+		`, "nn", Anis(132, 234, 345)},
+		{`
+		nn = [123]
+			200 + 34
+			300+40+5
+		#
+		`, "nn", Anis(123, 234, 345)},
+		{`
+		nn = (,)
+			132
+			2 * 100 + 7 * 5 - 1
+			300+40+5
+		`, "nn", Tanis(132, 234, 345)},
+		{`
+		nn = (11,22)
+			132
+			2 * 100 + 36
+			300+40+5
+		`, "nn", Tanis(11, 22, 132, 236, 345)},
+		{`
+		nn = {}
+			'AA': "Hello Alladin!"
+			'BB': "Hello Barbara!"
+			'CC': "Hello Centaur!"
+			'DD': "Hello Dambldor!"
+		`, "nn", adk(dk{"AA": "Hello Alladin!", "BB": "Hello Barbara!", "CC": "Hello Centaur!", "DD": "Hello Dambldor!"})},
+		{`
+		nn = {'00':'Zero point', '11':'Eleven elefants'}
+			'AA': "Hello Alladin!"
+			'BB': "Hello Barbara!"
+		`, "nn", adk(dk{"00": "Zero point", "11": "Eleven elefants", "AA": "Hello Alladin!", "BB": "Hello Barbara!"})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 // list[a : b], tuple[a, b], string[a, b]
 // if arg skipped nn[2:], nn[:5], nn[:] (means start=0, end=length)
@@ -217,15 +402,6 @@ func TestListsCase(t *testing.T) {
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
-}
-
-type Tup struct {
-	elems []any
-}
-
-func tanynn[T any](vals []T) *Tup {
-	vv := Anynn(vals)
-	return &Tup{elems: vv}
 }
 
 func TestTupleCase(t *testing.T) {

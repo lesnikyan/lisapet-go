@@ -112,7 +112,6 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 // struct StrName(Parent) a, b, c:int
 // struct StrName c:int
 func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
-
 	// fmt.Printf("Case#Struct#0: '%v' : (%v) \n", elems[0].Text, Lt.TName(elems[0].Type))
 	elems = SkipSpaces(elems)
 	name := "s#"
@@ -124,13 +123,18 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		}
 		name = elems[1].Text
 		// if brackets after name - split parent part and fields part
-		if elems[2].Type == Lt.Oper {
-			if elems[2].Text != "{" {
-				// bad syntax
-				return nil, errors.New("Bad syntax of struct case")
+		if len(elems) > 2 {
+			if elems[2].Type == Lt.Oper {
+				if elems[2].Text != "(" {
+					// bad syntax
+					return nil, errors.New("Bad syntax of struct case")
+				}
+				// make Parent sub
+				// fIndex = elem after brackets
 			}
-			// make Parent sub
-			// fIndex = elem after brackets
+		} else {
+			strDef := &nodes.StructDefExpr{Name: name, Fields: []base.Expression{}}
+			return &SplitState{Expr: strDef, Done: true}, nil
 		}
 	}
 
@@ -152,7 +156,7 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
 	// fmt.Printf("Case#Struct#1: (%T, %v): %v \n", subExp, subExp, ok)
 	if !ok {
-		return nil, mockErr
+		return nil, errors.New("struct: bad subs")
 	}
 	switch argExp := subExp.(type) {
 	case *nodes.SequenceComma:

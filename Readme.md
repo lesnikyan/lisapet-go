@@ -45,7 +45,10 @@ raw dev log:
 -.08.14 Add structs `struct TName a:type, b: type`, struct constructor `v = TName{a: 1, b: 2}`. Get / Set field value.
 -.-.15 Implemented type check and conversion a compatible values: in struct constructor, if setting value of field. 
     Fixed type check for struct instances. Fixed default value for structs as `null`.
--.
+-.-.16 Implemented block-syntax for constructors of collections: list, dict, tuple
+-.-.17 Implemented block-syntax for struct constructor, struct definition
+-.-.18 Implemented nested case of block-syntax of collections: dict, list, tuple
+    nested block of struct constructors is Done.
 
 TODO:
 - Struct methods.

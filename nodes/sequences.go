@@ -21,19 +21,29 @@ const (
 )
 
 type OperColon struct {
-	left  base.Expression
-	right base.Expression
+	Left  base.Expression
+	Right base.Expression
 	Oper  *Oper
 	Usage ColonUsage
 
 	res any
 }
 
+func (op *OperColon) AddToRight(xp base.Expression) {
+	// fmt.Println("OperColon. AddTR:", xp)
+	switch lex := op.Right.(type) {
+	case base.SuperExpr:
+		lex.Add(xp)
+	}
+}
+
+func (op *OperColon) Add(sub base.Expression) {}
+
 func (op *OperColon) SetLeft(xp base.Expression) {
-	op.left = xp
+	op.Left = xp
 }
 func (op *OperColon) SetRight(xp base.Expression) {
-	op.right = xp
+	op.Right = xp
 }
 
 func (op *OperColon) Get() *base.Val {
@@ -41,11 +51,11 @@ func (op *OperColon) Get() *base.Val {
 }
 
 func (op *OperColon) GetPair() *ColonPair {
-	lex := op.left
+	lex := op.Left
 	if lex == nil {
 		lex = &EmptyExpr{}
 	}
-	rex := op.right
+	rex := op.Right
 	if rex == nil {
 		rex = &EmptyExpr{}
 	}
@@ -54,23 +64,23 @@ func (op *OperColon) GetPair() *ColonPair {
 
 func (op *OperColon) DoVar(cx base.Context) error {
 	// fmt.Printf(" ' : ' <DoVar \n")
-	err1 := op.left.Do(cx)
+	err1 := op.Left.Do(cx)
 	if err1 != nil {
 		return err1
 	}
-	varx, ok := op.left.(*VarExpr)
+	varx, ok := op.Left.(*VarExpr)
 	if !ok {
-		return errors.New("colon: Not var in left")
+		return errors.New("colon: Not var in Left")
 	}
-	tupx, ok := op.right.(*VarExpr)
+	tupx, ok := op.Right.(*VarExpr)
 	if !ok {
-		return errors.New("colon: Not var in left")
+		return errors.New("colon: Not var in Left")
 	}
 	varx.NewVar(cx)
 
 	err2 := tupx.Do(cx)
 	if err2 != nil {
-		fmt.Println("OpAssign.R error", err2)
+		fmt.Println("OperColon.R error", err2)
 		return err2
 	}
 	// tname := tupx.name
@@ -84,7 +94,7 @@ func (op *OperColon) DoVar(cx base.Context) error {
 	// fmt.Printf(" ' : ' DoVar4 \n")
 
 	if !ok {
-		return errors.New("colon: right part is not type")
+		return errors.New("colon: Right part is not type")
 	}
 	varx.vr.Type = rtype // usage: check type for typed vars
 	varx.vr.StrictType = true

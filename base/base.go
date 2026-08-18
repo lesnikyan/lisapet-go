@@ -43,6 +43,10 @@ type Expression interface {
 	*/
 }
 
+type SuperExpr interface {
+	Add(sub Expression)
+}
+
 type Block interface {
 	Do(Context) error
 	Get() *Val

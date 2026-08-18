@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
@@ -94,17 +93,17 @@ func (nd *IfNode) SetElse(block *ElseNode) {
 func NewIf(cond base.Expression) *IfNode {
 	var prev *BlockExpr
 	// if cond is ;-separated expr
-	fmt.Println("# IF", cond)
+	// fmt.Println("# IF", cond)
 	switch conExpr := cond.(type) {
 	case *SequenceSemicolon:
 		//
-		fmt.Println("# IF#2", len(conExpr.Subs))
+		// fmt.Println("# IF#2", len(conExpr.Subs))
 		if len(conExpr.Subs) < 2 {
 			//bad case: a=1;
 			return nil
 		}
 		cond = conExpr.Subs[len(conExpr.Subs)-1]
-		fmt.Printf("#--IF (;) #1 (%T: %v), #2(%T: %v) \n", conExpr, conExpr, cond, cond)
+		// fmt.Printf("#--IF (;) #1 (%T: %v), #2(%T: %v) \n", conExpr, conExpr, cond, cond)
 		prev = NewBlock()
 		for _, sub := range conExpr.Subs[:len(conExpr.Subs)-1] {
 			prev.Add(sub)

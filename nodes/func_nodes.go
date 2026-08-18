@@ -135,15 +135,15 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 		// variadic args
 
 		// named arg
-		lvar, ok := nmExp.left.(*VarExpr)
+		lvar, ok := nmExp.Left.(*VarExpr)
 		if !ok {
 			return errors.New("func call (Args2): Named arg in func call without left part")
 		}
-		err := nmExp.right.Do(cx)
+		err := nmExp.Right.Do(cx)
 		if err != nil {
 			return err
 		}
-		lval := nmExp.right.Get()
+		lval := nmExp.Right.Get()
 		// fmt.Printf("FunCall (Args3): r-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.right, nmExp.right, lval, lval == nil)
 		if lval == nil {
 			return errors.New("func call (Args): Named arg in func call without value")

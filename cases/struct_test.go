@@ -2,6 +2,149 @@ package cases
 
 import "testing"
 
+func TestNestedStructConstr(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: bool
+		struct T2 t: T1, c: string
+		#
+		r = T2{}
+			t: T1{}
+				a: 11
+				b: true
+			c: "Hey!"
+		#
+		`, "r", Stf("T2", dk{"t": Stf("T1", dk{"a": 11, "b": true}), "c": "Hey!"})},
+		{`
+		# empty sub elements
+		struct T1 a: list, b: tuple
+		struct T2 t: T1, d: dict
+		#
+		r = T2{}
+			t: T1{}
+				a: []
+					#
+				b: (,)
+					#
+			d: {}
+				#
+		#
+		`, "r", Stf("T2", dk{"t": Stf("T1", dk{"a": Anis(), "b": Tanis()}), "d": dk{}})},
+		{`
+		struct T1 a: list, b: tuple
+		struct T2 t: T1, d: dict
+		#
+		r = T2{}
+			t: T1{}
+				a: []
+					11
+					22
+				b: (,)
+					33
+					44
+			d: {}
+				55: 5005
+				'Mg': "Bombarda!"
+				'TT': T1{}
+					a: [101]
+					b: (102,)
+		#
+		`, "r", Stf("T2", dk{
+			"t": Stf("T1", dk{"a": Anis(11, 22), "b": Tanis(33, 44)}),
+			"d": dk{55: 5005, "Mg": "Bombarda!", "TT": Stf("T1", dk{"a": Anis(101), "b": Tanis(102)})}})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestStructBlockInst(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: float
+		r = T1{}
+			a: 22
+		`, "r", Stf("T1", dk{"a": 22, "b": 0.0})},
+		{`
+		struct T1 a: int, aa: string, b: float, c: bool
+		r = T1{c: true}
+			a: 22
+			b: 10.
+			aa: 'Hello block'
+		`, "r", Stf("T1", dk{"a": 22, "aa": `Hello block`, "b": 10.0, "c": true})},
+		{`
+		struct T1
+			a: int
+			b: int
+			c: int
+			d: int
+			e: int
+			f: int
+			g: int
+			h: int
+			i: int
+			j: int
+			aa: string
+		x = 5
+		r = T1{}
+			a: 11
+			b: 22
+			c: 33
+			d: 44
+			e: 55
+			f: 66
+			g: 77
+			h: 88
+			i: 99
+			j: 100 + x
+			aa: 'Hello block'
+		`, "r", Stf("T1", dk{"a": 11, "aa": "Hello block", "b": 22, "c": 33, "d": 44, "e": 55, "f": 66, "g": 77, "h": 88, "i": 99, "j": 105})},
+		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestStructBlockDef(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1
+			a: int
+			b: float
+		r = T1{a: 22}
+		`, "r", Stf("T1", dk{"a": 22, "b": 0.0})},
+		{`
+		struct T1 a: int, aa: int
+			b: float
+			c: bool
+		r = T1{a: 22}
+		`, "r", Stf("T1", dk{"a": 22, "aa": 0, "b": 0.0, "c": false})},
+		{`
+		struct T1 a: int, aa: string
+			b: float
+			c: bool
+		r = T1{b: 2.2, c: true}
+		`, "r", Stf("T1", dk{"a": 0, "aa": "", "b": 2.2, "c": true})},
+		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestStructTyping(t *testing.T) {
 	tdata := []struct {
 		src   string

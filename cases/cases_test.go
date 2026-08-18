@@ -39,6 +39,15 @@ func Anis(vals ...any) []any {
 
 // for tuples
 
+type Tup struct {
+	elems []any
+}
+
+func tanynn[T any](vals []T) *Tup {
+	vv := Anynn(vals)
+	return &Tup{elems: vv}
+}
+
 func Tanis(vals ...any) *Tup {
 	return &Tup{Anynn(vals)}
 }
@@ -56,6 +65,10 @@ func tval(val any) any {
 	switch tk := val.(type) {
 	case int:
 		ak = int64(tk)
+	case float32:
+		ak = float64(tk)
+	case dk:
+		ak = adk(tk)
 	}
 	return ak
 }
@@ -87,7 +100,7 @@ func pres(src any) any {
 		for i, vv := range val.Elems {
 			r[i] = pres(vv)
 		}
-		return r
+		return &Tup{elems: r}
 	case *obb.DictVal:
 		r := make(map[any]any)
 		for k, v := range val.Vmap {
@@ -184,7 +197,9 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			if !ok {
 				assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
 			}
-			assert.Equal(t2, tup.elems, vobj.Elems)
+			tres := pres(vobj)
+			res, ok := tres.(*Tup)
+			assert.Equal(t2, tup, res)
 		case *obb.DictVal:
 			fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
 			tm, tok := tt.res.(map[any]any)

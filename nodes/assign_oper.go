@@ -10,40 +10,56 @@ import (
 
 type OperAssign struct {
 	Oper  string
-	left  base.Expression
-	right base.Expression
+	Left  base.Expression
+	Right base.Expression
 	res   any
 }
 
+func (op *OperAssign) AddToRight(xp base.Expression) {
+	// fmt.Println("OpAssign. AddTL:", xp)
+	switch lex := op.Right.(type) {
+	case base.SuperExpr:
+		lex.Add(xp)
+	}
+}
+
+func (op *OperAssign) Add(sub base.Expression) {}
+
 func (op *OperAssign) SetLeft(xp base.Expression) {
-	op.left = xp
+	op.Left = xp
 }
+
 func (op *OperAssign) SetRight(xp base.Expression) {
-	op.right = xp
+	op.Right = xp
 }
+
+// func (op *OperAssign) IsParent() bool {
+// 	// don't used as Block by default
+// 	return false
+// }
 
 func (op *OperAssign) Get() *base.Val {
 	return base.NewVal(op.res) // make sense for last expression in the Block
 }
 
 func (op *OperAssign) Do(cx base.Context) error {
-	// fmt.Printf("Op=Do %T, %v \n", op.right, op.right)
-	err2 := op.right.Do(cx)
+	// fmt.Printf("Op=Do %T, %v \n", op.Right, op.Right)
+	err2 := op.Right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OpAssign.R error", err2)
 		return err2
 	}
-	rval := GetExprVal(op.right, cx)
+	rval := GetExprVal(op.Right, cx)
 	// fmt.Printf("Op=Do#2, Rexp (%T, %v),  rval (%T, %v) \n", op.right, op.right, rval, rval)
-	switch lexp := op.left.(type) {
+	switch lexp := op.Left.(type) {
 	case *OperColon:
 		lexp.Usage = ColonType
 	}
-	err1 := op.left.Do(cx)
+	err1 := op.Left.Do(cx)
 	if err1 != nil {
 		return err1
 	}
-	return AssignVal(cx, op.left, rval)
+	return AssignVal(cx, op.Left, rval)
 	// return nil
 }
 
@@ -191,7 +207,7 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 	}
 	err2 := op.right.Do(cx)
 	if err2 != nil {
-		fmt.Println("OpAssign.R error", err2)
+		fmt.Println("OperBinAssign.R error", err2)
 		return err2
 	}
 	// rval := GetExprVal(op.right, cx)
