@@ -138,10 +138,6 @@ type FuncCall struct {
 }
 
 func (fc *FuncCall) Get() *base.Val {
-	// if fc.res == nil {
-	// 	return nil
-	// }
-	// return base.NewVal(fc.res)
 	return fc.resVal
 }
 
