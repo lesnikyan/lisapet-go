@@ -27,8 +27,8 @@ type Function struct {
 	argVals []any
 	nmVals  map[string]any
 	dfnArgs []base.Expression
-	Args    []*ArgExp
-	mtInst  *ArgExp // obj instance for method
+	// Args    []*ArgExp
+	mtInst *ArgExp // obj instance for method
 
 	// Block  *BlockExpr
 	Block  FSubBlock
@@ -75,6 +75,7 @@ func NewFunction(name string, block FSubBlock, ctx base.Context) *Function {
 // / =======================
 type FSubBlock interface {
 	SetArgVals(vals []any, nvals map[string]any)
+	AddArg(arg *ArgExp)
 	PrepareArgs(cx base.Context) error
 	Do(cx base.Context) error
 	Get() *base.Val

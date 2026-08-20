@@ -2,7 +2,6 @@ package cases
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
@@ -37,7 +36,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	var prefTree *LineTree
 	var err1 error
 	// detect method: if has `:` before `()`
-	fmt.Printf("CaseFunc#1: %s \n", FPrintElems(elems))
+	// fmt.Printf("CaseFunc#1: %s \n", FPrintElems(elems))
 	sigIndex := 0 // start of signature (from name)
 	if kwRoot.BracketsCount == 0 {
 		sigIndex = 1 // start of signature (from name)
@@ -71,9 +70,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		prefNode.leftNode = prefTree.Tree.rightNode
 		prefNode.rightElems = sigTree.Tree.rightNode.leftElems
 		sigTree.Tree.rightNode.leftNode = prefNode
-		// sigTree.Tree.rightNode.leftNode
-
-		PrintONode(sigTree.Tree, 0)
+		// PrintONode(sigTree.Tree, 0)
 	}
 
 	if !sigTree.Finished {

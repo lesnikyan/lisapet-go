@@ -62,6 +62,7 @@ func (op *OperDot) Do(cx base.Context) error {
 		mname = nexp.GetName()
 	}
 
+	// fmt.Printf(" <.> Do n=`%s` obj(%T, %v) \n", mname, left, left)
 	// access to objects member
 	switch obj := left.(type) {
 	case *objects.StructInst:
@@ -71,19 +72,23 @@ func (op *OperDot) Do(cx base.Context) error {
 			// fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, mb, mb)
 			return nil
 		} else {
-			met, ok := obj.Type.GetMethod(mname)
-			fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, met, ok)
+			fval, ok := obj.Type.GetMethod(mname)
+			// fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, fval, ok)
 			if ok {
 				// if mth := obj.GetMethod(mname); mth != nil {
-				op.res = met // method found
+				switch met := fval.(type) {
+				case *objects.Method:
+					met.Inst = obj
+					op.res = met // method found
+				}
 				return nil
 			}
-
 		}
-
+		// fmt.Printf("OperDot: member `%s` in struct not found \n", mname)
 		return fmt.Errorf("OperDot: member `%s` in struct not found", mname)
 
 	default:
+		// fmt.Printf("OperDot: unknown type of object %T \n", obj)
 		return errors.New("OperDot: unknown type of object " + fmt.Sprintf("%T", obj))
 	}
 }

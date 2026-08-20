@@ -1,7 +1,5 @@
 package base
 
-import "fmt"
-
 // type ArgCallInfo struct {
 // 	Name string
 // 	Type *Type
@@ -32,7 +30,7 @@ func (tp *Type) GetMethod(name string) (FuncVal, bool) {
 		return nil, false
 	}
 	m, k := tp.Methods[name]
-	fmt.Printf(" T.GetMethod %s (%T.%v) %v \n", name, m, m, k)
+	// fmt.Printf(" T.GetMethod %s (%T.%v) %v \n", name, m, m, k)
 	return m, k
 }
 

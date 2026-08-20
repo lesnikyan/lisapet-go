@@ -12,12 +12,52 @@ func TestSimpleMethods(t *testing.T) {
 		struct T1 a: int, b: bool
 		#
 		func t:T1 add(x:int)
-			t.a += x
+			t.a = x
+		#
+		r = T1{a: 100}
+		r.add(1003)
+		#
+		`, "r", Stf("T1", dk{"a": 1003, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 add(x:int)
+			t.a = x + t.a
 		#
 		r = T1{a: 100}
 		r.add(3)
 		#
-		`, "r", Stf("T1", dk{"a": 11, "b": true})},
+		`, "r", Stf("T1", dk{"a": 103, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 add(x:int)
+			t.a += x
+		#
+		r = T1{a: 100}
+		r.add(4)
+		#
+		`, "r", Stf("T1", dk{"a": 104, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo()
+			t.a
+		#
+		s = T1{a: 106}
+		r = s.foo()
+		#
+		`, "r", int64(106)},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo(x:int)
+			t.a + x
+		#
+		s = T1{a: 100}
+		r = s.foo(5)
+		#
+		`, "r", int64(105)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
@@ -232,10 +272,21 @@ func TestStructFieldSet(t *testing.T) {
 		r.s = "Nya"
 		r.nn = [2,3,44]
 		`, "r", Stf("T", dk{"a": 21, "b": true, "s": "Nya", "nn": Anis(2, 3, 44)})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		r = T1{a: 100}
+		r.a = 2 + r.a
+		#
+		`, "r", Stf("T1", dk{"a": 102, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		r = T1{a: 100}
+		r.a += 3
+		#
+		`, "r", Stf("T1", dk{"a": 103, "b": false})},
 		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
-		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
-		// {``, "r",  int64(205)},
-		// {``, "r",  Anis(11, )},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

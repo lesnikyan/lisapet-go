@@ -111,18 +111,6 @@ func SetValTo(leftObj any, rval any) error {
 	case *objects.StrMember:
 		return target.Set(rval)
 	case *base.Var:
-		// fmt.Printf("SetValTo#2 L: (%T, %v) = R: %T \n", target, target, rval)
-		// cval := rval
-		// if target.StrictType {
-		// 	typeOk, cval := objects.PrepareVal(target.Type.Id, rval)
-		// 	if !typeOk {
-		// 		// bad val
-		// 		// fmt.Printf("SetValTo#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
-		// 		return errors.New("oper assign: incorrecttype of value in right operand")
-		// 	}
-		// 	rval = cval
-		// }
-		// target.Val = rval
 		return objects.SetVarVal(target, rval)
 	case []*base.Var:
 		var valSet []any
@@ -206,6 +194,7 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 	if err1 != nil {
 		return err1
 	}
+
 	err2 := op.right.Do(cx)
 	if err2 != nil {
 		fmt.Println("OperBinAssign.R error", err2)

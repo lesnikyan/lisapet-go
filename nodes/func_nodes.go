@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -93,13 +92,18 @@ func (md *MethodDef) Do(cx base.Context) error {
 	if tt == nil {
 		return errors.New("MethodDef: type of instance not found")
 	}
+	iname := ""
+	if nexp, ok := md.Inst.Left.(*VarExpr); ok {
+		iname = nexp.GetName()
+	}
 	fd := md.Func
 	fn, err := fd.MakeFunc(cx)
 	if err != nil {
 		return errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
 	}
-	met := &objects.Method{Func: fn}
-	fmt.Printf(" MetodDef.Do: t(%T, %v) meth(%T, %v) \n", tt, tt, met, met)
+	// met := &objects.Method{Func: fn, InstName: iname, Type: tt}
+	met := objects.NewMethod(fn, tt, iname)
+	// fmt.Printf(" MetodDef.Do: t(%T, %v) meth(%T, %v) \n", tt, tt, met, met)
 	tt.AddMethod(met)
 	md.res = met
 	return nil
@@ -124,10 +128,7 @@ var NoResult = base.NewVal(&objects.Null{})
 
 // ==
 
-//==
-
 // func call: smth([args])
-
 type FuncCall struct {
 	Src  base.Expression // should return function object
 	args []base.Expression
@@ -156,6 +157,9 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 		fc.fun = fn
 	case *NFunc:
 		fc.fun = fn
+	case *objects.Method:
+		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
+		fc.fun = fn
 	default:
 		// fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
 		return errors.New("trying to call non-function ")
@@ -171,7 +175,6 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 	vals := make([]any, len(fc.args))
 
 	i := 0
-	// foo(ord1, ordN, variadic..., named1=val1, named2=val2)
 	for _, vex := range fc.args {
 		nmExp, ok := vex.(*OperAssign)
 		// fmt.Printf("FunCall (Args1): exp:(%T, %v) isAssign: %v \n", vex, vex, ok)

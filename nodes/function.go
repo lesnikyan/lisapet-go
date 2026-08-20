@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	obj "github.com/lesnikyan/lisapet-go/objects"
@@ -18,6 +17,10 @@ type FuncBlock struct {
 	defVals map[string]*base.Val
 
 	resVal *base.Val
+}
+
+func (fn *FuncBlock) AddArg(arg *obj.ArgExp) {
+	fn.Args = append(fn.Args, arg)
 }
 
 // 1. positional args, 2. named args,
@@ -65,7 +68,7 @@ func (fn *FuncBlock) InitArg(cx base.Context, ex base.Expression) (*obj.ArgExp, 
 			rvar, ok := cvar.Right.(*VarExpr)
 			if !ok {
 				// no type
-				fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.Right, cvar.Right)
+				// fmt.Printf(" Fu.InitArg.err111  n=%s tp=(%T, %v) \n", lvar.name, cvar.Right, cvar.Right)
 				return nil, errors.New("arg init: err111, not a word in right of types arg ")
 			}
 			tt := cx.GetType(rvar.name)
@@ -178,17 +181,22 @@ func (fn *FuncBlock) getVal(i int, name string) (any, error) {
 func (fn *FuncBlock) PrepareArgs(cx base.Context) error {
 	// fmt.Printf(" Fu.PArg#0  %d  \n", len(fn.Args))
 	for i, arg := range fn.Args {
-		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg)
+		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg.Name)
 		// take var
+		vName := arg.Name
 		var vr *base.Var
+		// if strings.Contains(arg.Name, "inst##") {
+		if len(arg.Name) > 6 && arg.Name[:6] == "inst##" {
+			vName = arg.Name[6:]
+		}
 		if arg.StrictType {
 			// arg.VExp.NewVarTyped(cx, arg.Type)
-			vr = &base.Var{Name: arg.Name, Type: arg.Type, StrictType: true}
+			vr = &base.Var{Name: vName, Type: arg.Type, StrictType: true}
 			cx.AddVar(vr)
 		} else {
 			// cx.GetType("any")
 			// arg.VExp.NewVar(cx)
-			vr = &base.Var{Name: arg.Name}
+			vr = &base.Var{Name: vName}
 			cx.AddVar(vr)
 		}
 		// fmt.Printf(" Fu.PArg#2 %d) (%T, %v)  \n", i, vr, vr)
@@ -201,7 +209,7 @@ func (fn *FuncBlock) PrepareArgs(cx base.Context) error {
 		if err != nil {
 			return err
 		}
-		// fmt.Printf(" Fu.PArg#3 %d) (%T, %v)  \n", i, vr, vr)
+		// fmt.Printf(" Fu.PArg#3 %d) (%T, %v)  \n", i, val, val)
 		aerr := obj.SetVarVal(vr, val)
 		if aerr != nil {
 			return errors.Join(errors.New("func prep arg: assign arg error"), aerr)

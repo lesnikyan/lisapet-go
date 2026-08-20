@@ -39,9 +39,10 @@ func OperArgsInfo(expr any) string {
 		aR = OperArgsInfo(exx.Right)
 		opStr = exx.Oper
 	case *OperBin:
+	case *OperDot:
 		aL = OperArgsInfo(exx.left)
 		aR = OperArgsInfo(exx.right)
-		opStr = exx.Oper.Sign
+		opStr = "."
 	case *UnaryLeft:
 		aL = "unar"
 		aR = OperArgsInfo(exx.right)

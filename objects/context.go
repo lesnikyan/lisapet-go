@@ -53,19 +53,6 @@ func (cx *Context) GetType(name string) *base.Type {
 	return nil
 }
 
-// func (cx *Context) AddMethod(ntype base.TypeId, method *Method) error {
-// 	ttp, has := cx.typeIds[ntype]
-// 	if !has {
-// 		return errors.New("context: add, no such typeId")
-// 	}
-// 	cx.methods[ttp.Id][method.Func.GetName()] = method
-// 	return nil
-// }
-
-// func (cx *Context) GetMethod(ntype base.TypeId, method *Method) error {
-
-// }
-
 func (cx *Context) AddVar(vr *base.Var) {
 	// fmt.Printf("o.Ctx.AddVar1 %T, %v \n", vr, vr.Name)
 	if _, ok := cx.vars[vr.Name]; ok {
