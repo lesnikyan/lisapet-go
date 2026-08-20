@@ -2,6 +2,28 @@ package cases
 
 import "testing"
 
+func TestSimpleMethods(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 add(x:int)
+			t.a += x
+		#
+		r = T1{a: 100}
+		r.add(3)
+		#
+		`, "r", Stf("T1", dk{"a": 11, "b": true})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestNestedStructConstr(t *testing.T) {
 	tdata := []struct {
 		src   string

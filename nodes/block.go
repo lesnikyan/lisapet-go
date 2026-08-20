@@ -10,7 +10,7 @@ type BlockExpr struct {
 	parMark  bool
 	aborted  bool      // after: return, break
 	abortRes *base.Val // after return
-	PopUp    *PopUp
+	PopUp    *base.PopUp
 }
 
 func (bk *BlockExpr) IsParent() bool {
@@ -21,7 +21,7 @@ func (bk *BlockExpr) IsParent() bool {
 // 	return bk.aborted
 // }
 
-func (bk *BlockExpr) GetPopUp() *PopUp {
+func (bk *BlockExpr) GetPopUp() *base.PopUp {
 	return bk.PopUp
 }
 
@@ -49,7 +49,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		return nil
 	}
 	hasRes := true // most expressions has result
-	var popUp NodeType = 0
+	var popUp base.NodeType = 0
 	for _, exp := range bk.subs {
 		// fmt.Printf("Bl.Do#0: %T, %v\n", exp, exp)
 		err := exp.Do(cx)
@@ -60,16 +60,16 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		stop := false
 		switch cur := exp.(type) {
 		case *BreakExp:
-			popUp = NodeBreak
+			popUp = base.NodeBreak
 			hasRes = false
 			stop = true
 		case *ContinueExp:
-			popUp = NodeContinue
+			popUp = base.NodeContinue
 			hasRes = false
 			stop = true
 		case *ReturnExp:
 			r := cur.Get()
-			pup := NewPopUp(NodeReturn, r)
+			pup := base.NewPopUp(base.NodeReturn, r)
 			bk.PopUp = pup
 
 			// r := cur.Get()
@@ -129,7 +129,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		if hasRes {
 			popRes = last.Get()
 		}
-		bk.PopUp = &PopUp{
+		bk.PopUp = &base.PopUp{
 			Parent: popUp,
 			Res:    popRes,
 		}

@@ -312,7 +312,7 @@ type LambdaExpr struct {
 	Args       []base.Expression
 	BlockNodes []base.Expression
 
-	res *Function
+	res *ob.Function
 }
 
 // ser Args: var, colon, CommaSeq

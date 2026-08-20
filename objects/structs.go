@@ -65,8 +65,8 @@ func NewSructDef(name string, fields []*StructField) *StructDef {
 ///
 
 type StructInst struct {
-	Def *StructDef
-	// Type *base.Type
+	Def  *StructDef
+	Type *base.Type
 
 	Vals map[string]any
 }
@@ -103,22 +103,55 @@ func (st *StructInst) GetMember(name string) *StrMember {
 	if slices.Contains(st.Def.FNames, name) {
 		return &StrMember{Obj: st, Field: name}
 	}
-	if st.Def.HasMethod(name) {
-		mt := st.Def.GetMethod(name)
-		if mt != nil {
-			return &StrMember{Obj: st, Method: mt}
+	fn, ok := st.Type.GetMethod(name)
+	fmt.Printf(" StrInst (%T, %v) GetMember n`%s` (%T, %v) \n", st.Type, st.Type, name, fn, ok)
+	if ok {
+		if met, mok := fn.(*Method); mok {
+			return &StrMember{Obj: st, Method: met}
 		}
 	}
+	// if st.Def.HasMethod(name) {
+	// 	mt := st.Def.GetMethod(name)
+	// 	if mt != nil {
+	// 		return &StrMember{Obj: st, Method: mt}
+	// 	}
+	// }
 	return nil
 }
 
 func (st *StructInst) GetMethod(name string) *Method {
-
+	// st.Def.methMap
 	return nil
 }
 
+// type Method struct {
+// 	Func base.FuncVal
+// }
+
 type Method struct {
 	Func base.FuncVal
+	Type *base.Type
+	Inst any // base val or StructInst
+}
+
+func (mt *Method) Do(cx base.Context) error {
+	return mt.Func.Do(cx)
+}
+
+func (mt *Method) SetArgVals(vals []any, mvals map[string]any) {
+	mt.Func.SetArgVals(vals, mvals)
+}
+
+func (mt *Method) GetName() string {
+	return mt.Func.GetName()
+}
+
+func (mt *Method) Get() *base.Val {
+	return mt.Func.Get()
+}
+
+func NewMethod(fn base.FuncVal, ntype *base.Type) *Method {
+	return &Method{Func: fn, Type: ntype}
 }
 
 // type Member interface {

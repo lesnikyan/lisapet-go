@@ -113,17 +113,17 @@ func SetValTo(leftObj any, rval any) error {
 	case *base.Var:
 		// fmt.Printf("SetValTo#2 L: (%T, %v) = R: %T \n", target, target, rval)
 		// cval := rval
-		if target.StrictType {
-			typeOk, cval := objects.PrepareVal(target.Type.Id, rval)
-			if !typeOk {
-				// bad val
-				// vt := objects.TypeByVal(rval)
-				// fmt.Printf("SetValTo#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
-				return errors.New("oper assign: incorrecttype of value in right operand")
-			}
-			rval = cval
-		}
-		target.Val = rval
+		// if target.StrictType {
+		// 	typeOk, cval := objects.PrepareVal(target.Type.Id, rval)
+		// 	if !typeOk {
+		// 		// bad val
+		// 		// fmt.Printf("SetValTo#4 val conv error: var %v, val: %v, vtype: %s \n", target, rval, vt.Name)
+		// 		return errors.New("oper assign: incorrecttype of value in right operand")
+		// 	}
+		// 	rval = cval
+		// }
+		// target.Val = rval
+		return objects.SetVarVal(target, rval)
 	case []*base.Var:
 		var valSet []any
 		switch vals := rval.(type) {
@@ -141,7 +141,8 @@ func SetValTo(leftObj any, rval any) error {
 			return errors.New("oper assign: multi, incorrect count of vals")
 		}
 		for i, vr := range target {
-			err := SetValTo(vr, valSet[i])
+			// err := SetValTo(vr, valSet[i])
+			err := objects.SetVarVal(vr, valSet[i])
 			if err != nil {
 				return err
 			}

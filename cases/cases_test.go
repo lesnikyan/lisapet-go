@@ -181,7 +181,7 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		}
 		fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
 		switch vobj := val.(type) {
-		case *nodes.Function:
+		case *obb.Function:
 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 			assert.Equal(t2, tt.res, vobj.GetName())
 		case *obb.ListVal:

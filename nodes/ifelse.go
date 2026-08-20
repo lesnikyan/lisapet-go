@@ -11,7 +11,7 @@ type IfNode struct {
 	preCond   *BlockExpr
 	BlockIf   *BlockExpr
 	BlockElse *ElseNode
-	PopUp     *PopUp
+	PopUp     *base.PopUp
 	res       any
 }
 
@@ -23,7 +23,7 @@ func (nd *IfNode) Get() *base.Val {
 	return nil
 }
 
-func (bk *IfNode) GetPopUp() *PopUp {
+func (bk *IfNode) GetPopUp() *base.PopUp {
 	return bk.PopUp
 }
 
@@ -140,7 +140,7 @@ func (nd *ElseNode) Get() *base.Val {
 	return nd.Block.Get()
 }
 
-func (bk *ElseNode) GetPopUp() *PopUp {
+func (bk *ElseNode) GetPopUp() *base.PopUp {
 	return bk.Block.GetPopUp()
 }
 

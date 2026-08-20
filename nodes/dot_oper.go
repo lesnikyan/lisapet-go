@@ -70,10 +70,17 @@ func (op *OperDot) Do(cx base.Context) error {
 			op.res = mb // field found
 			// fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, mb, mb)
 			return nil
-		} else if mth := obj.GetMethod(mname); mth != nil {
-			op.res = mth // method found
-			return nil
+		} else {
+			met, ok := obj.Type.GetMethod(mname)
+			fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, met, ok)
+			if ok {
+				// if mth := obj.GetMethod(mname); mth != nil {
+				op.res = met // method found
+				return nil
+			}
+
 		}
+
 		return fmt.Errorf("OperDot: member `%s` in struct not found", mname)
 
 	default:
