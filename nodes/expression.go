@@ -205,7 +205,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
-		// fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
+		// fmt.Printf("GetExp.FuncCall#Val: %T, %v >> %T, %v \n", eVal, eVal, eVal.V, eVal.V)
 		return eVal.V
 	case *NumSeqExpr:
 		res := vv.res.GetList()

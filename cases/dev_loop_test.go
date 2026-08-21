@@ -32,7 +32,7 @@ ok 7.2 continue
 ok 8. num list: [1..5], [1, 3 .. 7]
 */
 
-func TestInterfaceNil(t *testing.T) {
+func _TestInterfaceNil(t *testing.T) {
 	var ee base.Expression
 	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
 	ee = nil

@@ -2,7 +2,35 @@ package cases
 
 import "testing"
 
-func TestSimpleMethods(t *testing.T) {
+func TestMethodsNamed(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo(x:int=0, y:int=1)
+			(x + t.a) * y
+		#
+		tt = T1{a: 10}
+		r = []
+		r <- tt.foo()
+		r <- tt.foo(2)
+		r <- tt.foo(2, 7)
+		r <- tt.foo(y=5)
+		r <- tt.foo(y=3, x=4)
+		#
+		`, "r", Anis(10, 12, 84, 50, 42)},
+
+		// {``, "r", int64(105)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+func TestMethodsSimple(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -58,6 +86,54 @@ func TestSimpleMethods(t *testing.T) {
 		r = s.foo(5)
 		#
 		`, "r", int64(105)},
+		{`
+		struct T1 a: int, b: bool, c: string, nn: list
+		#
+		func t:T1 setNn(nums:list)
+			t.nn = []
+			for n <- nums
+				t.nn <- n
+		#
+		func t:T1 foo(x:int)
+			t.a + x
+		#
+		s = T1{a: 100}
+		s.setNn([22,33,55])
+		r = s.nn
+		#
+		`, "r", Anis(22, 33, 55)},
+		{`
+		struct T1 a: int, b:int, c: string
+		#
+		func t:T1 foo()
+			rr = []
+			for i <- [t.a..t.b]
+				s = ""
+				for j=0; j < i; j += 1
+					s += t.c
+				rr <- s
+			rr
+		#
+		s = T1{a: 2, b:5, c: 'g'}
+		r = s.foo()
+		#
+		`, "r", Anis("gg", "ggg", "gggg", "ggggg")},
+		{`
+		struct T1 a: int, b:int, c: string
+		#
+		func t:T1 foo(x: string)
+			rr = []
+			for i <- [t.a..t.b]
+				s = x
+				for j=0; j < i; j += 1
+					s += t.c
+				rr <- s
+			rr
+		#
+		s = T1{a: 2, b:4, c: 'g'}
+		r = s.foo('R')
+		#
+		`, "r", Anis("Rgg", "Rggg", "Rgggg")},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

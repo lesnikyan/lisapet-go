@@ -71,14 +71,10 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			r := cur.Get()
 			pup := base.NewPopUp(base.NodeReturn, r)
 			bk.PopUp = pup
-
-			// r := cur.Get()
-			// if r != nil {
-			// 	bk.res = r.V
-			// }
 			return nil
 
 		case *IfNode:
+			// fmt.Printf("Block.Do IfNode \n")
 			inPup := cur.GetPopUp()
 			if inPup != nil {
 				bk.PopUp = inPup
@@ -88,11 +84,11 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 				if r != nil {
 					bk.res = r.V
 				}
+				continue
 			}
 			// other resulting expressions: func def, func call, operators, value, if-else, match, etc
 		case *ForCondNode:
 			// fmt.Printf("Block.Loop node \n")
-
 			inPup := cur.GetPopUp()
 			if inPup != nil {
 				bk.PopUp = inPup
@@ -109,6 +105,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			}
 			hasRes = false
 		default:
+			// fmt.Printf("Bl.Do# defl: %T, %v\n", exp, exp)
 			hasRes = true
 			// case *ValExpr:
 			// 	hasRes = true
@@ -140,10 +137,17 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		return nil
 	}
 	last = bk.subs[len(bk.subs)-1]
-	if last != nil {
-		r := last.Get()
-		if r != nil {
-			bk.res = r.V
+	switch rlast := last.(type) {
+	case *IfNode, *ElseNode, *FuncDef, ForExpr:
+		return nil
+	default:
+		// fmt.Printf("Bl.Do# last: %T, %v\n", rlast, rlast)
+		if rlast != nil && bk.res == nil {
+			// r := last.Get()
+			r := GetExprVal(rlast, nil)
+			if r != nil {
+				bk.res = r
+			}
 		}
 	}
 	return nil

@@ -50,7 +50,7 @@ func (op *OperAssign) Do(cx base.Context) error {
 		return err2
 	}
 	rval := GetExprVal(op.Right, cx)
-	// fmt.Printf("Op=Do#2, Rexp (%T, %v),  rval (%T, %v) \n", op.right, op.right, rval, rval)
+	// fmt.Printf("Op=Do#2, Rexp (%T, %v),  rval (%T, %v) \n", op.Right, op.Right, rval, rval)
 	switch lexp := op.Left.(type) {
 	case *OperColon:
 		lexp.Usage = ColonType
