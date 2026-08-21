@@ -178,7 +178,9 @@ func (se *StructConstr) Do(cx base.Context) error {
 		}
 		args[arn] = val
 	}
-	se.res = sdef.NewInstance(args)
+	inst := sdef.NewInstance(args)
+	inst.Type = tel
+	se.res = inst
 
 	return nil
 }

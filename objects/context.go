@@ -8,6 +8,20 @@ func NewCxElem(v any) *base.ContextElem {
 	return &base.ContextElem{V: v}
 }
 
+type ArgInfo struct {
+	Name string // if named arg in call
+	Type *base.Type
+}
+
+// func domain is interface of function or method domain
+// that contains all obverloaded function by one name
+type FuncDom interface {
+	GetFunc(args []ArgInfo) base.FuncVal
+	// Funcs []FuncVal
+}
+
+// type MethMap map[string]base.FuncVal
+
 type Context struct {
 	parent *Context
 	vars   map[string]*base.Var
@@ -15,7 +29,7 @@ type Context struct {
 	types  map[string]*base.Type
 
 	typeNames map[string]*base.Type
-	typeIds   map[int]*base.Type
+	typeIds   map[base.TypeId]*base.Type
 }
 
 func (cx *Context) SubContext() base.Context {

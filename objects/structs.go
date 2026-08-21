@@ -65,8 +65,8 @@ func NewSructDef(name string, fields []*StructField) *StructDef {
 ///
 
 type StructInst struct {
-	Def *StructDef
-	// Type *base.Type
+	Def  *StructDef
+	Type *base.Type
 
 	Vals map[string]any
 }
@@ -103,28 +103,70 @@ func (st *StructInst) GetMember(name string) *StrMember {
 	if slices.Contains(st.Def.FNames, name) {
 		return &StrMember{Obj: st, Field: name}
 	}
-	if st.Def.HasMethod(name) {
-		mt := st.Def.GetMethod(name)
-		if mt != nil {
-			return &StrMember{Obj: st, Method: mt}
+	fn, ok := st.Type.GetMethod(name)
+	// fmt.Printf(" StrInst (%T, %v) GetMember n`%s` (%T, %v) \n", st.Type, st.Type, name, fn, ok)
+	if ok {
+		if met, mok := fn.(*Method); mok {
+			return &StrMember{Obj: st, Method: met}
 		}
 	}
 	return nil
 }
 
 func (st *StructInst) GetMethod(name string) *Method {
-
+	// st.Def.methMap
 	return nil
 }
 
 type Method struct {
-	Func base.FuncVal
+	Func     base.FuncVal // *Function, *NFunc
+	Type     *base.Type
+	InstName string
+	InstArg  *ArgExp
+	Inst     any // base val or StructInst
 }
 
-// type Member interface {
-// 	*StructField
-// 	*Method
-// }
+func (mt *Method) SetInstVar(cx base.Context) error {
+	vr := &base.Var{Name: mt.InstName, Type: mt.Type, StrictType: true}
+	cx.AddVar(vr)
+	return nil
+}
+
+func (mt *Method) Do(cx base.Context) error {
+	return mt.Func.Do(cx)
+}
+
+func (mt *Method) InstVarN(name string) string {
+	return fmt.Sprintf("inst##%s", name)
+}
+
+func (mt *Method) SetArgVals(vals []any, mvals map[string]any) {
+	mvals[mt.InstVarN(mt.InstName)] = mt.Inst
+	mt.Func.SetArgVals(vals, mvals)
+}
+
+func (mt *Method) GetName() string {
+	return mt.Func.GetName()
+}
+
+func (mt *Method) Get() *base.Val {
+	return mt.Func.Get()
+}
+
+func NewMethod(fn base.FuncVal, ntype *base.Type, iname string) *Method {
+	// instArg :=
+	mt := &Method{Func: fn, InstName: iname, Type: ntype}
+	switch fnn := fn.(type) {
+	case *Function:
+		instArg := &ArgExp{Name: mt.InstVarN(iname), Type: ntype, StrictType: true}
+		fnn.Block.AddArg(instArg)
+
+		// case *NFunc:
+	}
+
+	return mt
+	// return &Method{Func: fn, Type: ntype}
+}
 
 type StrMember struct {
 	Obj    *StructInst

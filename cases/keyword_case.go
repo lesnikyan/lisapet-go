@@ -56,9 +56,23 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	name := "f###"
 	// Args
 	sigTree, err2 := Line2tree(elems[sigIndex:], kwRoot)
+	// PrintONode(prefTree.Tree.rightNode, 0)
+	// PrintONode(sigTree.Tree, 0)
 	if err2 != nil {
 		return nil, errors.New("func def: incorrect signature")
 	}
+	// sigTree.Tree.rightNode : Brakets {funcName, args}
+	// sigTree.Tree.rightNode.leftElems[0].Text : funcName
+	if prefTree != nil {
+		// looks it can be method
+		prefNode := &OperNode{oper: "#method", prior: 100}
+		// pref := refTree.Tree.rightNode
+		prefNode.leftNode = prefTree.Tree.rightNode
+		prefNode.rightElems = sigTree.Tree.rightNode.leftElems
+		sigTree.Tree.rightNode.leftNode = prefNode
+		// PrintONode(sigTree.Tree, 0)
+	}
+
 	if !sigTree.Finished {
 		return &SplitState{Done: false, LTree: sigTree}, nil
 	}
@@ -96,17 +110,34 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		// empty args
 	}
 	// expected sigTree: Brackets -> CommaSepSequence
-	if len(fNode.leftElems) == 1 {
+	var inst *nodes.OperColon
+	if fNode.leftNode != nil {
+		// here - method found
+		prefs := fNode.leftNode
+		prefExp, iok := OperSub(prefs.leftNode, prefs.leftElems)
+		if !iok {
+			// bad syntax
+		} else if instExp, ok := prefExp.(*nodes.OperColon); ok {
+			inst = instExp
+		}
+		if len(fNode.leftElems) == 1 {
+			name = prefs.rightElems[0].Text
+		}
+	} else if len(fNode.leftElems) == 1 {
 		// should be name
 		name = fNode.leftElems[0].Text
 	}
 	// fmt.Println("FuncCase# name ", name)
 
+	var resDef base.Expression
 	funcDef := nodes.NewFuncDef(name, args)
-	if prefTree != nil {
+	if inst != nil {
 		// method def
+		resDef = nodes.NewMethodDef(funcDef, inst)
+	} else {
+		resDef = funcDef
 	}
-	return &SplitState{Expr: funcDef, Done: true}, nil
+	return &SplitState{Expr: resDef, Done: true}, nil
 }
 
 // struct StrName(Parent) a, b, c:int

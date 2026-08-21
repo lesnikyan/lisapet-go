@@ -191,7 +191,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		}
 		// other objects by name: func, type, enum, group
 		switch el := elem.V.(type) {
-		case *Function, *NFunc:
+		case *objects.Function, *NFunc:
 			return el
 		}
 		return "<? No val from VArExpr>"
@@ -205,7 +205,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
-		// fmt.Printf("GetExp.FuncCall#Val: %T, %v\n", eVal, eVal)
+		// fmt.Printf("GetExp.FuncCall#Val: %T, %v >> %T, %v \n", eVal, eVal, eVal.V, eVal.V)
 		return eVal.V
 	case *NumSeqExpr:
 		res := vv.res.GetList()
@@ -222,8 +222,31 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		return vv.Get().V
 	case *EmptyExpr:
 		return &objects.EmptyVal{}
+	case *OperDot:
+		// fmt.Printf("GetExprVal# `a.b` : %T, %v\n", vv.Get(), vv.Get())
+		// fmt.Printf("GetExprVal#  member: %T, %v\n", vv.GetMember(), vv.GetMember())
+		member := vv.GetMember()
+		if member == nil {
+			// fmt.Printf("GetExprVal# no member %v\n", member)
+			return nil
+		}
+
+		mval := member.Get()
+		if mval == nil {
+			// fmt.Printf("GetExprVal# no member value %v\n", mval)
+			return nil
+		}
+		// fmt.Printf("GetExprVal# memVal: %T, %v\n", mval.V, mval.V)
+		switch val := mval.V.(type) {
+		case *objects.Method:
+			val.Inst = member.Obj
+			return val
+		default:
+			return val
+		}
+
 	default:
-		// fmt.Printf("GetExprVal#10: %T, %v\n", vv.Get(), vv.Get())
+		// fmt.Printf("GetExprVal#100: %T, %v\n", vv.Get(), vv.Get())
 		return vv.Get().V
 	}
 	if eVal != nil {
@@ -231,17 +254,3 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	}
 	return nil
 }
-
-// // get point of Val
-// func GetPVal(v any) any {
-// 	fmt.Printf("GetVal#0: %T, %v\n", v, v)
-// 	switch vv := v.(type) {
-// 	case *base.Var:
-// 		return vv.Val
-// 	case *base.Val:
-// 		fmt.Printf("GetVal#Val: %T, %v\n", vv.V, vv.V)
-// 		return vv
-// 	default:
-// 		return vv
-// 	}
-// }

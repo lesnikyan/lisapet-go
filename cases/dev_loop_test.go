@@ -32,7 +32,7 @@ ok 7.2 continue
 ok 8. num list: [1..5], [1, 3 .. 7]
 */
 
-func TestInterfaceNil(t *testing.T) {
+func _TestInterfaceNil(t *testing.T) {
 	var ee base.Expression
 	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
 	ee = nil
@@ -84,27 +84,27 @@ func TestWhileCase(t *testing.T) {
 			vr := ctx.GetVar(tt.vname)
 			// t.Log("tt#vr", vr)
 			if vr == nil {
-				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				// fmt.Printf(" TT#0: %T %v\n", vr, vr)
 				assert.Fail(t2, "No expected Var")
 				return
 			}
 			val := vr.Val
-			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
 			switch vobj := val.(type) {
 			case *obb.ListVal:
-				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 				assert.Equal(t2, tt.res, vobj.Elems)
 			case *obb.DictVal:
-				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
 				tm, tok := tt.res.(map[any]any)
 				assert.True(t2, tok)
 				res := pres(vobj)
 				assert.Equal(t2, tm, res)
 			case int64:
-				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 				assert.Equal(t2, tt.res, vobj)
 			default:
-				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			}
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
@@ -178,27 +178,27 @@ func TestNumberSequenceCase(t *testing.T) {
 			vr := ctx.GetVar(tt.vname)
 			// t.Log("tt#vr", vr)
 			if vr == nil {
-				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				// fmt.Printf(" TT#0: %T %v\n", vr, vr)
 				assert.Fail(t2, "No expected Var")
 				return
 			}
 			val := vr.Val
-			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
 			switch vobj := val.(type) {
 			case *obb.ListVal:
-				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 				assert.Equal(t2, tt.res, vobj.Elems)
 			case *obb.DictVal:
-				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
 				tm, tok := tt.res.(map[any]any)
 				assert.True(t2, tok)
 				res := pres(vobj)
 				assert.Equal(t2, tm, res)
 			case int64:
-				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 				assert.Equal(t2, tt.res, vobj)
 			default:
-				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			}
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
@@ -270,27 +270,27 @@ func TestForArrowAppendCase(t *testing.T) {
 			vr := ctx.GetVar(tt.vname)
 			// t.Log("tt#vr", vr)
 			if vr == nil {
-				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				// fmt.Printf(" TT#0: %T %v\n", vr, vr)
 				assert.Fail(t2, "No expected Var")
 				return
 			}
 			val := vr.Val
-			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
 			switch vobj := val.(type) {
 			case *obb.ListVal:
-				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 				assert.Equal(t2, tt.res, vobj.Elems)
 			case *obb.DictVal:
-				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
 				tm, tok := tt.res.(map[any]any)
 				assert.True(t2, tok)
 				res := pres(vobj)
 				assert.Equal(t2, tm, res)
 			case int64:
-				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 				assert.Equal(t2, tt.res, vobj)
 			default:
-				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			}
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
@@ -366,27 +366,27 @@ func TestForArrowIterCase(t *testing.T) {
 			vr := ctx.GetVar(tt.vname)
 			// t.Log("tt#vr", vr)
 			if vr == nil {
-				fmt.Printf(" TT#0: %T %v\n", vr, vr)
+				// fmt.Printf(" TT#0: %T %v\n", vr, vr)
 				return
 			}
 			val := vr.Val
-			fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
+			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
 			switch vobj := val.(type) {
 			case *obb.ListVal:
-				fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+				// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 				assert.Equal(t2, tt.res, vobj.Elems)
 			case *obb.DictVal:
-				fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+				// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
 				tm, tok := tt.res.(map[any]any)
 				assert.True(t2, tok)
 				res := pres(vobj)
 				// assert.Equal(t2, tm, res)
 				assert.True(t2, reflect.DeepEqual(tm, res))
 			case int64:
-				fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 				assert.Equal(t2, tt.res, vobj)
 			default:
-				fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+				// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			}
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})

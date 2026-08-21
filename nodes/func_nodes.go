@@ -13,7 +13,7 @@ type FuncDef struct {
 	Args  []base.Expression
 	Block *BlockExpr
 
-	res *Function
+	res *objects.Function
 }
 
 func (fd *FuncDef) IsParent() bool {
@@ -27,20 +27,26 @@ func (fd *FuncDef) Get() *base.Val {
 	return base.NewVal(fd.res)
 }
 
+func (fd *FuncDef) MakeFunc(cx base.Context) (*objects.Function, error) {
+	defCx := objects.NewContext(cx)
+
+	fbk := &FuncBlock{Block: fd.Block, dfnArgs: fd.Args}
+	err := fbk.Init(cx)
+	// err := fn.Init(cx)
+	if err != nil {
+		return nil, errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
+	}
+	// fn := NewFunction(fd.Name, fd.Args, fd.Block, defCx)
+	fn := objects.NewFunction(fd.Name, fbk, defCx)
+	fd.res = fn
+	return fn, nil
+}
+
 func (fd *FuncDef) Do(cx base.Context) error {
 	fd.res = nil
-	defCx := objects.NewContext(cx)
-	// args := make([]*base.Var, len(fd.Args))
-	// for i, vex := range fd.Args {
-	// 	vex.NewVar(defCx)
-	// 	vr := vex.GetVar()
-	// 	args[i] = vr
-	// }
-	fn := NewFunction(fd.Name, fd.Args, fd.Block, defCx)
-	fd.res = fn
-	err := fn.Init(cx)
+	fn, err := fd.MakeFunc(cx)
 	if err != nil {
-		return errors.Join(err)
+		return err
 	}
 	cx.AddFunc(fn)
 	return nil
@@ -59,14 +65,70 @@ func NewFuncDef(name string, args []base.Expression) *FuncDef {
 	return &FuncDef{Name: name, Args: args, Block: NewBlock()}
 }
 
+// === MethodDef
+
+type MethodDef struct {
+	Func *FuncDef
+	Inst *OperColon
+
+	res *objects.Method
+}
+
+func (md *MethodDef) IsParent() bool {
+	return true
+}
+
+func (md *MethodDef) Get() *base.Val {
+	return base.NewVal(md.res)
+}
+
+func (md *MethodDef) Do(cx base.Context) error {
+	texp, ok := md.Inst.Right.(*VarExpr)
+	if !ok {
+		return errors.New("MethodDef: instance expr has incorrect syntax")
+	}
+	tname := texp.GetName()
+	tt := cx.GetType(tname)
+	if tt == nil {
+		return errors.New("MethodDef: type of instance not found")
+	}
+	iname := ""
+	if nexp, ok := md.Inst.Left.(*VarExpr); ok {
+		iname = nexp.GetName()
+	}
+	fd := md.Func
+	fn, err := fd.MakeFunc(cx)
+	if err != nil {
+		return errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
+	}
+	// met := &objects.Method{Func: fn, InstName: iname, Type: tt}
+	met := objects.NewMethod(fn, tt, iname)
+	// fmt.Printf(" MetodDef.Do: t(%T, %v) meth(%T, %v) \n", tt, tt, met, met)
+	tt.AddMethod(met)
+	md.res = met
+	return nil
+}
+
+func (fd *MethodDef) Add(sub base.Expression) {
+	fd.Func.Add(sub)
+}
+
+// for methods only
+func (fd *MethodDef) SetObject(obj *VarExpr) {
+
+}
+
+func NewMethodDef(fun *FuncDef, inst *OperColon) *MethodDef {
+	return &MethodDef{Func: fun, Inst: inst}
+}
+
 //==
 
 var NoResult = base.NewVal(&objects.Null{})
 
-//==
+// ==
 
 // func call: smth([args])
-
 type FuncCall struct {
 	Src  base.Expression // should return function object
 	args []base.Expression
@@ -77,10 +139,6 @@ type FuncCall struct {
 }
 
 func (fc *FuncCall) Get() *base.Val {
-	// if fc.res == nil {
-	// 	return nil
-	// }
-	// return base.NewVal(fc.res)
 	return fc.resVal
 }
 
@@ -95,9 +153,12 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 		return errors.New("trying to call nil elem")
 	}
 	switch fn := fv.(type) {
-	case *Function:
+	case *objects.Function:
 		fc.fun = fn
 	case *NFunc:
+		fc.fun = fn
+	case *objects.Method:
+		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 		fc.fun = fn
 	default:
 		// fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
@@ -114,7 +175,6 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 	vals := make([]any, len(fc.args))
 
 	i := 0
-	// foo(ord1, ordN, variadic..., named1=val1, named2=val2)
 	for _, vex := range fc.args {
 		nmExp, ok := vex.(*OperAssign)
 		// fmt.Printf("FunCall (Args1): exp:(%T, %v) isAssign: %v \n", vex, vex, ok)

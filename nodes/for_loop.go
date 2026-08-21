@@ -30,7 +30,7 @@ type ForCondNode struct {
 	CondEx base.Expression
 	PostEx base.Expression
 	Block  *BlockExpr
-	pup    *PopUp
+	pup    *base.PopUp
 
 	SourceCollection any // list, dict, tuple, comprehension, generator, slice, etc
 	SourceGen        any
@@ -50,7 +50,7 @@ func (nd *ForCondNode) Get() *base.Val {
 	return nil
 }
 
-func (bk *ForCondNode) GetPopUp() *PopUp {
+func (bk *ForCondNode) GetPopUp() *base.PopUp {
 	return bk.pup
 }
 func (nd *ForCondNode) Init(cx base.Context) error {
@@ -70,20 +70,20 @@ func (nd *ForCondNode) Check(cx base.Context) (bool, error) {
 	return (val.V).(bool), nil
 }
 
-func ForStop(bk *BlockExpr) (bool, *PopUp) {
+func ForStop(bk *BlockExpr) (bool, *base.PopUp) {
 	pup := bk.GetPopUp()
 	if pup == nil {
 		return false, nil
 	}
 	// TODO: return
 	switch pup.Parent {
-	case NodeBreak:
+	case base.NodeBreak:
 		// fmt.Println("#For.Break")
 		return true, nil
-	case NodeContinue:
+	case base.NodeContinue:
 		// fmt.Println("#For.Continue")
 		return false, nil
-	case NodeReturn:
+	case base.NodeReturn:
 		// fmt.Println("#For.Return")
 		return true, pup
 	}
@@ -110,7 +110,7 @@ func (nd *ForCondNode) Loop(cx base.Context) error {
 		if stop {
 			if popUp != nil {
 				switch popUp.Parent {
-				case NodeReturn:
+				case base.NodeReturn:
 					nd.pup = popUp
 				}
 			}
@@ -163,7 +163,7 @@ type ForSourceNode struct {
 	// PostEx base.Expression
 	IterExpr *LeftArrow
 	Block    *BlockExpr
-	pup      *PopUp
+	pup      *base.PopUp
 
 	// SourceCollection any // list, dict, tuple, comprehension, generator, slice, etc
 	// iter             SourceIter
@@ -180,7 +180,7 @@ func (nd *ForSourceNode) Get() *base.Val {
 	return nil
 }
 
-func (bk *ForSourceNode) GetPopUp() *PopUp {
+func (bk *ForSourceNode) GetPopUp() *base.PopUp {
 	return bk.pup
 }
 
@@ -212,7 +212,7 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 		if stop {
 			if popUp != nil {
 				switch popUp.Parent {
-				case NodeReturn:
+				case base.NodeReturn:
 					nd.pup = popUp
 				}
 			}

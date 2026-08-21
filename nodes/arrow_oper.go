@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	ob "github.com/lesnikyan/lisapet-go/objects"
@@ -56,7 +55,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 			if rval.Len() != 2 {
 				return errors.New("incorrect right tuple in dict:append")
 			}
-			fmt.Printf("{} <- () [%T, %v],, [%T, %v] \n", rval.Elems[0], rval.Elems[0], rval.Elems[1], rval.Elems[1])
+			// fmt.Printf("{} <- () [%T, %v],, [%T, %v] \n", rval.Elems[0], rval.Elems[0], rval.Elems[1], rval.Elems[1])
 			k := rval.Elems[0]
 			v := rval.Elems[1]
 			targ.Set(k, v)
@@ -312,7 +311,7 @@ type LambdaExpr struct {
 	Args       []base.Expression
 	BlockNodes []base.Expression
 
-	res *Function
+	res *ob.Function
 }
 
 // ser Args: var, colon, CommaSeq

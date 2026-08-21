@@ -10,7 +10,7 @@ type BlockExpr struct {
 	parMark  bool
 	aborted  bool      // after: return, break
 	abortRes *base.Val // after return
-	PopUp    *PopUp
+	PopUp    *base.PopUp
 }
 
 func (bk *BlockExpr) IsParent() bool {
@@ -21,7 +21,7 @@ func (bk *BlockExpr) IsParent() bool {
 // 	return bk.aborted
 // }
 
-func (bk *BlockExpr) GetPopUp() *PopUp {
+func (bk *BlockExpr) GetPopUp() *base.PopUp {
 	return bk.PopUp
 }
 
@@ -49,7 +49,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		return nil
 	}
 	hasRes := true // most expressions has result
-	var popUp NodeType = 0
+	var popUp base.NodeType = 0
 	for _, exp := range bk.subs {
 		// fmt.Printf("Bl.Do#0: %T, %v\n", exp, exp)
 		err := exp.Do(cx)
@@ -60,25 +60,21 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		stop := false
 		switch cur := exp.(type) {
 		case *BreakExp:
-			popUp = NodeBreak
+			popUp = base.NodeBreak
 			hasRes = false
 			stop = true
 		case *ContinueExp:
-			popUp = NodeContinue
+			popUp = base.NodeContinue
 			hasRes = false
 			stop = true
 		case *ReturnExp:
 			r := cur.Get()
-			pup := NewPopUp(NodeReturn, r)
+			pup := base.NewPopUp(base.NodeReturn, r)
 			bk.PopUp = pup
-
-			// r := cur.Get()
-			// if r != nil {
-			// 	bk.res = r.V
-			// }
 			return nil
 
 		case *IfNode:
+			// fmt.Printf("Block.Do IfNode \n")
 			inPup := cur.GetPopUp()
 			if inPup != nil {
 				bk.PopUp = inPup
@@ -88,11 +84,11 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 				if r != nil {
 					bk.res = r.V
 				}
+				continue
 			}
 			// other resulting expressions: func def, func call, operators, value, if-else, match, etc
 		case *ForCondNode:
 			// fmt.Printf("Block.Loop node \n")
-
 			inPup := cur.GetPopUp()
 			if inPup != nil {
 				bk.PopUp = inPup
@@ -109,6 +105,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			}
 			hasRes = false
 		default:
+			// fmt.Printf("Bl.Do# defl: %T, %v\n", exp, exp)
 			hasRes = true
 			// case *ValExpr:
 			// 	hasRes = true
@@ -129,7 +126,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		if hasRes {
 			popRes = last.Get()
 		}
-		bk.PopUp = &PopUp{
+		bk.PopUp = &base.PopUp{
 			Parent: popUp,
 			Res:    popRes,
 		}
@@ -140,10 +137,17 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		return nil
 	}
 	last = bk.subs[len(bk.subs)-1]
-	if last != nil {
-		r := last.Get()
-		if r != nil {
-			bk.res = r.V
+	switch rlast := last.(type) {
+	case *IfNode, *ElseNode, *FuncDef, ForExpr:
+		return nil
+	default:
+		// fmt.Printf("Bl.Do# last: %T, %v\n", rlast, rlast)
+		if rlast != nil && bk.res == nil {
+			// r := last.Get()
+			r := GetExprVal(rlast, nil)
+			if r != nil {
+				bk.res = r
+			}
 		}
 	}
 	return nil

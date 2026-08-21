@@ -2,6 +2,144 @@ package cases
 
 import "testing"
 
+func TestMethodsNamed(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo(x:int=0, y:int=1)
+			(x + t.a) * y
+		#
+		tt = T1{a: 10}
+		r = []
+		r <- tt.foo()
+		r <- tt.foo(2)
+		r <- tt.foo(2, 7)
+		r <- tt.foo(y=5)
+		r <- tt.foo(y=3, x=4)
+		#
+		`, "r", Anis(10, 12, 84, 50, 42)},
+
+		// {``, "r", int64(105)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+func TestMethodsSimple(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 add(x:int)
+			t.a = x
+		#
+		r = T1{a: 100}
+		r.add(1003)
+		#
+		`, "r", Stf("T1", dk{"a": 1003, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 add(x:int)
+			t.a = x + t.a
+		#
+		r = T1{a: 100}
+		r.add(3)
+		#
+		`, "r", Stf("T1", dk{"a": 103, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 add(x:int)
+			t.a += x
+		#
+		r = T1{a: 100}
+		r.add(4)
+		#
+		`, "r", Stf("T1", dk{"a": 104, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo()
+			t.a
+		#
+		s = T1{a: 106}
+		r = s.foo()
+		#
+		`, "r", int64(106)},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo(x:int)
+			t.a + x
+		#
+		s = T1{a: 100}
+		r = s.foo(5)
+		#
+		`, "r", int64(105)},
+		{`
+		struct T1 a: int, b: bool, c: string, nn: list
+		#
+		func t:T1 setNn(nums:list)
+			t.nn = []
+			for n <- nums
+				t.nn <- n
+		#
+		func t:T1 foo(x:int)
+			t.a + x
+		#
+		s = T1{a: 100}
+		s.setNn([22,33,55])
+		r = s.nn
+		#
+		`, "r", Anis(22, 33, 55)},
+		{`
+		struct T1 a: int, b:int, c: string
+		#
+		func t:T1 foo()
+			rr = []
+			for i <- [t.a..t.b]
+				s = ""
+				for j=0; j < i; j += 1
+					s += t.c
+				rr <- s
+			rr
+		#
+		s = T1{a: 2, b:5, c: 'g'}
+		r = s.foo()
+		#
+		`, "r", Anis("gg", "ggg", "gggg", "ggggg")},
+		{`
+		struct T1 a: int, b:int, c: string
+		#
+		func t:T1 foo(x: string)
+			rr = []
+			for i <- [t.a..t.b]
+				s = x
+				for j=0; j < i; j += 1
+					s += t.c
+				rr <- s
+			rr
+		#
+		s = T1{a: 2, b:4, c: 'g'}
+		r = s.foo('R')
+		#
+		`, "r", Anis("Rgg", "Rggg", "Rgggg")},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestNestedStructConstr(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -210,10 +348,21 @@ func TestStructFieldSet(t *testing.T) {
 		r.s = "Nya"
 		r.nn = [2,3,44]
 		`, "r", Stf("T", dk{"a": 21, "b": true, "s": "Nya", "nn": Anis(2, 3, 44)})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		r = T1{a: 100}
+		r.a = 2 + r.a
+		#
+		`, "r", Stf("T1", dk{"a": 102, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		r = T1{a: 100}
+		r.a += 3
+		#
+		`, "r", Stf("T1", dk{"a": 103, "b": false})},
 		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
-		// {``, "r", Stf("T", dk{"a": 0, "b": false})},
-		// {``, "r",  int64(205)},
-		// {``, "r",  Anis(11, )},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
