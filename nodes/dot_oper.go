@@ -69,18 +69,15 @@ func (op *OperDot) Do(cx base.Context) error {
 		mb := obj.GetMember(mname)
 		if mb != nil {
 			op.res = mb // field found
-			// fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, mb, mb)
+			// fmt.Printf(" <. oper> StInst.field n=`%s` (%T, %v) \n", mname, mb, mb)
 			return nil
 		} else {
-			fval, ok := obj.Type.GetMethod(mname)
-			// fmt.Printf(" <.> Do n=`%s` (%T, %v) \n", mname, fval, ok)
-			if ok {
-				// if mth := obj.GetMethod(mname); mth != nil {
-				switch met := fval.(type) {
-				case *objects.Method:
-					met.Inst = obj
-					op.res = met // method found
-				}
+			met := obj.GetMethod(mname)
+			// fmt.Printf(" <. oper> StInst.method n=`%s` (%T, %v) \n", mname, met)
+			// if mth := obj.GetMethod(mname); mth != nil {
+			if met != nil {
+				met.Inst = obj
+				op.res = met // method found
 				return nil
 			}
 		}

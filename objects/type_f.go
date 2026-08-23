@@ -1,6 +1,8 @@
 package objects
 
 import (
+	"slices"
+
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -123,31 +125,42 @@ func ConvertByType(exp base.TypeId, val any) any {
 	return nil
 }
 
+// if a is parent of b
+func IsParent(a *StructDef, b *StructDef) bool {
+	return slices.Contains(b.Parents, a)
+}
+
 // actual for variable, argument, struct method in left of assign
 // prepare and convert val
 // result: isTypeOk, convertedVal
-func PrepareVal(expType base.TypeId, val any) (bool, any) {
-	if expType > base.TypeStructBase {
+func PrepareVal(expType *base.Type, val any) (bool, any) {
+	if expType.Id > base.TypeStructBase {
 		if null, ok := val.(*Null); ok {
 			return true, null
 		}
 		if st, ok := val.(*StructInst); ok {
 			// if struct value
-			if st.Def.Id == expType {
+			if st.Def.Type.Id == expType.Id {
 				return true, val
 			}
 			// TODO: if parent
+			if expDef, ok := expType.Def.(*StructDef); ok {
+				okS := IsParent(expDef, st.Def)
+				if okS {
+					return true, val
+				}
+			}
 		}
 
 	}
 	tv := TypeByVal(val)
-	if tv.Id == expType {
+	if tv.Id == expType.Id {
 		return true, val
 	}
-	if !base.TypeCompat(expType, tv.Id) {
+	if !base.TypeCompat(expType.Id, tv.Id) {
 		// fmt.Printf("PrepV=#2 Vla Not compatible Eq: %v == %v %v\n", tv.Id, expType, tv.Id == expType)
 		return false, nil
 	}
-	cval := ConvertByType(expType, val)
+	cval := ConvertByType(expType.Id, val)
 	return true, cval
 }

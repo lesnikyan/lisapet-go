@@ -51,10 +51,10 @@ next - by dates...
 - -.-.17 Implemented block-syntax for struct constructor, struct definition  
 - -.-.18 Implemented nested case of block-syntax of collections: dict, list, tuple  
 - -.-.- nested block of struct constructors is Done.  
--.-.21 Implemented methods of struct.  
+- -.-.21 Implemented methods of struct: `T1{a: 5}.foo(10)`  
+- -.-.23 Struct inheritance: fields, methods. Prepared multi-inheritance
 
 #### next TODO:
-- Struct inheritance.
 - Compatibility  between parent and child struct types.
 - type check operator `::`
 

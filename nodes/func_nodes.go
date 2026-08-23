@@ -104,7 +104,11 @@ func (md *MethodDef) Do(cx base.Context) error {
 	// met := &objects.Method{Func: fn, InstName: iname, Type: tt}
 	met := objects.NewMethod(fn, tt, iname)
 	// fmt.Printf(" MetodDef.Do: t(%T, %v) meth(%T, %v) \n", tt, tt, met, met)
-	tt.AddMethod(met)
+	if tt.Def != nil {
+		if sdef, ok := tt.Def.(*objects.StructDef); ok {
+			sdef.AddMethod(met)
+		}
+	}
 	md.res = met
 	return nil
 }

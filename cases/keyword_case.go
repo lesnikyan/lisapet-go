@@ -2,6 +2,7 @@ package cases
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
@@ -89,7 +90,7 @@ func CaseFunc(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	if fNode.rightNode != nil || len(fNode.rightElems) > 0 {
 		argExp, sok := OperSub(fNode.rightNode, fNode.rightElems)
 		if !sok {
-			// ?
+			return nil, errors.New("func def: error in parsing args")
 		}
 		switch subs := argExp.(type) {
 		case *nodes.SequenceComma:
@@ -148,6 +149,8 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 	name := "s#"
 	fIndex := 2 // field start index
 	// normally struct definition placed in 1 line, or uses block-syntax
+	var parents base.Expression
+	var pNode *OperNode
 	if kwRoot.BracketsCount == 0 {
 		if elems[1].Type != Lt.Word {
 			return nil, errors.New("keyword struct: bad name in definition")
@@ -158,9 +161,40 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 			if elems[2].Type == Lt.Oper {
 				if elems[2].Text != "(" {
 					// bad syntax
-					return nil, errors.New("Bad syntax of struct case")
+					return nil, errors.New("Bad syntax of struct case: not brackets oper after name")
 				}
 				// make Parent sub
+				openD := 2 // parents open bracket
+				closeD := -1
+				for i := openD; i < len(elems); i++ {
+					if elems[i].Type == Lt.Oper && elems[i].Text == ")" {
+						// found closed
+						closeD = i
+						break
+					}
+				}
+				if closeD == -1 {
+					// closed not found
+					// strDef := &nodes.StructDefExpr{Name: name}
+					return &SplitState{LTree: &LineTree{}, Done: false}, nil
+				}
+				if closeD-openD == 2 {
+					// 1 parent
+					if elems[openD+1].Type != Lt.Word {
+						return nil, errors.New("Bad syntax of struct case: incorrect parent name")
+					}
+					// parents = nodes.NewVarExpr(elems[openD+1].Text)
+					pNode = &OperNode{rightElems: elems[openD+1 : openD+2]}
+				} else if closeD-openD == 1 {
+					// no parent, empty brackets
+				} else {
+					pTree, err := Line2tree(elems[1:4], nil)
+					if err != nil {
+						return nil, errors.New("Bad syntax of struct case: bad tree of parents")
+					}
+					pNode = pTree.Tree
+				}
+				fIndex = closeD + 1
 				// fIndex = elem after brackets
 			}
 		} else {
@@ -169,6 +203,7 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		}
 	}
 
+	// PrintONode(pNode, 0)
 	// expecting comma-separated sequence
 	nTree, err := Line2tree(elems[fIndex:], kwRoot)
 	if err != nil {
@@ -203,7 +238,32 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		// 1 typed field
 		args = []base.Expression{argExp}
 	}
-	strDef := &nodes.StructDefExpr{Name: name, Fields: args}
+	if pNode != nil {
+		pps, ok := OperSub(pNode.rightNode, pNode.rightElems)
+		if !ok {
+			return nil, errors.New("Bad syntax of struct case: error in parsing parents list")
+		}
+		parents = pps
+	}
+	var parentx []*nodes.VarExpr
+	if parents != nil {
+		switch pex := parents.(type) {
+		case *nodes.VarExpr:
+			parentx = []*nodes.VarExpr{pex}
+		case *nodes.SequenceComma:
+			ppx := make([]*nodes.VarExpr, len(pex.Subs))
+			for i, nx := range pex.Subs {
+				switch varx := nx.(type) {
+				case *nodes.VarExpr:
+					ppx[i] = varx
+				default:
+					fmt.Printf("Warn: Strange parent of struct def: (%T, %v) \n", nx, nx)
+				}
+			}
+			parentx = ppx
+		}
+	}
+	strDef := &nodes.StructDefExpr{Name: name, Fields: args, Parents: parentx}
 	return &SplitState{Expr: strDef, Done: true}, nil
 }
 
