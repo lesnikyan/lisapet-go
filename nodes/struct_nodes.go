@@ -90,6 +90,7 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 			defv = base.DefaultVal(ftype.Id)
 		}
 		fld := &objects.StructField{Name: name, Type: ftype, DefVal: defv}
+		// fmt.Printf("SDefEx fld: %d) (%s, %v) \n", i, name, ftype)
 		fields[i] = fld
 	}
 	return fields, nil
@@ -107,7 +108,7 @@ func (se *StructDefExpr) Do(cx base.Context) error {
 		// inheritance part
 		parents = make([]*objects.StructDef, len(se.Parents))
 		for i, parx := range se.Parents {
-			// fmt.Printf("SDef parent0: %d) (%T, %v) \n", i, parx, parx)
+			// fmt.Printf("SDefEx parent: %d) (%T, %v) \n", i, parx, parx)
 			pname := parx.GetName()
 			ptype := cx.GetType(pname)
 			if ptype == nil {
@@ -189,7 +190,7 @@ func (se *StructConstr) Do(cx base.Context) error {
 		}
 		sf, ok := sdef.Fields[arn]
 		if !ok {
-			return fmt.Errorf("struct: incorrect field name `%s`", arn)
+			return fmt.Errorf("struct constr: incorrect field name `%s`", arn)
 		}
 		tOk, val := objects.PrepareVal(sf.Type, rv)
 		if !tOk {

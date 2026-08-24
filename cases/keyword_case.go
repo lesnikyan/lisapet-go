@@ -188,12 +188,13 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 				} else if closeD-openD == 1 {
 					// no parent, empty brackets
 				} else {
-					pTree, err := Line2tree(elems[1:4], nil)
+					pTree, err := Line2tree(elems[openD+1:closeD], nil)
 					if err != nil {
 						return nil, errors.New("Bad syntax of struct case: bad tree of parents")
 					}
 					pNode = pTree.Tree
 				}
+				// fmt.Printf("KWS#0 opD: %d clD: %d \n", openD, closeD)
 				fIndex = closeD + 1
 				// fIndex = elem after brackets
 			}
@@ -205,38 +206,42 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 
 	// PrintONode(pNode, 0)
 	// expecting comma-separated sequence
-	nTree, err := Line2tree(elems[fIndex:], kwRoot)
-	if err != nil {
-		// do smth
-		return nil, err
-	}
-
-	if !nTree.Finished {
-		return &SplitState{Done: false, LTree: nTree}, nil
-	}
-
-	// PrintONode(nTree.Tree, 0)
 	var args []base.Expression
-	subNode := nTree.Tree
-	// PrintONode(subNode, 0)
-	subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
-	// fmt.Printf("Case#Struct#1: (%T, %v): %v \n", subExp, subExp, ok)
-	if !ok {
-		return nil, errors.New("struct: bad subs")
-	}
-	switch argExp := subExp.(type) {
-	case *nodes.SequenceComma:
-		// several fields
-		args = make([]base.Expression, len(argExp.Subs))
-		for i, arg := range argExp.Subs {
-			args[i] = arg
+	// fmt.Printf("KWS#1 fInd: %d eln: %d \n", fIndex, len(elems))
+	if len(elems) > fIndex {
+		nTree, err := Line2tree(elems[fIndex:], kwRoot)
+		if err != nil {
+			// do smth
+			return nil, err
 		}
-	case *nodes.VarExpr:
-		// 1 field no type
-		args = []base.Expression{argExp}
-	case *nodes.OperColon:
-		// 1 typed field
-		args = []base.Expression{argExp}
+
+		if !nTree.Finished {
+			return &SplitState{Done: false, LTree: nTree}, nil
+		}
+
+		// PrintONode(nTree.Tree, 0)
+		subNode := nTree.Tree
+		// PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		// fmt.Printf("Case#Struct#1: (%T, %v): %v \n", subExp, subExp, ok)
+		if !ok {
+			return nil, errors.New("struct: bad subs")
+		}
+		switch argExp := subExp.(type) {
+		case *nodes.SequenceComma:
+			// several fields
+			args = make([]base.Expression, len(argExp.Subs))
+			for i, arg := range argExp.Subs {
+				args[i] = arg
+			}
+		case *nodes.VarExpr:
+			// 1 field no type
+			args = []base.Expression{argExp}
+		case *nodes.OperColon:
+			// 1 typed field
+			args = []base.Expression{argExp}
+		}
+
 	}
 	if pNode != nil {
 		pps, ok := OperSub(pNode.rightNode, pNode.rightElems)
@@ -245,6 +250,7 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 		}
 		parents = pps
 	}
+	// fmt.Printf("KW Str#4 Parents: (%T, %v)\n", parents, parents)
 	var parentx []*nodes.VarExpr
 	if parents != nil {
 		switch pex := parents.(type) {
@@ -252,6 +258,7 @@ func CaseStructDef(elems []*lang.Elem, kwRoot *LineTree) (*SplitState, error) {
 			parentx = []*nodes.VarExpr{pex}
 		case *nodes.SequenceComma:
 			ppx := make([]*nodes.VarExpr, len(pex.Subs))
+			// fmt.Printf("KW Str#5 CommaSep: (%T, %v) SubLen: %d \n", pex, pex, pex.Subs)
 			for i, nx := range pex.Subs {
 				switch varx := nx.(type) {
 				case *nodes.VarExpr:

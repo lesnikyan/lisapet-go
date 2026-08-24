@@ -22,12 +22,12 @@ type StructField struct {
 
 // struct definition object
 type StructDef struct {
-	Name     string
-	FNames   []string
-	Fields   map[string]*StructField
-	Type     *base.Type
-	Parents  []*StructDef
-	fieldMap map[string]*StructDef
+	Name    string
+	FNames  []string
+	Fields  map[string]*StructField
+	Type    *base.Type
+	Parents []*StructDef
+	// fieldMap map[string]*StructDef
 
 	// Methods []*Method
 	Methods map[string]*Method
@@ -83,20 +83,26 @@ func (sd *StructDef) GetMethods() []base.FuncVal {
 
 func (sd *StructDef) GetFields() []*StructField {
 	pmt := make([]*StructField, 0)
+
+	// fmt.Printf("StDef GetF. pps: %d \n", len(sd.Parents))
 	for _, prt := range sd.Parents {
+		// fmt.Printf("StDef GetPf3. t: %s \n", prt.Name)
 		mm := prt.GetFields()
 		pmt = append(pmt, mm...)
 	}
-	for _, fn := range sd.Fields {
-		pmt = append(pmt, fn)
+	for _, f := range sd.Fields {
+		// fmt.Printf("StDef GetF4. f: %s : %s \n", k, f.Name)
+		pmt = append(pmt, f)
 	}
 	return pmt
 }
 
 func (sd *StructDef) InitChild() {
+	// fmt.Printf("StDef.InitCh1 t: %s \n", sd.Name)
 	// fields
 	ff := sd.GetFields()
 	for _, fd := range ff {
+		// fmt.Printf("StDef.InitCh2 f: %v \n", fd)
 		sd.Fields[fd.Name] = fd
 		sd.FNames = append(sd.FNames, fd.Name)
 	}
