@@ -10,9 +10,10 @@ import (
 
 // struct StrName(Parent) a, b, c:int
 type StructDefExpr struct {
-	Name   string
-	Fields []base.Expression // var, var:type
-	Subs   []base.Expression
+	Name    string
+	Fields  []base.Expression // var, var:type
+	Subs    []base.Expression
+	Parents []*VarExpr
 
 	res *objects.StructDef
 }
@@ -89,6 +90,7 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 			defv = base.DefaultVal(ftype.Id)
 		}
 		fld := &objects.StructField{Name: name, Type: ftype, DefVal: defv}
+		// fmt.Printf("SDefEx fld: %d) (%s, %v) \n", i, name, ftype)
 		fields[i] = fld
 	}
 	return fields, nil
@@ -101,9 +103,27 @@ func (se *StructDefExpr) Do(cx base.Context) error {
 	if err != nil {
 		return err
 	}
-	sdef := objects.NewSructDef(se.Name, fields)
+	var parents []*objects.StructDef
+	if len(se.Parents) > 0 {
+		// inheritance part
+		parents = make([]*objects.StructDef, len(se.Parents))
+		for i, parx := range se.Parents {
+			// fmt.Printf("SDefEx parent: %d) (%T, %v) \n", i, parx, parx)
+			pname := parx.GetName()
+			ptype := cx.GetType(pname)
+			if ptype == nil {
+				return fmt.Errorf("struct def: can't find aprent type `%s`", pname)
+			}
+			if ptype.Def != nil {
+				if sdef, ok := ptype.Def.(*objects.StructDef); ok {
+					parents[i] = sdef
+				}
+			}
+		}
+	}
+	sdef := objects.NewSructDef(se.Name, fields, parents)
 	stype := base.DefineUserType(se.Name, sdef)
-	sdef.Id = stype.Id
+	sdef.Type = stype
 	cx.AddType(stype)
 	return nil
 }
@@ -170,9 +190,9 @@ func (se *StructConstr) Do(cx base.Context) error {
 		}
 		sf, ok := sdef.Fields[arn]
 		if !ok {
-			return fmt.Errorf("struct: incorrect field name `%s`", arn)
+			return fmt.Errorf("struct constr: incorrect field name `%s`", arn)
 		}
-		tOk, val := objects.PrepareVal(sf.Type.Id, rv)
+		tOk, val := objects.PrepareVal(sf.Type, rv)
 		if !tOk {
 			return fmt.Errorf("struct: incorrect type for field `%s`", arn)
 		}

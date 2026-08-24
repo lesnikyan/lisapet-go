@@ -2,6 +2,137 @@ package cases
 
 import "testing"
 
+func TestStructParentMulti(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// {`
+		// struct A a: int
+		// #
+		// func t:A xN(x:int)
+		// 	t.a *= x
+		// #
+		// struct B b: bool
+		// func t:B inv()
+		// 	t.b = ! t.b
+		// struct C(A,B) nn: list
+		// #
+		// func t:C prog(x: int)
+		// 	r = []
+		// 	for i <- [0 .. t.a]
+		// 		n = i + x
+		// 		if t.b
+		// 			n *= -1
+		// 		r <- n
+		// 	r
+		// #
+		// c1 = C{a: 4}
+		// r1 = c1.prog(1)
+		// c1.inv()
+		// c1.xN(2)
+		// r2 = c1.prog(5)
+		// rr = [r1, r2]
+		// #
+		// `, "rr", Anis(Anis(1, 2, 3, 4, 5), Anis(-5, -6, -7, -8, -9, -10, -11, -12, -13))},
+		// {`
+		// # wide inheritance
+		// struct A a: int
+		// struct B b: int
+		// struct C c: int
+		// struct D d: int
+		// struct E e: int
+		// struct F f: int
+		// #
+		// struct T(A,B,C,D,E,F)
+		// func t:T nn()
+		// 	s = t.a + t.b + t.c + t.d + t.e + t.f
+		// 	[t.a, t.b, t.c, t.d, t.e, t.f, s]
+		// #
+		// t1 = T{a: 2, b: 3, c: 5, d: 7, e: 11,  f:13}
+		// rr = t1.nn()
+		// #
+		// `, "rr", Anis(2, 3, 5, 7, 11, 13, 41)},
+		{`
+		# deep inheritance
+		struct A a: int
+		struct B(A) b: int
+		struct C(B) c: int
+		struct D(C) d: int
+		struct E(D) e: int
+		struct F(E) f: int
+		#
+		struct T(F)
+		func t:T nn()
+			s = t.a + t.b + t.c + t.d + t.e + t.f
+			[t.a, t.b, t.c, t.d, t.e, t.f, s]
+		#
+		t1 = T{a: 2, b: 3, c: 5, d: 7, e: 11,  f:17}
+		rr = t1.nn()
+		#
+		`, "rr", Anis(2, 3, 5, 7, 11, 17, 45)},
+
+		// {``, "r", int64(105)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+func TestStructParent(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a: int
+		struct B(A) b: bool
+		#
+		r = B{a: 100}
+		#
+		`, "r", Stf("B", dk{"a": 100, "b": false})},
+		{`
+		struct A a: int
+		func ss: A foo(x:int)
+			ss.a += x
+		struct B(A) b: bool
+		#
+		r = B{a: 100}
+		r.foo(5)
+		#
+		`, "r", Stf("B", dk{"a": 105, "b": false})},
+		{`
+		struct A a: int
+		struct B(A) b: bool
+		func ss: B foo(x:int)
+			ss.a += x
+		#
+		r = B{a: 100}
+		r.foo(6)
+		#
+		`, "r", Stf("B", dk{"a": 106, "b": false})},
+		{`
+		# child and parent in 0ne method
+		struct A a: int
+		struct B(A) b: bool
+		func ss: B foo(x:int)
+			up = x > ss.a
+			ss.a += x
+			ss.b = up
+		#
+		r = B{a: 100}
+		r.foo(106)
+		#
+		`, "r", Stf("B", dk{"a": 206, "b": true})},
+
+		// {``, "r", int64(105)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMethodsNamed(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -30,6 +161,7 @@ func TestMethodsNamed(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestMethodsSimple(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -46,6 +178,15 @@ func TestMethodsSimple(t *testing.T) {
 		r.add(1003)
 		#
 		`, "r", Stf("T1", dk{"a": 1003, "b": false})},
+		{`
+		struct T1 a: int, b: bool
+		#
+		func t:T1 foo(x:int)
+			t.a + x
+		#
+		r = T1{a: 100}.foo(4)
+		#
+		`, "r", int64(104)},
 		{`
 		struct T1 a: int, b: bool
 		#

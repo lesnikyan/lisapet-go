@@ -14,6 +14,11 @@ package base
 
 type MethMap map[string]FuncVal
 
+type TypeDef interface {
+	GetMethod(name string) (FuncVal, bool)
+	GetMethods() []FuncVal
+}
+
 type Type struct {
 	Id   TypeId
 	Name string
@@ -21,11 +26,26 @@ type Type struct {
 
 	Methods MethMap
 
-	IsUserDef bool // mostly for users struct
-	Def       any  // pointer to type definition
+	IsUserDef bool    // mostly for users struct
+	Def       TypeDef // pointer to type definition
+}
+
+func (tp *Type) GetMethods() []FuncVal {
+	mm := []FuncVal{}
+	for _, fn := range tp.Methods {
+		mm = append(mm, fn)
+	}
+	return mm
 }
 
 func (tp *Type) GetMethod(name string) (FuncVal, bool) {
+	if tp.Def != nil {
+		mt, ok := tp.Def.GetMethod(name)
+		if !ok {
+			return nil, false
+		}
+		return mt, true
+	}
 	if tp.Methods == nil {
 		return nil, false
 	}
@@ -90,7 +110,7 @@ func BaseType(name string, id TypeId) *Type {
 	return &Type{Id: id, Name: name}
 }
 
-func DefineUserType(name string, def any) *Type {
+func DefineUserType(name string, def TypeDef) *Type {
 	tid := NextTypeId()
 	return &Type{Id: tid, Name: name, IsUserDef: true, Def: def}
 }
