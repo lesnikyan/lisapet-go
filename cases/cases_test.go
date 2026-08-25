@@ -58,6 +58,18 @@ type TTst = struct {
 	res   any    // exp
 }
 
+// type Gf struct {
+// 	v string
+// }
+
+// func TGf(v obb.Glif) *Gf {
+// 	return &Gf{v: string([]rune{v})}
+// }
+
+func Gf(s string) obb.Glif {
+	return []rune(s)[0]
+}
+
 type dk = map[any]any
 
 func tval(val any) any {
@@ -89,6 +101,8 @@ func pres(src any) any {
 	switch val := src.(type) {
 	case int64, string, bool, float64:
 		return val
+	case obb.Glif:
+		// TGf(val)
 	case *obb.ListVal:
 		r := make([]any, len(val.Elems))
 		for i, vv := range val.Elems {
@@ -157,7 +171,7 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		clines := par.SplitCode(tt.src[1:])
 		block, err := TreeBlock(clines)
 		assert.Nil(t, err)
-		t.Log("--- --- --- Do ...")
+		// t.Log("--- --- --- Do ...")
 		ctx := obb.NewContext(nil)
 		PreloadContext(ctx)
 		terr := block.Do(ctx)
@@ -175,11 +189,11 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 				return
 			}
 			val = vel.V
-			fmt.Printf(" TT#0: %T %v\n", val, val)
+			// fmt.Printf(" TT#0: %T %v\n", val, val)
 		} else {
 			val = vr.Val
 		}
-		fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
+		// fmt.Printf("tt#Var#1  vr(%T, %v)  val(%T, %v) \n", vr, vr, val, val)
 		switch vobj := val.(type) {
 		case *obb.Function:
 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
@@ -218,6 +232,10 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		case string:
 			fmt.Printf("tt#string  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
+		case obb.Glif:
+			fmt.Printf("tt#Glif  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			pres := string(vobj)
+			assert.Equal(t2, tt.res, pres)
 		case *obb.Null:
 			fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
 			assert.Equal(t2, tt.res, vobj)

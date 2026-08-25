@@ -57,6 +57,11 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 		// PrintONode(ltree, 0)
 		operTree := ltree.rightNode
 		if operTree == nil {
+			if len(ltree.rightElems) > 0 {
+				if expr, ok := OperSub(nil, ltree.rightElems); ok {
+					return &SplitState{Expr: expr, Done: true}, nil
+				}
+			}
 			return nil, nil
 		}
 		// fmt.Println("L2E3>", cline.Src, res, err, "r-oper:", operTree.oper)
@@ -105,13 +110,12 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			// new expression
 			cind = cline.Indent
 		}
-		// fmt.Println("\n>>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind)
+		// fmt.Println(">>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind)
 		curState, err := Line2Expr(cline, ltree)
-
 		if err != nil {
-			// fmt.Println("Error of line expr!", err)
 			return nil, err
 		}
+		// fmt.Printf("Tree#1 (%T %v), %v \n", curState, curState, err)
 		if curState == nil {
 			// comment, empty line
 			continue
@@ -126,12 +130,12 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		expr := curState.Expr
 		if expr == nil {
 			// possibly: commented line
+			// fmt.Println("!! Tree. expr is nil")
 			continue
 		}
 		prevExpr = nExpr
 		nExpr = &ExprLink{elem: expr, indent: cind}
-		// tp := fmt.Sprintf("%T", expr)
-		// fmt.Println("tt2>", tp, nodes.OperArgsInfo(expr))
+		// fmt.Println("tt2>", fmt.Sprintf("%T", expr), nodes.OperArgsInfo(expr))
 		elseInd := false // if expr is `else`
 
 		// fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
@@ -160,7 +164,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		}
 		// fmt.Println("Tree,Indent2:", "pLen:", len(parents))
 
-		// fmt.Printf("tree.Block %T: %v .line: (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
+		// fmt.Printf("tree.Block3 %T: %v .line: (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
 		switch texp := expr.(type) { // cur expr
 		case *nodes.ElseNode:
 			// nblock is: if | else if
@@ -197,7 +201,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				// fmt.Printf("tree.def sub-expression indent %T > %T > %T \n", nblock.elem, prevExpr.elem, expr)
 				switch upar := prevExpr.elem.(type) {
 				case *nodes.OperAssign:
-					// fmt.Printf("tree.def prev:OperAssign Right: %T  \n", upar.Right)
+					// fmt.Printf("tree.def prev:OperAssign= Right: %T  \n", upar.Right)
 					if IsConstruct(upar.Right) {
 						// if construct: [] (,) {} T{}
 						bl := &BlockLink{elem: upar, indent: prevExpr.indent}

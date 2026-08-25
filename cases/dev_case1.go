@@ -375,6 +375,7 @@ func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 
 func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
 	// fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
+	// PrintONode(node, 0)
 	if node != nil {
 		return ProcExprTree(node)
 	} else if len(elems) > 0 {
@@ -390,29 +391,6 @@ func ProcSubElems(elems []*lang.Elem) (base.Expression, bool) {
 	}
 	return CaseVar(elems)
 }
-
-// func ProcOperSubNode(node *OperNode) (base.Expression, bool) {
-// 	// possible cases: bin-oper, unary-oper,
-// 	// brackets, collection,
-// 	// func-call, collect[elem], struct-constr
-// 	if node.oper == "" {
-// 		// processing not opers
-// 	}
-// 	if strings.Contains(OBRS, node.oper) {
-// 		// brackets
-// 		switch node.oper {
-// 		case "(":
-// 			// grouping, generator
-// 		case "[":
-// 			// list, list-comprehension
-// 		case "{":
-// 			// dict
-// 		case "\\":
-// 			// lambda
-// 		}
-// 	}
-// 	return nil, false
-// }
 
 // if line have unclosed brackets || binary opers without right arg
 type UnclosedExpr struct {

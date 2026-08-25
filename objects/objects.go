@@ -2,34 +2,12 @@ package objects
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
-// func f1() {
-// 	n := 1
-// 	reflect.TypeOf(n)
-// }
-
 type Val interface {
 	GetVal() any
-}
-
-// null value
-type Null struct {
-}
-
-// internal value, can be produced from EmptyExpr
-type EmptyVal struct {
-}
-
-type StructVal struct {
-	Fields []*base.Var
-}
-
-type Regexp struct {
-	Pattern *regexp.Regexp
 }
 
 /**

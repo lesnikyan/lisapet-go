@@ -218,16 +218,7 @@ func notEmptyLeft(node *OperNode) bool {
 
 func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	opris := priors2 // here all opers, except unary
-	// opCtx := priors2
-	// if len(prevTree.ShiftOpers) > 0 {
-	// 	// change operShift
-	// }
-	brC := 0 // brackets depth
-	// brs := []string{}
-	// brpos := []ints2{}
-	// brN := -1 // index of last opened bracked
-	// var curin int
-	// var lowest ints2 = [2]int{-1, -1} // lowest precedence of found prior
+	brC := 0         // brackets depth
 	var others []ints2 = []ints2{}
 	var cur *lang.Elem
 	var prev *lang.Elem
@@ -250,9 +241,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		parents = []*OperNode{rNode}
 		cNode = rNode
 	}
-	// var ndStack []*OperNode = []*OperNode{rNode}
 	curPart := []int{} // indexes of elements
-	// left0 := true
 	var slashLambda bool = false
 
 	var solidEnd = strings.Split(") ] } ... ~>", " ")
@@ -278,6 +267,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		closeBr = false
 		prev = cur
 		cur = el
+
 		curPart = append(curPart, i)
 		if etp != Lt.Oper {
 			cNode.AddRElem(el)

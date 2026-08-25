@@ -56,9 +56,9 @@ next - by dates...
     Compatibility  between parent and child struct types.
 - -.-.24  Implemented **multi-inheritance** of struct type: `struct TypeC(TypeA, TypeB) <fields> `   
     Checked deep (chain of inheritance more than 2) and wide (more than 2 parents at once) inheritance.  
+- -.-.25 Implemented type **glif**: `g'S'`  
 
 #### next TODO:
-- glif `g'x'`  
 - byte `x[]`  
 - maybe  
 - collable constructs `list()`, `int()`, etc
