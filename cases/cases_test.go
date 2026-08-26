@@ -247,6 +247,9 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			assert.Equal(t2, ts.Name, vobj.Def.Name)
 			tstr := pres(vobj)
 			assert.Equal(t2, ts, tstr)
+		case obb.Bytes:
+			fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			assert.Equal(t2, tt.res, vobj)
 
 		default:
 			fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)

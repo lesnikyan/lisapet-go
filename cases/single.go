@@ -34,6 +34,14 @@ func valex(v any) *nodes.ValExpr {
 	return &nodes.ValExpr{Val: v}
 }
 
+func MakeNumField(ee []*lang.Elem) *nodes.NumField {
+	nums := make([]string, len(ee))
+	for i, nx := range ee {
+		nums[i] = nx.Text
+	}
+	return &nodes.NumField{V: nums}
+}
+
 func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 
 	elen := len(ee)
@@ -45,13 +53,61 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 	if !slices.Contains(_valLexms, ee[0].Type) {
 		return nil, false
 	}
+	if elen > 1 {
+		switch etype {
+		case Lt.Num:
+			// t0 := ee[0].Text[0]
+			// println(" >>>>>>>>>> #!!!", ee[0].Text, ">>", t0)
+			// nums := make([]string, len(ee))
+			// for i, nx := range ee {
+			// 	nums[i] = nx.Text
+			// }
+			// res := &nodes.NumField{V: nums}
+			res := MakeNumField(ee)
+			return res, true
+		case Lt.Word:
+			// try get bytes sequence
+			t0 := ee[0].Text[0]
+			// println(" >>>>>>>>>> #!!!", t0)
+			if (t0 > 64 && t0 < 71) || (t0 > 96 && t0 < 103) {
+				// println("make NumField")
+				res := MakeNumField(ee)
+				return res, true
+			}
+			// string-prefixes
+			switch elen {
+			case 2:
+				// glif, etc
+				if ee[1].Type == Lt.Text {
+					// fmt.Printf("CaseVal prefix[2] %s, %s \n", ee[0].Text, ee[1].Text)
+					switch ee[0].Text {
+					case "g":
+						// glif
+						// fmt.Printf("CaseVal Glif %s, %s \n", ee[0].Text, ee[1].Text)
+						rrs := []rune(ee[1].Text)
+						if len(rrs) != 3 {
+							// fmt.Printf("Error bad Glif %s \n", ee[1].Text)
+							return nil, false
+						}
+						return valex(rrs[1]), true
+					case "re":
+						//regexp
+					}
+				}
+			case 3:
+				// regexp
+				if ee[1].Type == Lt.Text {
+					// fmt.Printf("CaseVal prefix[3] %s, %s, %s \n", ee[0].Text, ee[1].Text, ee[2].Text)
+				}
+			}
+		}
+	}
 
 	var res base.Expression = nil
 	// var ok = false
 	// var val any
 	switch etype {
 	case Lt.Num:
-
 		switch elen {
 		case 1:
 			var err error = nil
@@ -81,30 +137,6 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 			if ok {
 				return valex(cv), true
 			}
-		case 2:
-			// glif, etc
-			if ee[1].Type == Lt.Text {
-				// fmt.Printf("CaseVal prefix[2] %s, %s \n", ee[0].Text, ee[1].Text)
-				switch ee[0].Text {
-				case "g":
-					// glif
-					// fmt.Printf("CaseVal Glif %s, %s \n", ee[0].Text, ee[1].Text)
-					rrs := []rune(ee[1].Text)
-					if len(rrs) != 3 {
-						// fmt.Printf("Error bad Glif %s \n", ee[1].Text)
-						return nil, false
-					}
-					return valex(rrs[1]), true
-				case "re":
-					//regexp
-				}
-			}
-		case 3:
-			// regexp
-			if ee[1].Type == Lt.Text {
-				// fmt.Printf("CaseVal prefix[3] %s, %s, %s \n", ee[0].Text, ee[1].Text, ee[2].Text)
-			}
-
 		}
 	}
 	return res, res != nil

@@ -2,6 +2,7 @@ package objects
 
 import (
 	"regexp"
+	rexs "regexp/syntax"
 )
 
 // null value
@@ -18,15 +19,10 @@ type EmptyVal struct {
 
 type Regexp struct {
 	Pattern *regexp.Regexp
+	Src     string
+	Flags   []rexs.Flags
 }
 
 type Glif = rune
 
-// func Str2Glif(s string) (Glif, bool) {
-// 	rrs := []rune(s)
-// 	if len(rrs) != 1 {
-// 		return 0, false
-// 	}
-// 	println("len(rrs)", len(rrs), 'Ы', 'Ф', ">>", s, ":", rrs[0])
-// 	return rrs[0], true
-// }
+type Bytes = []byte

@@ -164,7 +164,6 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 }
 
 func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
-
 	switch exx := node.(type) {
 	case *nodes.SequenceComma:
 		//collexrions
@@ -221,7 +220,12 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 		return nodes.NewFuncCall(fEx, fArgs), true
 
 	case "[":
-		// fmt.Printf("BEx#3 %s  %T %v\n", oper, lexp, lok)
+		// fmt.Printf("BWL#3 %s  %T %v\n", oper, lexp, lexp)
+		// if pref, ok := lexp.(*nodes.ValExpr); ok {
+		// 	// pp := pref.Val
+		// 	fmt.Println(">> Pref", pref.Val, pref)
+		// }
+
 		switch subex := subs.(type) {
 		case *nodes.OperColon:
 			// Slice nn[a : b]
@@ -233,7 +237,7 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
 		}
 	case "{":
-		// fmt.Printf("BEx#4 struct %s  %T %v\n", oper, lexp, lok)
+		// fmt.Printf("BWL#4 struct %s  %T %v\n", oper, lexp, lok)
 		var args []*nodes.OperColon
 		var name string
 		nexp, ok := lexp.(*nodes.VarExpr)
@@ -275,14 +279,49 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 	return nil, false
 }
 
+func CaseBytes(rNode *OperNode, subs base.Expression) (base.Expression, bool) {
+	pref := rNode.leftElems[0].Text
+	// fmt.Printf("BytesExpr ##1 subs (%T, %v) \n", subs, subs)
+	res := nodes.NewBytesExpr(pref, subs)
+	err := res.Parse()
+	if err != nil {
+		panic("Bytes case has bad syntax: " + err.Error())
+	}
+	return res, true
+}
+
 func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	oper := rNode.oper
 	bt := nodes.GetBrType(rNode.oper)
 	subs, rok := OperSub(rNode.rightNode, rNode.rightElems)
 	lexp, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	seq, okc := subs.(*nodes.SequenceComma)
+	// fmt.Printf("BracketsExpr >>> \n")
 	// PrintONode(rNode, 0)
 	if lok {
+		if _, ok := lexp.(*nodes.ValExpr); ok {
+			if len(rNode.leftElems) > 0 && rNode.leftElems[0].Type == Lt.Num {
+				// fmt.Printf("##00 %s [%T] \n", rNode.leftElems[0].Text, subs)
+				switch subs.(type) {
+				case *nodes.ValExpr, *nodes.VarExpr:
+					// subs = &nodes.ByteLine{Src: rNode.rightElems}
+					subs = nodes.NewByteLine(rNode.rightElems)
+				case *nodes.NumField:
+					// do nothing
+				default:
+					// fmt.Printf("##2 %s [%T] \n", rNode.leftElems[0].Text, subs)
+					// subs = &nodes.ByteLine{Src: rNode.rightElems[0].Text}
+					if len(rNode.leftElems) == 0 {
+						subs = &nodes.ByteLine{Src: ""}
+					} else {
+						subs = nodes.NewByteLine(rNode.rightElems)
+					}
+
+				}
+				// fmt.Printf("##1 %s [%T] \n", rNode.leftElems[0].Text, subs)
+				return CaseBytes(rNode, subs)
+			}
+		}
 		if !rok {
 			subs = nil
 		}
@@ -316,7 +355,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 }
 
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
-	// fmt.Printf("PET#0 %v\n", oper)
+	// fmt.Printf("PET#0 %v\n", rNode.oper)
 	switch rNode.oper {
 	case "(", "[", "{":
 		return BracketsExpr(rNode)

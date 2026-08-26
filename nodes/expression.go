@@ -40,6 +40,30 @@ func (vex *ValExpr) Get() *base.Val {
 	return base.NewVal(v)
 }
 
+type NumField struct {
+	V []string
+}
+
+func (nf *NumField) Do(cx base.Context) error {
+	// do nothing
+	// nf.V = nil
+	return nil
+}
+
+// func (nf *NumField) Add(n int64) error {
+// 	if nf.V == nil {
+// 		nf.V = []int64{n}
+// 	}
+// 	return nil
+// }
+
+func (nf *NumField) Get() *base.Val {
+	if nf.V == nil {
+		return nil
+	}
+	return base.NewVal(nf.V)
+}
+
 // *** VarExpr
 type VarExpr struct {
 	name    string
