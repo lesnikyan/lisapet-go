@@ -203,10 +203,10 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			tres := pres(vobj)
 			res, ok := tres.([]any)
 			assert.True(t2, ok)
-			fmt.Printf("tt#ListVal#2  (%T, %v)   len: %d \n", res, res, len(res))
+			// fmt.Printf("tt#ListVal#2  (%T, %v)   len: %d \n", res, res, len(res))
 			assert.Equal(t2, tt.res, res)
 		case *obb.TupleVal:
-			fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
+			// fmt.Printf("tt#TupleVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
 			tup, ok := tt.res.(*Tup)
 			if !ok {
 				assert.Fail(t2, fmt.Sprintf("Tuple has gotten but test exp: : %T", tt.res))
@@ -215,32 +215,35 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			res, ok := tres.(*Tup)
 			assert.Equal(t2, tup, res)
 		case *obb.DictVal:
-			fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
+			// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
 			tm, tok := tt.res.(map[any]any)
 			assert.True(t2, tok)
 			res := pres(vobj)
 			assert.Equal(t2, tm, res)
 		case int64:
-			fmt.Printf("tt#int  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#int  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			assert.Equal(t2, tt.res, vobj)
+		case byte:
+			// fmt.Printf("tt#int  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 		case float64:
-			fmt.Printf("tt#float  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#float  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 		case bool:
-			fmt.Printf("tt#bool  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#bool  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 		case string:
-			fmt.Printf("tt#string  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#string  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 		case obb.Glif:
-			fmt.Printf("tt#Glif  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#Glif  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			pres := string(vobj)
 			assert.Equal(t2, tt.res, pres)
 		case *obb.Null:
-			fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
+			// fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
 			assert.Equal(t2, tt.res, vobj)
 		case *obb.StructInst:
-			fmt.Printf("tt#StructInst  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#StructInst  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			// tt.res.(*obb.StructInst)
 			ts, tok := tt.res.(*TStruct)
 			assert.True(t2, tok)
@@ -248,12 +251,11 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			tstr := pres(vobj)
 			assert.Equal(t2, ts, tstr)
 		case obb.Bytes:
-			fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
 
 		default:
 			fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-
 			assert.Fail(t2, "unknown test result")
 		}
 		// fmt.Println("tt3>", vr, vr.Name, vr.Val)

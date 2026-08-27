@@ -280,7 +280,12 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 }
 
 func CaseBytes(rNode *OperNode, subs base.Expression) (base.Expression, bool) {
-	pref := rNode.leftElems[0].Text
+	var pref string
+	if len(rNode.leftElems) > 0 {
+		pref = rNode.leftElems[0].Text
+	} else {
+		pref = "0x"
+	}
 	// fmt.Printf("BytesExpr ##1 subs (%T, %v) \n", subs, subs)
 	res := nodes.NewBytesExpr(pref, subs)
 	err := res.Parse()
@@ -301,6 +306,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	if lok {
 		if _, ok := lexp.(*nodes.ValExpr); ok {
 			if len(rNode.leftElems) > 0 && rNode.leftElems[0].Type == Lt.Num {
+				// Bytes case
 				// fmt.Printf("##00 %s [%T] \n", rNode.leftElems[0].Text, subs)
 				switch subs.(type) {
 				case *nodes.ValExpr, *nodes.VarExpr:
@@ -316,7 +322,6 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 					} else {
 						subs = nodes.NewByteLine(rNode.rightElems)
 					}
-
 				}
 				// fmt.Printf("##1 %s [%T] \n", rNode.leftElems[0].Text, subs)
 				return CaseBytes(rNode, subs)
@@ -335,9 +340,13 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 		case "(":
 			return &nodes.Brackets{Sub: subs, Type: bt}, true
 		case "[":
+			// fmt.Printf("BEx#11 < %s >  L(%T %v), R(%T %v) comm: %v\n", oper, lexp, lok, subs, rok, okc)
 			switch subex := subs.(type) {
 			case *nodes.Dots2Expr:
 				return subex.GetNumSeq(), true
+			case *nodes.NumField:
+				// println("NumField case#1")
+				return CaseBytes(rNode, subex)
 			}
 		}
 

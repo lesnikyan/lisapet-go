@@ -21,6 +21,8 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "null", base.TypeNull)
 	AddType(cx, "bool", base.TypeBool)
 	AddType(cx, "int", base.TypeInt)
+	AddType(cx, "byte", base.TypeBytes)
+	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "float", base.TypeFloat)
 	AddType(cx, "string", base.TypeString)
 	AddType(cx, "list", base.TypeList)

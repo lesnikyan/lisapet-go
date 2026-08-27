@@ -10,7 +10,7 @@ import (
 TODO:
 ok 0x[], 0b[] ,0o[]
 ok 0b[11110000 01010101]; 0x[ff00 1234 0000 0001 1000]
-prefixless byteset [aa bb ff]
+ok prefixless byteset [aa bb ff]
 bytes actions:
 nbytes[elem]
 nbytes[sli : ce]
@@ -23,6 +23,51 @@ glif(int|string|0x[])
 bytes([]int, string, glif, []glif)
 */
 
+func TestBytesActions(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		bb = [11 22 ff]
+		r = bb[1]
+		`, "r", byte(0x22)},
+		{`
+		bb = [11 22 ff]
+		r = bb[-1]
+		`, "r", byte(0xff)},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestBytesNoPref(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		# bytes
+		r = [11 22 ff]
+		`, "r", obb.Bytes{0x11, 0x22, 0xff}},
+		{`
+		# bytes
+		r = [11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff]
+		`, "r", obb.Bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}},
+		{`
+		# bytes
+		r = [12345 678910 abcdef a0b0c]
+		`, "r", obb.Bytes{0x1, 0x23, 0x45, 0x67, 0x89, 0x10, 0xab, 0xcd, 0xef, 0xa, 0xb, 0xc}},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestBytes(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -34,36 +79,31 @@ func TestBytes(t *testing.T) {
 		r = 0x[]
 		`, "r", obb.Bytes{}},
 		{`
-		# bytes
 		r = 0b[]
 		`, "r", obb.Bytes{}},
 		{`
-		# bytes
 		r = 0o[]
 		`, "r", obb.Bytes{}},
 		{`
-		# bytes
 		r = 0d[]
 		`, "r", obb.Bytes{}},
 		{`
-		# bytes
 		r = 0x[1 2 f]
 		`, "r", obb.Bytes{1, 2, 0xf}},
 		{`
-		# bytes
 		r = 0x[F 2 f]
 		`, "r", obb.Bytes{0xf, 2, 0xf}},
 		{`
-		# bytes
 		r = 0x[1 2 3 4 5 6 7 8 9 a b c d e f 0 10 11 12 13 14 15 16 f0 f5 ff]
 		`, "r", obb.Bytes{1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf,
 			0x0, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0xf0, 0xf5, 0xff}},
 		{`
-		# bytes
+		r:bytes = 0x[f b]
+		`, "r", obb.Bytes{0xf, 0xb}},
+		{`
 		r = 0x[f]
 		`, "r", obb.Bytes{0xf}},
 		{`
-		# bytes
 		r = 0x[1]
 		`, "r", obb.Bytes{1}},
 		{`

@@ -58,6 +58,7 @@ type ColElem struct {
 }
 
 func (cc *ColElem) Get() *base.Val {
+	// fmt.Printf("ColElem Get (%T)\n", cc.Src)
 	switch src := cc.Src.(type) {
 	case *objects.ListVal:
 		index, ok := cc.KVal.(int64)
@@ -80,6 +81,18 @@ func (cc *ColElem) Get() *base.Val {
 		if err != nil {
 			return nil
 		}
+		return res
+	case objects.Bytes:
+		// fmt.Printf("ColElem Bytes (%T)\n", src)
+		index, ok := cc.KVal.(int64)
+		if !ok {
+			panic("incorrect type of index in collection-elem expr")
+		}
+		res, err := src.GetElem(index)
+		if err != nil {
+			panic("bytes get elem: " + err.Error())
+		}
+		// fmt.Println("bytes get:", res)
 		return res
 
 	case string:
