@@ -59,11 +59,12 @@ next - by dates...
 - -.-.25 Implemented type **glif**: `g'S'`  
 - -.-.26 Implemented type **bytes**:  `0x[f000 abcd]`  
 - -.-.27 Implemented `get element` operation for `bytes`: `x0[1 2 3 4][2]`  
-    Added hidden type `byte` for elements of `bytes` and future needs.  
+    Added hidden type **byte** for elements of `bytes` and future needs.  
+    Bytes: Implemented slice, `+` operator, append by `<-` operator.
+    Fixed negative indexes of slice.
+
 
 #### next TODO:
-- byte: slice, `+`, append  
-- type byte: elem of bytes, byte(12)
 - maybe  
 - collable constructs `list()`, `int()`, etc
 - builtin methods: `"a b c".split(' ')`

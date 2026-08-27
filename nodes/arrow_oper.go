@@ -47,6 +47,19 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 		// append to List
 		// fmt.Println("Append ListVal")
 		targ.Add(rvv)
+	case ob.Bytes:
+		// little hack for append to []bytes
+		switch vrx := op.left.(type) {
+		case *VarExpr:
+			res, err := targ.Add(rvv)
+			if err != nil {
+				return err
+			}
+			if vrx.vr == nil {
+				return errors.New("err: trying append to unassigned var")
+			}
+			vrx.vr.Val = res
+		}
 	case *ob.DictVal:
 		// update Dict
 		switch rval := rvv.(type) {

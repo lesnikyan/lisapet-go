@@ -145,6 +145,10 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 		res, ok = binOperTuple(oper, val, right)
 	case *ob.DictVal:
 		res, ok = binOperDict(oper, val, right)
+	case ob.Bytes:
+		res, ok = binOperBytes(oper, val, right)
+	case byte:
+		res, ok = binOperByte(oper, val, right)
 	}
 	return res, ok
 }

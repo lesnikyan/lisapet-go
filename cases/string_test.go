@@ -37,6 +37,32 @@ func TestBytesActions(t *testing.T) {
 		bb = [11 22 ff]
 		r = bb[-1]
 		`, "r", byte(0xff)},
+		{`
+		bb = [0 1 2 3 4 5 6 7]
+		r = bb[2:5]
+		`, "r", obb.Bytes{2, 3, 4}},
+		{`
+		bb = [0 1 2 3 4 5 6 7]
+		r = bb[2:-2]
+		`, "r", obb.Bytes{2, 3, 4, 5}},
+		{`
+		bb = [0 1 2 3 4 5 6 7]
+		r = bb[-5:-2]
+		`, "r", obb.Bytes{3, 4, 5}},
+		{`
+		b1 = [0 1 2 3]
+		b2 = [14 15]
+		r = b1 + b2
+		`, "r", obb.Bytes{0, 1, 2, 3, 0x14, 0x15}},
+		{`
+		r  = [0 1 2 a]
+		b2 = [14 15]
+		r += b2
+		`, "r", obb.Bytes{0, 1, 2, 0xa, 0x14, 0x15}},
+		{`
+		bb = 0x[0 1]
+		bb <- 5
+		`, "bb", obb.Bytes{0, 1, 5}},
 		// {``, "r",  ""},
 	}
 	for i, tt := range tdata {

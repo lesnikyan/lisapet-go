@@ -224,8 +224,8 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
 		// return eVal.V
 	case *ColElemExpr:
-		eVal = vv.ColRes.Get()
 		// fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
+		eVal = vv.ColRes.Get()
 		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
@@ -270,7 +270,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		}
 
 	default:
-		// fmt.Printf("GetExprVal#100: %T, %v\n", vv.Get(), vv.Get())
+		// fmt.Printf("GetExprVal#100: (%T) %T, %v\n", vv, vv.Get(), vv.Get())
 		return vv.Get().V
 	}
 	if eVal != nil {

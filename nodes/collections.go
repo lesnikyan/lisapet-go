@@ -174,6 +174,14 @@ func (cs *ColSlice) Get() *base.Val {
 	return base.NewVal(cs.res)
 }
 
+func normInd(i int64, clen int) int {
+	id := int(i)
+	if id < 0 {
+		return clen + id
+	}
+	return id
+}
+
 func (cs *ColSlice) Do(cx base.Context) error {
 	cs.res = nil
 	err := cs.Col.Do(cx)
@@ -222,13 +230,20 @@ func (cs *ColSlice) Do(cx base.Context) error {
 	// fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
 	switch col := colv.(type) {
 	case *objects.ListVal:
-		vals := col.Elems[int(start):int(end)]
+		sz := len(col.Elems)
+		vals := col.Elems[normInd(start, sz):normInd(end, sz)]
 		cs.res = objects.NewListVal(vals)
 	case *objects.TupleVal:
-		vals := col.Elems[int(start):int(end)]
+		sz := len(col.Elems)
+		vals := col.Elems[normInd(start, sz):normInd(end, sz)]
 		cs.res = objects.NewTupleVal(vals)
+	case objects.Bytes:
+		sz := len(col)
+		val := col[normInd(start, sz):normInd(end, sz)]
+		cs.res = val
 	case string:
-		val := col[int(start):int(end)]
+		sz := len(col)
+		val := col[normInd(start, sz):normInd(end, sz)]
 		cs.res = val
 	}
 	return nil
