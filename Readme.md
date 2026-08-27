@@ -56,10 +56,15 @@ next - by dates...
     Compatibility  between parent and child struct types.
 - -.-.24  Implemented **multi-inheritance** of struct type: `struct TypeC(TypeA, TypeB) <fields> `   
     Checked deep (chain of inheritance more than 2) and wide (more than 2 parents at once) inheritance.  
+- -.-.25 Implemented type **glif**: `g'S'`  
+- -.-.26 Implemented type **bytes**:  `0x[f000 abcd]`  
+- -.-.27 Implemented `get element` operation for `bytes`: `x0[1 2 3 4][2]`  
+    Added hidden type **byte** for elements of `bytes` and future needs.  
+    Bytes: Implemented slice, `+` operator, append by `<-` operator.
+    Fixed negative indexes of slice.
+
 
 #### next TODO:
-- glif `g'x'`  
-- byte `x[]`  
 - maybe  
 - collable constructs `list()`, `int()`, etc
 - builtin methods: `"a b c".split(' ')`

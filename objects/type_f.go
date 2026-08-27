@@ -21,6 +21,10 @@ func TypeByVal(val any) *TypeInfo {
 	switch val.(type) {
 	case int64:
 		return NewTypeInf("int", base.TypeInt)
+	case byte:
+		return NewTypeInf("byte", base.TypeByte)
+	case Bytes:
+		return NewTypeInf("byte", base.TypeBytes)
 	case float64:
 		return NewTypeInf("float", base.TypeFloat)
 	case bool:
@@ -94,6 +98,16 @@ func ConvertByType(exp base.TypeId, val any) any {
 			return false
 		}
 
+	case base.TypeByte:
+		switch vv := val.(type) {
+		case null:
+			return byte(0)
+		case int64:
+			return byte(vv)
+		case bool:
+			return byte(bool2int(vv))
+		}
+
 	case base.TypeInt:
 		switch vv := val.(type) {
 		case int64:
@@ -102,6 +116,8 @@ func ConvertByType(exp base.TypeId, val any) any {
 			return bool2int(vv)
 		case null:
 			return int64(0)
+		case byte:
+			return int64(vv)
 		}
 
 	case base.TypeFloat:

@@ -237,8 +237,8 @@ func TestSimpleExpressionsDo(t *testing.T) {
 
 			ctx := obb.NewContext(nil)
 			expr.Do(ctx)
-			vr := ctx.GetVar("a")
-			fmt.Println("tt3>", vr, vr.Name, vr.Val)
+			// vr := ctx.GetVar("a")
+			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})
 	}
 }

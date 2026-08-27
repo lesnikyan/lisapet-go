@@ -81,6 +81,7 @@ const (
 	TypeNull
 	TypeBool
 	TypeInt
+	TypeByte
 	TypeFloat
 	TypeString
 	TypeList
@@ -125,6 +126,8 @@ func DefaultVal(ti TypeId) any {
 		return false
 	case TypeInt:
 		return int64(0)
+	case TypeByte:
+		return byte(0)
 	case TypeFloat:
 		return float64(0)
 	case TypeString:

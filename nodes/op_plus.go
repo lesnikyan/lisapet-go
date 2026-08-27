@@ -212,6 +212,16 @@ func binOperBool(opid Opid, a bool, b any) (any, bool) {
 	return nil, false
 }
 
+func binOperBytes(opid Opid, a ob.Bytes, b any) (any, bool) {
+	switch b := b.(type) {
+	case ob.Bytes:
+		r := a
+		r = append(r, b...)
+		return r, true
+	}
+	return nil, false
+}
+
 func binOperByte(opid Opid, a byte, b any) (any, bool) { return nil, false }
 
 func binOperGlyf(opid Opid, a rune, b any) (any, bool) { return nil, false }

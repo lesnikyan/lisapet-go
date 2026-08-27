@@ -3,8 +3,10 @@ package nodes
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/lang"
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
@@ -56,6 +58,7 @@ type ColElem struct {
 }
 
 func (cc *ColElem) Get() *base.Val {
+	// fmt.Printf("ColElem Get (%T)\n", cc.Src)
 	switch src := cc.Src.(type) {
 	case *objects.ListVal:
 		index, ok := cc.KVal.(int64)
@@ -78,6 +81,18 @@ func (cc *ColElem) Get() *base.Val {
 		if err != nil {
 			return nil
 		}
+		return res
+	case objects.Bytes:
+		// fmt.Printf("ColElem Bytes (%T)\n", src)
+		index, ok := cc.KVal.(int64)
+		if !ok {
+			panic("incorrect type of index in collection-elem expr")
+		}
+		res, err := src.GetElem(index)
+		if err != nil {
+			panic("bytes get elem: " + err.Error())
+		}
+		// fmt.Println("bytes get:", res)
 		return res
 
 	case string:
@@ -159,6 +174,14 @@ func (cs *ColSlice) Get() *base.Val {
 	return base.NewVal(cs.res)
 }
 
+func normInd(i int64, clen int) int {
+	id := int(i)
+	if id < 0 {
+		return clen + id
+	}
+	return id
+}
+
 func (cs *ColSlice) Do(cx base.Context) error {
 	cs.res = nil
 	err := cs.Col.Do(cx)
@@ -207,13 +230,20 @@ func (cs *ColSlice) Do(cx base.Context) error {
 	// fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
 	switch col := colv.(type) {
 	case *objects.ListVal:
-		vals := col.Elems[int(start):int(end)]
+		sz := len(col.Elems)
+		vals := col.Elems[normInd(start, sz):normInd(end, sz)]
 		cs.res = objects.NewListVal(vals)
 	case *objects.TupleVal:
-		vals := col.Elems[int(start):int(end)]
+		sz := len(col.Elems)
+		vals := col.Elems[normInd(start, sz):normInd(end, sz)]
 		cs.res = objects.NewTupleVal(vals)
+	case objects.Bytes:
+		sz := len(col)
+		val := col[normInd(start, sz):normInd(end, sz)]
+		cs.res = val
 	case string:
-		val := col[int(start):int(end)]
+		sz := len(col)
+		val := col[normInd(start, sz):normInd(end, sz)]
 		cs.res = val
 	}
 	return nil
@@ -339,4 +369,173 @@ func (cs *DictExpr) Do(ctx base.Context) error {
 	}
 	cs.res = objects.NewDictVal(res)
 	return nil
+}
+
+type BytesExpr struct {
+	Pref string
+	Subs base.Expression
+
+	res objects.Bytes
+}
+
+func (bx *BytesExpr) Get() *base.Val {
+	return base.NewVal(bx.res)
+}
+
+// solid line: hex: f0f0f0f0f0f0f0 | bin: 101010101010101010101
+// src should be longer than 2
+func ParseByteLine(src string, base int) ([]byte, error) {
+	// 256 - 2 ** 63
+	// t := n
+	// for
+	// rm := t % 0xff
+	// t := 5 >> 1
+	st := 8
+	switch base {
+	case 16:
+		st = 2
+	}
+	rrs := []rune(src)
+	slen := len(rrs)
+	if slen <= st {
+		n, err := strconv.ParseInt(src, base, 64)
+		if err != nil {
+			return nil, err
+		}
+		return []byte{byte(n)}, nil
+	}
+	count := slen / st
+	rm := slen % st
+	start := 0
+	rsize := count
+	if rm > 0 {
+		rsize++
+	}
+
+	res := make([]byte, rsize)
+	if rm > 0 {
+		// count++
+		start = 1
+		n0, err := strconv.ParseInt(string(rrs[0:rm]), base, 64)
+		// fmt.Println("ppBL1:", rrs[0:rm], string(rrs[0:rm]), "=>", n0)
+		if err != nil {
+			return nil, err
+		}
+		res[0] = byte(n0)
+	}
+	// fmt.Printf("BytesX.ParseBL src:%s k:%d count: %v \n", src, st, count)
+	for i := 0; i < count; i += 1 {
+		nb := rm + i*st // n part begin
+		// fmt.Println("ppBL2:", i, rrs[nb:nb+st], string(rrs[nb:nb+st]))
+		n, err := strconv.ParseInt(string(rrs[nb:nb+st]), base, 64)
+		if err != nil {
+			return nil, err
+		}
+		res[i+start] = byte(n)
+	}
+	return res, nil
+	// return nil, nil
+}
+
+// mane case: 0x[01 ae ff] ; 0b[1111 0000, 1001] ; 0d[1 30 255]
+func ParseBytes(src []string, base int) ([]byte, error) {
+	res := make([]byte, len(src))
+	// res := []byte{}
+	for i, s := range src {
+		n, err := strconv.ParseInt(s, base, 64)
+		if err != nil {
+			return nil, err
+		}
+		if n > 255 {
+			return nil, fmt.Errorf("Out of byte range: %s => %x", s, n)
+		}
+		res[i] = byte(n)
+	}
+	return res, nil
+}
+
+func (bx *BytesExpr) Parse() error {
+	// 0 1 2 7
+	// 0 1 ae ff
+	// 00 11 00 11
+	// 12 11 03 144 255
+	k := 2 // 0b
+	switch bx.Pref[1] {
+	case 'x':
+		k = 16
+	case 'o':
+		k = 8
+	case 'd':
+		k = 10
+	}
+	switch sx := bx.Subs.(type) {
+	// case *NumField:
+	// 	fmt.Printf("BytesX.Parse NumField (%T, %v) %v \n", sx, sx, sx.V)
+	// 	nums, err := ParseBytes(sx.V, k)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	bx.res = nums
+	case *NumField:
+		// fmt.Printf("BytesX.Parse NumField (%T, %v) %v \n", sx, sx, sx.V)
+		// nums, err := ParseBytes(sx.V, k)
+		// if err != nil {
+		// 	return err
+		// }
+		// bx.res = nums
+		nums := []byte{}
+		for _, ss := range sx.V {
+			bb, err := ParseByteLine(ss, k)
+			if err != nil {
+				return err
+			}
+			nums = append(nums, bb...)
+		}
+		bx.res = nums
+	case *ByteLine:
+		// fmt.Printf("BytesX.Parse ByteLine (%T, %v) %v \n", sx, sx, sx.Src)
+		if len(sx.Src) == 0 {
+			bx.res = objects.Bytes{}
+			return nil
+		}
+		bb, err := ParseByteLine(sx.Src, k)
+		if err != nil {
+			return err
+		}
+		bx.res = bb
+		// case *ValExpr:
+		// fmt.Printf("BytesX.Parse Val (%T, %v) %v \n", sx, sx, sx.Val)
+		// ParseByteLine(sx.Src, k)
+		// case *VarExpr:
+		// fmt.Printf("BytesX.Parse Var (%T, %v) %v \n", sx, sx, sx.GetName())
+	}
+	return nil
+}
+func (bx *BytesExpr) Do(cx base.Context) error {
+	// bx.Subs.Do(cx)
+	return nil
+}
+
+func NewBytesExpr(pref string, subs base.Expression) *BytesExpr {
+	return &BytesExpr{Pref: pref, Subs: subs}
+}
+
+type ByteLine struct {
+	Src string
+}
+
+func (t *ByteLine) Do(cx base.Context) error {
+	return nil
+}
+func (t *ByteLine) Get() *base.Val {
+	return nil
+}
+
+func NewByteLine(elems []*lang.Elem) *ByteLine {
+	// nn:= make([]string)
+	var val string
+	if len(elems) == 1 {
+		val = elems[0].Text
+	}
+	return &ByteLine{Src: val}
 }

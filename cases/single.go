@@ -34,14 +34,73 @@ func valex(v any) *nodes.ValExpr {
 	return &nodes.ValExpr{Val: v}
 }
 
-func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
-	if len(ee) != 1 {
-		return nil, false
+func MakeNumField(ee []*lang.Elem) *nodes.NumField {
+	nums := make([]string, len(ee))
+	for i, nx := range ee {
+		nums[i] = nx.Text
 	}
+	return &nodes.NumField{V: nums}
+}
+
+func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
+
+	elen := len(ee)
+	// if len(ee) != 1 {
+	// 	return nil, false
+	// }
 	etype := ee[0].Type
 	etext := ee[0].Text
 	if !slices.Contains(_valLexms, ee[0].Type) {
 		return nil, false
+	}
+	if elen > 1 {
+		switch etype {
+		case Lt.Num:
+			// t0 := ee[0].Text[0]
+			// println(" >>>>>>>>>> #!!!", ee[0].Text, ">>", t0)
+			// nums := make([]string, len(ee))
+			// for i, nx := range ee {
+			// 	nums[i] = nx.Text
+			// }
+			// res := &nodes.NumField{V: nums}
+			res := MakeNumField(ee)
+			return res, true
+		case Lt.Word:
+			// try get bytes sequence
+			t0 := ee[0].Text[0]
+			// println(" >>>>>>>>>> #!!!", t0)
+			if (t0 > 64 && t0 < 71) || (t0 > 96 && t0 < 103) {
+				// println("make NumField")
+				res := MakeNumField(ee)
+				return res, true
+			}
+			// string-prefixes
+			switch elen {
+			case 2:
+				// glif, etc
+				if ee[1].Type == Lt.Text {
+					// fmt.Printf("CaseVal prefix[2] %s, %s \n", ee[0].Text, ee[1].Text)
+					switch ee[0].Text {
+					case "g":
+						// glif
+						// fmt.Printf("CaseVal Glif %s, %s \n", ee[0].Text, ee[1].Text)
+						rrs := []rune(ee[1].Text)
+						if len(rrs) != 3 {
+							// fmt.Printf("Error bad Glif %s \n", ee[1].Text)
+							return nil, false
+						}
+						return valex(rrs[1]), true
+					case "re":
+						//regexp
+					}
+				}
+			case 3:
+				// regexp
+				if ee[1].Type == Lt.Text {
+					// fmt.Printf("CaseVal prefix[3] %s, %s, %s \n", ee[0].Text, ee[1].Text, ee[2].Text)
+				}
+			}
+		}
 	}
 
 	var res base.Expression = nil
@@ -49,29 +108,35 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 	// var val any
 	switch etype {
 	case Lt.Num:
-		var err error = nil
-		var val any
-		if rxFloat.MatchString(etext) {
-			val, err = strconv.ParseFloat(etext, 64)
-		} else if rxInt.MatchString(etext) {
-			val, err = strconv.ParseInt(etext, 10, 64)
-		} else if rxInt16.MatchString(etext) {
-			val, err = strconv.ParseInt(etext[2:], 16, 64)
-		} else if rxInt8.MatchString(etext) {
-			val, err = strconv.ParseInt(etext[2:], 8, 64)
-		} else if rxInt2.MatchString(etext) {
-			val, err = strconv.ParseInt(etext[2:], 2, 64)
-		}
-		// log.Println("", etext, val, err)
-		if err == nil {
-			return valex(val), true
+		switch elen {
+		case 1:
+			var err error = nil
+			var val any
+			if rxFloat.MatchString(etext) {
+				val, err = strconv.ParseFloat(etext, 64)
+			} else if rxInt.MatchString(etext) {
+				val, err = strconv.ParseInt(etext, 10, 64)
+			} else if rxInt16.MatchString(etext) {
+				val, err = strconv.ParseInt(etext[2:], 16, 64)
+			} else if rxInt8.MatchString(etext) {
+				val, err = strconv.ParseInt(etext[2:], 8, 64)
+			} else if rxInt2.MatchString(etext) {
+				val, err = strconv.ParseInt(etext[2:], 2, 64)
+			}
+			// log.Println("", etext, val, err)
+			if err == nil {
+				return valex(val), true
+			}
 		}
 	case Lt.Text:
 		return valex(etext), true
 	case Lt.Word:
-		cv, ok := _contsVals[etext]
-		if ok {
-			return valex(cv), true
+		switch elen {
+		case 1:
+			cv, ok := _contsVals[etext]
+			if ok {
+				return valex(cv), true
+			}
 		}
 	}
 	return res, res != nil
