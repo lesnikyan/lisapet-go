@@ -50,6 +50,14 @@ func TestBytesActions(t *testing.T) {
 		r = bb[-5:-2]
 		`, "r", obb.Bytes{3, 4, 5}},
 		{`
+		bb = [0 1 2 3 4 5 6 7]
+		r = bb[:3]
+		`, "r", obb.Bytes{0, 1, 2}},
+		{`
+		bb = [0 1 2 3 4 5 6 7]
+		r = bb[5:]
+		`, "r", obb.Bytes{5, 6, 7}},
+		{`
 		b1 = [0 1 2 3]
 		b2 = [14 15]
 		r = b1 + b2
