@@ -11,6 +11,10 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "iter", Iter_blin, nil)
 }
 
+func PreloadConstr(cx base.Context) {
+	BuiltConstr(cx, "string", constr_string, nil)
+}
+
 func AddType(cx base.Context, name string, id base.TypeId) {
 	tp := base.BaseType(name, id)
 	cx.AddType(tp)
@@ -32,9 +36,5 @@ func PreloadTypes(cx base.Context) {
 	// AddType(cx, "glif", )
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
-
-}
-
-func PreloadConstructors(cx base.Context) {
 
 }

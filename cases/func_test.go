@@ -28,6 +28,57 @@ ok 8. multi result: return a, b, 10
 
 */
 
+func TestBuiltinConstruct(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = string('Hello')
+		`, "r", "Hello"},
+		{`
+		r = string(65)
+		`, "r", "65"},
+		{`
+		bb = 0x[fa]
+		r = string(bb[0])
+		`, "r", "250"},
+		{`
+		r = string([65, 66, 67, 97, 115, 116])
+		`, "r", "ABCast"},
+		{`
+		bb = 0x[48 65 6c 6c 6f 20 62 79 74 65 73 21]
+		r = string(bb)
+		`, "r", "Hello bytes!"},
+		{`
+		r = string([c6 90 20 c6 8d 20 c6 80 20 c6 8b 20 c6 95 20 c6 a9 20 c6 b1 20 c6 b3 20 c6 9b])
+		`, "r", "Ɛ ƍ ƀ Ƌ ƕ Ʃ Ʊ Ƴ ƛ"},
+		{`
+		r = string([g'G', g'L', g'i', g'P', g'h', g'S'])
+		`, "r", "GLiPhS"},
+		{`
+		r = string(null)
+		`, "r", "null"},
+		{`
+		r = string(true)
+		`, "r", "true"},
+		{`
+		r = string(false)
+		`, "r", "false"},
+		{`
+		r = string('')
+		`, "r", ""},
+		{`
+		r = string()
+		`, "r", ""},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestFuncCompatibledArgs(t *testing.T) {
 	tdata := []struct {
 		src   string

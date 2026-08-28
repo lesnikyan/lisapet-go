@@ -12,9 +12,9 @@ import (
 )
 
 func PreloadContext(cx base.Context) {
-	nodes.PreloadFuncs(cx)
 	nodes.PreloadTypes(cx)
-
+	nodes.PreloadConstr(cx)
+	nodes.PreloadFuncs(cx)
 }
 
 // convert []T to []any

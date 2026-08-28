@@ -24,7 +24,8 @@ type Type struct {
 	Name string
 	// methods []*FuncDom
 
-	Methods MethMap
+	Methods   MethMap
+	Construct FuncVal
 
 	IsUserDef bool    // mostly for users struct
 	Def       TypeDef // pointer to type definition
