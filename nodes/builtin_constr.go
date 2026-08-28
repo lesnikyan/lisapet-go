@@ -83,3 +83,15 @@ func constr_byte(cx base.Context, args []any) (any, error) {
 	}
 	return false, errors.New("constr byte: incorrect arg type")
 }
+
+func constr_some(cx base.Context, args []any) (any, error) {
+	if len(args) != 1 {
+		return 0, errors.New("constr string: incorrect count of args")
+	}
+	if args[0] != nil {
+		return objects.Some(args[0]), nil
+	}
+	// switch a := args[0].(type) {
+	// }
+	return false, errors.New("constr byte: incorrect arg type")
+}

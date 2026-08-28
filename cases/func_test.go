@@ -2,6 +2,8 @@ package cases
 
 import (
 	"testing"
+
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 /*
@@ -28,6 +30,42 @@ ok 8. multi result: return a, b, 10
 
 */
 
+func TestConstructMaybe(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = some(1)
+		`, "r", Tmay(1)},
+		{`
+		r:maybe = some(2)
+		`, "r", Tmay(2)},
+		{`
+		r = some('Hello')
+		`, "r", Tmay("Hello")},
+		{`
+		r = some([1,2,3])
+		`, "r", Tmay(Anis(1, 2, 3))},
+		{`
+		struct Abc a: int
+		a1 = Abc{a:5}
+		r = some(a1)
+		`, "r", Tmay(Stf("Abc", dk{"a": 5}))},
+
+		{`
+		r:maybe = none
+		`, "r", objects.None()},
+		{`
+		a1 = some('in-some')
+		r = some(a1)
+		`, "r", Tmay(Tmay("in-some"))},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestConstructByte(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -35,7 +73,7 @@ func TestConstructByte(t *testing.T) {
 		res   any
 	}{
 		{`
-		r = byte(1)
+		r:byte = byte(1)
 		`, "r", byte(1)},
 		{`
 		r = byte(100)

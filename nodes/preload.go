@@ -9,6 +9,7 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "replace", Replace_blin, nil)
 	BuiltFunc(cx, "print", Print_blin, nil)
 	BuiltFunc(cx, "iter", Iter_blin, nil)
+	BuiltFunc(cx, "some", constr_some, nil)
 }
 
 func PreloadConstr(cx base.Context) {
@@ -26,15 +27,15 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "null", base.TypeNull)
 	AddType(cx, "bool", base.TypeBool)
 	AddType(cx, "int", base.TypeInt)
-	AddType(cx, "byte", base.TypeBytes)
+	AddType(cx, "byte", base.TypeByte)
 	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "float", base.TypeFloat)
 	AddType(cx, "string", base.TypeString)
 	AddType(cx, "list", base.TypeList)
 	AddType(cx, "tuple", base.TypeTuple)
 	AddType(cx, "dict", base.TypeDict)
-	// AddType(cx, "bytes", )
-	// AddType(cx, "glif", )
+	AddType(cx, "maybe", base.TypeMaybe)
+	AddType(cx, "glif", base.TypeGlif)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
 
