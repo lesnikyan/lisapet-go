@@ -66,3 +66,20 @@ func constr_string(cx base.Context, args []any) (any, error) {
 	}
 	return false, errors.New("constr string: incorrect arg type")
 }
+
+func constr_byte(cx base.Context, args []any) (any, error) {
+	if len(args) != 1 {
+		return 0, errors.New("constr string: incorrect count of args")
+	}
+	switch a := args[0].(type) {
+	case int64:
+		return byte(a % 0x100), nil
+	case bool:
+		s := byte(0)
+		if a {
+			s = byte(1)
+		}
+		return s, nil
+	}
+	return false, errors.New("constr byte: incorrect arg type")
+}

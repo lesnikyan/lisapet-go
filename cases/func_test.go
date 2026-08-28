@@ -28,7 +28,40 @@ ok 8. multi result: return a, b, 10
 
 */
 
-func TestBuiltinConstruct(t *testing.T) {
+func TestConstructByte(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = byte(1)
+		`, "r", byte(1)},
+		{`
+		r = byte(100)
+		`, "r", byte(100)},
+		{`
+		r = byte(255)
+		`, "r", byte(255)},
+		{`
+		r = byte(0x105)
+		`, "r", byte(5)},
+		{`
+		r = byte(0xf)
+		`, "r", byte(0xf)},
+		{`
+		r = byte(true)
+		`, "r", byte(1)},
+		{`
+		r = byte(false)
+		`, "r", byte(0)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestConstructString(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
