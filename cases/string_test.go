@@ -216,7 +216,7 @@ func TestGlifs(t *testing.T) {
 		{`
 		# glif
 		s = g"G"
-		`, "s", "G"},
+		`, "s", Gf("G")},
 		{`
 		# glifs in list
 		r = [g'A', g'Z', g'@', g'Ы', g'ф', g'百']
@@ -228,7 +228,7 @@ func TestGlifs(t *testing.T) {
 		{`
 		# glifs in list, block-syntax
 		s = g"G"
-		`, "s", "G"},
+		`, "s", Gf("G")},
 		{`
 		r = []
 			g'A'

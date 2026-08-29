@@ -30,6 +30,107 @@ ok 8. multi result: return a, b, 10
 
 */
 
+func TestConstructIBFG(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		# int
+		r:int = int(0)
+		`, "r", int64(0)},
+		{`
+		# int
+		r = int(1)
+		`, "r", int64(1)},
+		{`
+		# int
+		r = int('100500')
+		`, "r", int64(100500)},
+		{`
+		# int
+		r = int(true)
+		`, "r", int64(1)},
+		{`
+		# int
+		bb = 0x[1 2 3]
+		r = int(bb[2])
+		`, "r", int64(3)},
+		{`
+		# int
+		r = int(g'A')
+		`, "r", int64(65)},
+		{`
+		# int
+		r = int(2.1)
+		`, "r", int64(2)},
+		{`
+		# int
+		r = int(null)
+		`, "r", int64(0)},
+		{`
+		r:bool = bool(0)
+		`, "r", false},
+		{`
+		r = bool(2)
+		`, "r", true},
+		{`
+		r = bool(1.111)
+		`, "r", true},
+		{`
+		r = bool('true')
+		`, "r", true},
+		{`
+		r = bool('false')
+		`, "r", false},
+		{`
+		r = bool(null)
+		`, "r", false},
+		{`
+		r:float = float(0)
+		`, "r", float64(0)},
+		{`
+		r = float(1)
+		`, "r", float64(1)},
+		{`
+		r = float(1.25)
+		`, "r", float64(1.25)},
+		{`
+		r = float(true)
+		`, "r", float64(1)},
+		{`
+		r = float(null)
+		`, "r", float64(0)},
+		{`
+		r = float(false)
+		`, "r", float64(0)},
+		{`
+		r = float('1.22')
+		`, "r", float64(1.22)},
+		{`
+		r:glif = glif(100)
+		`, "r", Gf("d")},
+		{`
+		bb = [0 61]
+		r = glif(bb[1])
+		`, "r", Gf("a")},
+		{`
+		r = glif('百')
+		`, "r", '百'},
+		{`
+		bb = [e7 99 be]
+		r = glif(bb)
+		`, "r", '百'},
+		{`
+		b = byte(101)
+		r = glif(b)
+		`, "r", 'e'},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestConstructMaybe(t *testing.T) {
 	tdata := []struct {
 		src   string

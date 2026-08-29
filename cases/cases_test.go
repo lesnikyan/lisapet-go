@@ -249,8 +249,8 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			assert.Equal(t2, tt.res, vobj)
 		case obb.Glif:
 			// fmt.Printf("tt#Glif  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-			pres := string(vobj)
-			assert.Equal(t2, tt.res, pres)
+			// pp := string(vobj)
+			assert.Equal(t2, tt.res, vobj)
 		case *obb.Null:
 			// fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
 			assert.Equal(t2, tt.res, vobj)

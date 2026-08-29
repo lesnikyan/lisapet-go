@@ -15,6 +15,10 @@ func PreloadFuncs(cx base.Context) {
 func PreloadConstr(cx base.Context) {
 	BuiltConstr(cx, "string", constr_string, nil)
 	BuiltConstr(cx, "byte", constr_byte, nil)
+	BuiltConstr(cx, "int", constr_int, nil)
+	BuiltConstr(cx, "float", constr_float, nil)
+	BuiltConstr(cx, "bool", constr_bool, nil)
+	BuiltConstr(cx, "glif", constr_glif, nil)
 }
 
 func AddType(cx base.Context, name string, id base.TypeId) {
