@@ -63,11 +63,12 @@ next - by dates...
     Bytes: Implemented slice, `+` operator, append by `<-` operator.
     Fixed negative indexes of slice.
 - -.-.28 Implemented method how to add constructor of builtin types. Added constructor for string type: `s = string(1)`  
+- 2026.8.31 Implemented collable constructs for builtin types: `typeName(args)`:  
+    `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
+    **maybe**: `some(val)`, `none`.  
 
 
 #### next TODO:
-- collable constructs `list()`, `int()`, etc
-- maybe  
 - builtin methods: `"a b c".split(' ')`
 - multiline string `''' '''`  
 - regex re'.+'ui  
