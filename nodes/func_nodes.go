@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -153,6 +154,8 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 		return err
 	}
 	fv := GetExprVal(fc.Src, cx)
+	// fmt.Printf("FunCall#1: elem: (%T, %v) \n", fv, fv)
+	// fmt.Printf("FunCall#2: non func: (%T, %v) \n", fv, fv)
 	if fv == nil {
 		return errors.New("trying to call nil elem")
 	}
@@ -164,9 +167,15 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	case *objects.Method:
 		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 		fc.fun = fn
+	case *base.Type:
+		if fn.Construct == nil {
+			return errors.New("trying to call undefined constructor of type " + fn.Name)
+		}
+		fc.fun = fn.Construct
 	default:
 		// fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
-		return errors.New("trying to call non-function ")
+		return fmt.Errorf("FunCall: non func: (%T, %v) \n", fn, fn)
+		// return errors.New("trying to call non-function ")
 	}
 
 	return nil

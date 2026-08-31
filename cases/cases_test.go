@@ -12,9 +12,9 @@ import (
 )
 
 func PreloadContext(cx base.Context) {
-	nodes.PreloadFuncs(cx)
 	nodes.PreloadTypes(cx)
-
+	nodes.PreloadConstr(cx)
+	nodes.PreloadFuncs(cx)
 }
 
 // convert []T to []any
@@ -99,10 +99,18 @@ func adk(src dk) dk {
 func pres(src any) any {
 	// fmt.Printf("pres#1: (%T, %v) \n", src, src)
 	switch val := src.(type) {
+	case int:
+		return int64(val)
 	case int64, string, bool, float64:
 		return val
 	case obb.Glif:
 		// TGf(val)
+	case *obb.Maybe:
+		if val.IsNone() {
+			return val
+		}
+		vv := pres(val.Val)
+		return Tmay(vv)
 	case *obb.ListVal:
 		r := make([]any, len(val.Elems))
 		for i, vv := range val.Elems {
@@ -164,6 +172,10 @@ func Stf(name string, vals dk) *TStruct {
 		}
 	}
 	return &TStruct{Name: name, Vals: svals}
+}
+
+func Tmay(v any) *obb.Maybe {
+	return obb.Some(pres(v))
 }
 
 func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
@@ -237,8 +249,8 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			assert.Equal(t2, tt.res, vobj)
 		case obb.Glif:
 			// fmt.Printf("tt#Glif  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-			pres := string(vobj)
-			assert.Equal(t2, tt.res, pres)
+			// pp := string(vobj)
+			assert.Equal(t2, tt.res, vobj)
 		case *obb.Null:
 			// fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
 			assert.Equal(t2, tt.res, vobj)
@@ -253,7 +265,11 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		case obb.Bytes:
 			// fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
-
+		case *obb.Maybe:
+			// fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			// assert.Equal(t2, tt.res, vobj)
+			res := pres(vobj)
+			assert.Equal(t2, tt.res, res)
 		default:
 			fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Fail(t2, "unknown test result")

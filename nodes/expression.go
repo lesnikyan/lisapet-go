@@ -83,10 +83,10 @@ func (ex *VarExpr) Do(cx base.Context) error {
 	ex.cxEl = nil
 
 	elem := cx.GetElem(ex.name)
+	// fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", elem, elem, elem == nil)
 	if elem == nil {
 		return nil
 	}
-	// fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", vr, vr, vr == nil)
 	switch vr := elem.V.(type) {
 	case *base.Var:
 		ex.vr = vr
@@ -204,20 +204,36 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	case *VarExpr:
 		// vr := GetVar(vv, cx)
 		elem := vv.GetElem()
+		// fmt.Printf("GetExprVal#VarEx: %T, %v >> %T, %v \n", vv, vv, elem, elem)
 		if elem == nil {
 			return nil
 		}
-		// var found:
-		if vv.IsVar {
-			vr := vv.GetVar()
-			val := vr.Val
-			return val
-		}
-		// other objects by name: func, type, enum, group
 		switch el := elem.V.(type) {
+		case *base.Var:
+			// fmt.Printf("GExVr#1 Var: %T, %v \n", el, el)
+			val := el.Val
+			return val
+		case *base.Type:
+			return el
 		case *objects.Function, *NFunc:
 			return el
 		}
+		// var found:
+		// if vv.IsVar {
+		// 	vr := vv.GetVar()
+		// 	fmt.Printf("GExVr#1 Var: %T, %v \n", vr, vr)
+		// 	val := vr.Val
+		// 	return val
+		// }
+		// other objects by name: func, type, enum, group
+		// switch cxel := elem.(type) {
+		// case *base.ContextElem:
+		// 	fmt.Printf("GExVr#2 CtxElem: %T, %v \n", elem.V, elem.V)
+		// 	if elem == nil {
+		// 		return nil
+		// 	}
+		// 	return elem.V
+		// }
 		return "<? No val from VArExpr>"
 	case *ValExpr:
 		eVal = vv.Get()

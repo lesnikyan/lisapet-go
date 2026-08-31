@@ -174,8 +174,7 @@ func (cs *ColSlice) Get() *base.Val {
 	return base.NewVal(cs.res)
 }
 
-func normInd(i int64, clen int) int {
-	id := int(i)
+func normInd(id int, clen int) int {
 	if id < 0 {
 		return clen + id
 	}
@@ -199,51 +198,53 @@ func (cs *ColSlice) Do(cx base.Context) error {
 		return err
 	}
 	inds := cs.Inds.GetPair()
-	var start int64
-	var end int64
+	var start int
+	var end int
 	i0 := inds[0]
 	i1 := inds[1]
 	switch i0 := i0.(type) {
 	case int64:
-		start = i0
+		start = int(i0)
 	case *objects.EmptyVal:
 		start = 0
 	default:
 		return errors.New("slice: bad index start")
 	}
+	var sz int
+	switch col := colv.(type) {
+	case *objects.ListVal:
+		sz = len(col.Elems)
+	case *objects.TupleVal:
+		sz = len(col.Elems)
+	case objects.Bytes:
+		sz = len(col)
+	case string:
+		sz = len(col)
+	}
 	switch i1 := i1.(type) {
 	case int64:
-		end = i1
+		end = int(i1)
 	case *objects.EmptyVal:
-		switch col := colv.(type) {
-		case *objects.ListVal:
-			end = int64(len(col.Elems))
-		case *objects.TupleVal:
-			end = int64(len(col.Elems))
-		case string:
-			end = int64(len(col))
-		}
+		end = sz // int64(len(col.Elems))
 	default:
 		return errors.New("slice: bad index end")
 	}
-
+	// fmt.Printf("slice sz=%d [%d : %d] >> [%d : %d] \n", sz, start, end, normInd(start, sz), normInd(end, sz))
+	end = normInd(end, sz)
+	start = normInd(start, sz)
 	// fmt.Printf("ColSlice#src: %T, %v\n", colv, colv)
 	switch col := colv.(type) {
 	case *objects.ListVal:
-		sz := len(col.Elems)
-		vals := col.Elems[normInd(start, sz):normInd(end, sz)]
+		vals := col.Elems[start:end]
 		cs.res = objects.NewListVal(vals)
 	case *objects.TupleVal:
-		sz := len(col.Elems)
-		vals := col.Elems[normInd(start, sz):normInd(end, sz)]
+		vals := col.Elems[start:end]
 		cs.res = objects.NewTupleVal(vals)
 	case objects.Bytes:
-		sz := len(col)
-		val := col[normInd(start, sz):normInd(end, sz)]
+		val := col[start:end]
 		cs.res = val
 	case string:
-		sz := len(col)
-		val := col[normInd(start, sz):normInd(end, sz)]
+		val := col[start:end]
 		cs.res = val
 	}
 	return nil

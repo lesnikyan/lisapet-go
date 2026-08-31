@@ -33,12 +33,16 @@ func TypeByVal(val any) *TypeInfo {
 		return NewTypeInf("string", base.TypeString)
 	case *Null:
 		return NewTypeInf("null", base.TypeNull)
+	case *Maybe:
+		return NewTypeInf("maybe", base.TypeMaybe)
 	case *ListVal:
 		return NewTypeInf("list", base.TypeList)
 	case *TupleVal:
 		return NewTypeInf("tuple", base.TypeTuple)
 	case *DictVal:
 		return NewTypeInf("dict", base.TypeDict)
+	case Glif:
+		return NewTypeInf("glif", base.TypeGlif)
 	case base.FuncVal:
 		return NewTypeInf("function", base.TypeFunction)
 		// case *Maybe:
@@ -57,8 +61,12 @@ func TypeIdByVal(val any) base.TypeId {
 		return base.TypeFloat
 	case bool:
 		return base.TypeBool
+	case byte:
+		return base.TypeByte
 	case string:
 		return base.TypeString
+	case Bytes:
+		return base.TypeBytes
 	case *Null:
 		return base.TypeNull
 	case *ListVal:
@@ -69,8 +77,8 @@ func TypeIdByVal(val any) base.TypeId {
 		return base.TypeDict
 	case base.FuncVal:
 		return base.TypeFunction
-		// case *Maybe:
-		// 	return base.TypeMaybe
+	case *Maybe:
+		return base.TypeMaybe
 	}
 
 	return base.TypeUndefined

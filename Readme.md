@@ -62,11 +62,12 @@ next - by dates...
     Added hidden type **byte** for elements of `bytes` and future needs.  
     Bytes: Implemented slice, `+` operator, append by `<-` operator.
     Fixed negative indexes of slice.
+- -.-.28 Implemented method how to add constructor of builtin types. Added constructor for string type: `s = string(1)`  
 
 
 #### next TODO:
-- maybe  
 - collable constructs `list()`, `int()`, etc
+- maybe  
 - builtin methods: `"a b c".split(' ')`
 - multiline string `''' '''`  
 - regex re'.+'ui  

@@ -73,3 +73,19 @@ func BuiltFunc(cx base.Context, name string, adapter func(base.Context, []any) (
 	nf := &NFunc{Name: name, fun: adapter}
 	cx.AddFunc(nf)
 }
+
+func BuiltConstr(cx base.Context, name string, adapter func(base.Context, []any) (any, error), resType *base.Type) {
+	nf := &NFunc{Name: name, fun: adapter}
+	tp := cx.GetType(name)
+	if tp == nil {
+		panic("can't find type " + name)
+	}
+	tp.Construct = nf
+	// ce := cx.GetElem(name)
+	// ttp, ok := ce.V.(*base.Type)
+	// if !ok {
+	// 	panic("No such type # 1!!!")
+	// }
+	// fmt.Printf(" BCnstr `%s` %T con: %T \n", ttp.Name, ttp, ttp.Construct)
+	// cx.AddFunc(nf)
+}

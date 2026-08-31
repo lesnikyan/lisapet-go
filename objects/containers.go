@@ -118,8 +118,12 @@ func NewDictVal(vm map[any]any) *DictVal {
 // ****************************************
 
 type Maybe struct {
-	IsNone bool
-	Val    any
+	None bool
+	Val  any
+}
+
+func (mb *Maybe) IsNone() bool {
+	return mb.None
 }
 
 // type Some struct {
@@ -128,3 +132,10 @@ type Maybe struct {
 
 // type None struct {
 // }
+
+func Some(v any) *Maybe {
+	return &Maybe{Val: v}
+}
+func None() *Maybe {
+	return &Maybe{}
+}

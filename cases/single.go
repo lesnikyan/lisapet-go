@@ -22,6 +22,7 @@ var _contsVals = map[string]any{
 	`null`:  &obb.Null{},
 	`true`:  true,
 	`false`: false,
+	`none`:  obb.None(),
 }
 var rxInt = re.MustCompile(`^^[0-9]+$`)
 var rxInt16 = re.MustCompile(`^0x[0-9a-fA-F]+$`)
@@ -43,11 +44,7 @@ func MakeNumField(ee []*lang.Elem) *nodes.NumField {
 }
 
 func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
-
 	elen := len(ee)
-	// if len(ee) != 1 {
-	// 	return nil, false
-	// }
 	etype := ee[0].Type
 	etext := ee[0].Text
 	if !slices.Contains(_valLexms, ee[0].Type) {
@@ -56,13 +53,6 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 	if elen > 1 {
 		switch etype {
 		case Lt.Num:
-			// t0 := ee[0].Text[0]
-			// println(" >>>>>>>>>> #!!!", ee[0].Text, ">>", t0)
-			// nums := make([]string, len(ee))
-			// for i, nx := range ee {
-			// 	nums[i] = nx.Text
-			// }
-			// res := &nodes.NumField{V: nums}
 			res := MakeNumField(ee)
 			return res, true
 		case Lt.Word:

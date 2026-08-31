@@ -100,7 +100,7 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 		// tt, tk := curCx.types[name]
 		// bb, bk := curCx.funcs[name]
 
-		// fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) funcs(%v, %v )\n", name, aa, ak, tt, tk)
+		// fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) typs(%v, %v )  funcs(%v, %v )\n", name, aa, ak, tt, tk, bb, bk)
 		var ok bool
 		vr, ok := curCx.vars[name]
 		if ok {
