@@ -62,10 +62,6 @@ func constr_string(cx base.Context, args []any) (any, error) {
 			rr[i] = r
 		}
 		return string(rr), nil
-
-		// case *objects.TupleVal:
-		// 	return int64(len(a.Elems)), nil
-
 	}
 	return false, errors.New("constr string: incorrect arg type")
 }

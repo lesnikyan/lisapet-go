@@ -17,7 +17,6 @@ import (
 
 var _valLexms = []Lt.Lt{Lt.Num, Lt.Text, Lt.Word}
 
-// var _constLex = []string{`null`, `true`, `false`}
 var _contsVals = map[string]any{
 	`null`:  &obb.Null{},
 	`true`:  true,

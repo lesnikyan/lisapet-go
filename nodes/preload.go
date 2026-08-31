@@ -36,15 +36,14 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "bool", base.TypeBool)
 	AddType(cx, "int", base.TypeInt)
 	AddType(cx, "byte", base.TypeByte)
-	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "float", base.TypeFloat)
+	AddType(cx, "glif", base.TypeGlif)
 	AddType(cx, "string", base.TypeString)
 	AddType(cx, "list", base.TypeList)
 	AddType(cx, "tuple", base.TypeTuple)
 	AddType(cx, "dict", base.TypeDict)
+	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "maybe", base.TypeMaybe)
-	AddType(cx, "glif", base.TypeGlif)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
-
 }

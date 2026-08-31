@@ -37,7 +37,6 @@ func (fd *FuncDef) MakeFunc(cx base.Context) (*objects.Function, error) {
 	if err != nil {
 		return nil, errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
 	}
-	// fn := NewFunction(fd.Name, fd.Args, fd.Block, defCx)
 	fn := objects.NewFunction(fd.Name, fbk, defCx)
 	fd.res = fn
 	return fn, nil
@@ -102,7 +101,6 @@ func (md *MethodDef) Do(cx base.Context) error {
 	if err != nil {
 		return errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
 	}
-	// met := &objects.Method{Func: fn, InstName: iname, Type: tt}
 	met := objects.NewMethod(fn, tt, iname)
 	// fmt.Printf(" MetodDef.Do: t(%T, %v) meth(%T, %v) \n", tt, tt, met, met)
 	if tt.Def != nil {
@@ -175,7 +173,6 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	default:
 		// fmt.Printf("Err FunCall: non func: (%T, %v) \n", fn, fn)
 		return fmt.Errorf("FunCall: non func: (%T, %v) \n", fn, fn)
-		// return errors.New("trying to call non-function ")
 	}
 
 	return nil
@@ -183,10 +180,8 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 
 func (fc *FuncCall) DoArgs(cx base.Context) error {
 	// do arg expr
-	// namedN := 0
 	mvals := map[string]any{}
 	vals := make([]any, len(fc.args))
-
 	i := 0
 	for _, vex := range fc.args {
 		nmExp, ok := vex.(*OperAssign)
@@ -223,7 +218,6 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 		}
 		argName := lvar.name
 		mvals[argName] = lval.V
-		// namedN += 1
 	}
 	// put args to func
 	fc.fun.SetArgVals(vals[:i], mvals)

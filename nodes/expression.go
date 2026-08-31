@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -218,23 +219,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		case *objects.Function, *NFunc:
 			return el
 		}
-		// var found:
-		// if vv.IsVar {
-		// 	vr := vv.GetVar()
-		// 	fmt.Printf("GExVr#1 Var: %T, %v \n", vr, vr)
-		// 	val := vr.Val
-		// 	return val
-		// }
-		// other objects by name: func, type, enum, group
-		// switch cxel := elem.(type) {
-		// case *base.ContextElem:
-		// 	fmt.Printf("GExVr#2 CtxElem: %T, %v \n", elem.V, elem.V)
-		// 	if elem == nil {
-		// 		return nil
-		// 	}
-		// 	return elem.V
-		// }
-		return "<? No val from VArExpr>"
+		panic(fmt.Sprintf("Not a valid element found by word-lexem: %T", v))
 	case *ValExpr:
 		eVal = vv.Get()
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
