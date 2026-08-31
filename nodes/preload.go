@@ -19,6 +19,10 @@ func PreloadConstr(cx base.Context) {
 	BuiltConstr(cx, "float", constr_float, nil)
 	BuiltConstr(cx, "bool", constr_bool, nil)
 	BuiltConstr(cx, "glif", constr_glif, nil)
+	BuiltConstr(cx, "bytes", constr_bytes, nil)
+	BuiltConstr(cx, "list", constr_list, nil)
+	BuiltConstr(cx, "tuple", constr_tuple, nil)
+	BuiltConstr(cx, "dict", constr_dict, nil)
 }
 
 func AddType(cx base.Context, name string, id base.TypeId) {
