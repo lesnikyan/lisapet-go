@@ -15,6 +15,7 @@ func PreloadContext(cx base.Context) {
 	nodes.PreloadTypes(cx)
 	nodes.PreloadConstr(cx)
 	nodes.PreloadFuncs(cx)
+	nodes.BuiltMethods(cx)
 }
 
 // convert []T to []any

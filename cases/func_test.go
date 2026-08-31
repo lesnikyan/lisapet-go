@@ -17,16 +17,35 @@ ok 6. var type
 ok 6.1 arg type
 ok 7. multi assign
 ok 8. multi result: return a, b, 10
+ok 12. constructors of builtin types: int(), list(), tuple(), etc
 
 9. return from: match-case
 
 11. variative count of args, triple-dot operator
-12. constructors of builtin types: int(), list(), tuple(), etc
 13. func overaload: by arg count, by arg types
 14.1 multitype for var
 14.2 multitype for args
+15. builtin methods: 'a b c'.split(' ')
 
 */
+
+func TestFuncBuiltMethods(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		#
+		s = 'a b c'
+		r = s.split(' ')
+		`, "r", Anis("a", "b", "c")},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestFuncCompatibledArgs(t *testing.T) {
 	tdata := []struct {

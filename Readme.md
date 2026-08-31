@@ -66,6 +66,7 @@ next - by dates...
 - 2026.8.31 Implemented collable constructs for builtin types: `typeName(args)`:  
     `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
     **maybe**: `some(val)`, `none`.  
+- -.-31 Implemented **builtin methods**. Added method `string.split`
 
 
 #### next TODO:

@@ -47,3 +47,7 @@ func PreloadTypes(cx base.Context) {
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
 }
+
+func BuiltMethods(cx base.Context) {
+	BuiltMethod(cx, "string", "split", blStringSplit)
+}
