@@ -49,5 +49,12 @@ func PreloadTypes(cx base.Context) {
 }
 
 func BuiltMethods(cx base.Context) {
-	BuiltMethod(cx, "string", "split", blStringSplit)
+	BuiltMethod(cx, "string", "split", stringSplit)
+	BuiltMethod(cx, "string", "replace", stringReplace)
+	BuiltMethod(cx, "string", "join", stringJoin)
+	BuiltMethod(cx, "string", "bytes", stringBytes)
+	BuiltMethod(cx, "string", "glifs", stringGlifs)
+	BuiltMethod(cx, "string", "has", stringHas)
+	BuiltMethod(cx, "string", "lines", stringLines)
+	BuiltMethod(cx, "string", "trim", stringTrim)
 }

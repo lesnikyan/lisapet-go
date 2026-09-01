@@ -67,10 +67,13 @@ next - by dates...
     `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
     **maybe**: `some(val)`, `none`.  
 - -.-31 Implemented **builtin methods**. Added method `string.split`
+- -.09.01 Added builtin methods of string type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`
 
 
 #### next TODO:
-- builtin methods: `"a b c".split(' ')`
+- builtin methods for: list, tuple, dict
+- named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}
+- ecscape sequences: ``` \n \t \' \" \` \\ ```
 - multiline string `''' '''`  
 - regex re'.+'ui  
 - type check operator `::`  

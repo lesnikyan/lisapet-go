@@ -24,6 +24,8 @@ func Anynn[T any](vals []T) []any {
 	for i, n := range vals {
 		var x any = n
 		switch v := x.(type) {
+		case obb.Glif:
+			x = v
 		case int:
 			x = int64(v)
 		case []int64:
