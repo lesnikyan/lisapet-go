@@ -44,7 +44,8 @@ func (rr *ReturnExp) Do(cx base.Context) error {
 	if err != nil {
 		return err
 	}
-	rr.res = rr.Sub.Get()
+	res := GetExprVal(rr.Sub, cx)
+	rr.res = base.NewVal(res)
 	return nil
 }
 
