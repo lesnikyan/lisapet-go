@@ -250,16 +250,10 @@ func listJoin(cx base.Context, inst any, args []any) (any, error) {
 	return SeqJoin(src, args)
 }
 
-func listMap(cx base.Context, inst any, args []any) (any, error) {
-	src, ok := inst.(*objects.ListVal)
-	if !ok {
-		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
-	}
-	if len(args) < 1 {
-		return nil, fmt.Errorf("list.map: need 1 arg")
-	}
+func SeqMap(cx base.Context, src []any, farg any) ([]any, error) {
+
 	var fn base.FuncVal
-	switch fval := args[0].(type) {
+	switch fval := farg.(type) {
 	case base.FuncVal:
 		fn = fval
 	case *base.Type:
@@ -275,15 +269,15 @@ func listMap(cx base.Context, inst any, args []any) (any, error) {
 	default:
 		return nil, fmt.Errorf("list.map: not a function arg %T", fval)
 	}
-	rr := make([]any, len(src.Elems))
+	rr := make([]any, len(src))
 	fargs := []any{nil}
 	nargs := map[string]any{}
-	for i, n := range src.Elems {
+	for i, n := range src {
 		fargs[0] = n
 		fn.SetArgVals(fargs, nargs)
 		err := fn.Do(cx)
 		if err != nil {
-			return nil, errors.Join(errors.New("error in list.map "), err)
+			return nil, errors.Join(errors.New("error .map "), err)
 		}
 		fr := fn.Get()
 		var nr any
@@ -293,6 +287,21 @@ func listMap(cx base.Context, inst any, args []any) (any, error) {
 			nr = fr.V
 		}
 		rr[i] = nr
+	}
+	return rr, nil
+}
+
+func listMap(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("list.map: need 1 arg")
+	}
+	rr, err := SeqMap(cx, src.Elems, args[0])
+	if err != nil {
+		return nil, errors.Join(errors.New("error list.map res:"), err)
 	}
 	return objects.NewListVal(rr), nil
 }
@@ -361,6 +370,51 @@ func listFlat(cx base.Context, inst any, args []any) (any, error) {
 
 // ---- type Tuple
 
-// func tupleJoin(cx base.Context, inst any, args []any) (any, error) {
+func tupleJoin(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.TupleVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+	}
+	return SeqJoin(src, args)
+}
 
-// func tupleMap(cx base.Context, inst any, args []any) (any, error) {
+func tupleMap(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.TupleVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in tuple.join: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("tuple.map: need 1 arg")
+	}
+	rr, err := SeqMap(cx, src.Elems, args[0])
+	if err != nil {
+		return nil, errors.Join(errors.New("error tuple.map res:"), err)
+	}
+	return objects.NewTupleVal(rr), nil
+}
+
+// ---- type Dict
+
+// map keys and vals map(func(k, v) >> rk,rv)
+// func dictMap(cx base.Context, inst any, args []any) (any, error) {
+// 	src, ok := inst.(*objects.DictVal)
+// 	if !ok {
+// 		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+// 	}
+// }
+
+// map of keys
+// func dictKMap(cx base.Context, inst any, args []any) (any, error) {
+// 	src, ok := inst.(*objects.DictVal)
+// 	if !ok {
+// 		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+// 	}
+// }
+
+// map of vals
+// func dictVMap(cx base.Context, inst any, args []any) (any, error) {
+// 	src, ok := inst.(*objects.DictVal)
+// 	if !ok {
+// 		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+// 	}
+// }

@@ -22,6 +22,43 @@ bytes: min, max,
 
 */
 
+func TestTupleMethods(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// join
+		{`
+		tt = ('ab','CD', '45')
+		r = tt.join('-')
+		`, "r", "ab-CD-45"},
+		{`
+		tt = tuple("11 23 456".split(' '))
+		r = tt.join(g'-')
+		`, "r", "11-23-456"},
+		// map
+		{`
+		func foo(x)
+			x * 11
+		#
+		tt = (1,2,3,4,5)
+		r = tt.map(foo)
+		`, "r", Tanis(11, 22, 33, 44, 55)},
+		{`
+		func foo(x)
+			glif(65 + x)
+		#
+		tt = (1,2,3,4,37)
+		r = tt.map(foo)
+		`, "r", Tanis('B', 'C', 'D', 'E', 'f')},
+		// {``, "r",  Anis( )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestListMethods(t *testing.T) {
 	tdata := []struct {
 		src   string

@@ -66,9 +66,10 @@ next - by dates...
 - 2026.8.31 Implemented collable constructs for builtin types: `typeName(args)`:  
     `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
     **maybe**: `some(val)`, `none`.  
-- -.-31 Implemented **builtin methods**. Added method `string.split`
-- -.09.01 Added builtin methods of `string` type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`
-- -.-.02 Added methods for `list`: `map`, `join`, `fold`, `flat`
+- -.-31 Implemented **builtin methods**. Added method `string.split`  
+- -.09.01 Added builtin methods of `string` type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`  
+- -.-.02 Added methods for `list`: `map`, `join`, `fold`, `flat`  
+   Added methods for `tuple`: `map`, `join`
 
 
 #### next TODO:
