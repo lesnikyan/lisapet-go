@@ -49,6 +49,7 @@ func PreloadTypes(cx base.Context) {
 }
 
 func BuiltMethods(cx base.Context) {
+	// string
 	BuiltMethod(cx, "string", "split", stringSplit)
 	BuiltMethod(cx, "string", "replace", stringReplace)
 	BuiltMethod(cx, "string", "join", stringJoin)
@@ -57,4 +58,9 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "string", "has", stringHas)
 	BuiltMethod(cx, "string", "lines", stringLines)
 	BuiltMethod(cx, "string", "trim", stringTrim)
+	// list
+	BuiltMethod(cx, "list", "join", listJoin)
+	BuiltMethod(cx, "list", "map", listMap)
+	BuiltMethod(cx, "list", "fold", listFold)
+	BuiltMethod(cx, "list", "flat", listFlat)
 }

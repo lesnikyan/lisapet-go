@@ -244,13 +244,15 @@ func (fc *FuncCall) Do(cx base.Context) error {
 	}
 	// fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
 	r := fc.fun.Get()
+
+	// fmt.Printf(" - FCall(%s).Do#4 br(%T : %v) \n", fc.fun.GetName(), r, r)
 	fc.resVal = r
 	if r == nil {
 		r = NoResult
 	}
 	fc.resVal = r
 	fc.res = r.V
-	// fmt.Printf(" - FCall.Do#3 br(%T : %v) fr(%T : %v) \n", r, r, fc.res, fc.res)
+	// fmt.Printf(" - FCall(%s).Do#5 br(%T : %v) fr(%T : %v) \n", fc.fun.GetName(), r, r, fc.res, fc.res)
 	return nil
 }
 

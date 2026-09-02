@@ -8,6 +8,10 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
+func NullV() *objects.Null {
+	return &objects.Null{}
+}
+
 // *** EMPTY
 
 type EmptyExpr struct {

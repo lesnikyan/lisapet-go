@@ -113,6 +113,7 @@ func JoinElems(src any, sep string) (any, error) {
 	}
 	ss := make([]string, len(vals))
 	for i, v := range vals {
+		// fmt.Printf(".join#001:  %T : %v \n", v, v)
 		switch n := v.(type) {
 		case string:
 			ss[i] = n
@@ -218,13 +219,145 @@ func stringTrim(cx base.Context, inst any, args []any) (any, error) {
 	return strings.Trim(s, cuts), nil
 }
 
+func SeqJoin[T *objects.ListVal | *objects.TupleVal](inst T, args []any) (any, error) {
+	if len(args) < 1 {
+		return nil, fmt.Errorf("list.join: need 1 arg")
+	}
+	var sep string
+	switch a0 := args[0].(type) {
+	case string:
+		sep = a0
+	case objects.Glif:
+		sep = string([]rune{a0})
+	default:
+		return nil, fmt.Errorf("Bad arg in list.join: %T", a0)
+	}
+	// fmt.Printf("arg in list.join: %T, %T:`%v` \n", inst, sep, sep)
+	res, err := JoinElems(inst, sep)
+	if err != nil {
+		return nil, errors.Join(errors.New("list.join err"), err)
+	}
+	return res, nil
+}
+
 // ---- type List
 
-// func listJoin(cx base.Context, inst any, args []any) (any, error) {
+func listJoin(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+	}
+	return SeqJoin(src, args)
+}
 
-// func listMap(cx base.Context, inst any, args []any) (any, error) {
+func listMap(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.join: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("list.map: need 1 arg")
+	}
+	var fn base.FuncVal
+	switch fval := args[0].(type) {
+	case base.FuncVal:
+		fn = fval
+	case *base.Type:
+		// fmt.Println("Type as func!")
+		if fval.Def != nil {
+			panic("Custom type constructs not implemented yet!")
+		}
+		cons := fval.Construct
+		if cons == nil {
+			return nil, fmt.Errorf("list.map: agr `type` don't have callable construct")
+		}
+		fn = cons
+	default:
+		return nil, fmt.Errorf("list.map: not a function arg %T", fval)
+	}
+	rr := make([]any, len(src.Elems))
+	fargs := []any{nil}
+	nargs := map[string]any{}
+	for i, n := range src.Elems {
+		fargs[0] = n
+		fn.SetArgVals(fargs, nargs)
+		err := fn.Do(cx)
+		if err != nil {
+			return nil, errors.Join(errors.New("error in list.map "), err)
+		}
+		fr := fn.Get()
+		var nr any
+		if fr == nil {
+			nr = NullV()
+		} else {
+			nr = fr.V
+		}
+		rr[i] = nr
+	}
+	return objects.NewListVal(rr), nil
+}
 
-// func listFold(cx base.Context, inst any, args []any) (any, error) {
+// list -> single val
+func listFold(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.fold: %T", inst)
+	}
+	if len(args) < 2 {
+		return nil, fmt.Errorf("list.fold: need 2 args: start val, func(a, b)")
+	}
+	start := args[0]
+	var foldf base.FuncVal
+
+	switch fval := args[1].(type) {
+	case base.FuncVal:
+		foldf = fval
+	default:
+		return nil, fmt.Errorf("list.fold: not a function arg %T", fval)
+	}
+
+	fargs := []any{nil, nil}
+	nargs := map[string]any{}
+	prev := start // prev and final
+	for _, n := range src.Elems {
+		fargs[0] = prev
+		fargs[1] = n
+		foldf.SetArgVals(fargs, nargs)
+		err := foldf.Do(cx)
+		if err != nil {
+			return nil, errors.Join(errors.New("error in list.map "), err)
+		}
+		fr := foldf.Get()
+		var nr any
+		if fr == nil {
+			nr = NullV()
+		} else {
+			nr = fr.V
+		}
+		prev = nr
+	}
+	return prev, nil
+}
+
+// [[1,2],[3,4]] >> [1,2,3,4]
+func listFlat(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.flat: %T", inst)
+	}
+	rr := []any{}
+
+	for _, n := range src.Elems {
+		nn, ok := n.(*objects.ListVal)
+		if !ok {
+			// return nil, fmt.Errorf("Bad elem in list.flat: %T", n)
+			rr = append(rr, n)
+			continue
+		}
+		rr = append(rr, nn.Elems...)
+	}
+	return objects.NewListVal(rr), nil
+}
 
 // ---- type Tuple
 

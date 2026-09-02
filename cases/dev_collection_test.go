@@ -2,6 +2,8 @@ package cases
 
 import (
 	"testing"
+
+	obb "github.com/lesnikyan/lisapet-go/objects"
 )
 
 /*
@@ -9,10 +11,123 @@ TODO:
 ok 1. slice: nn[a : b]
 ok 5. Block in block: list:dict,tuple; dict: dict,list...
 constructors:
-2. list()
-3. dict()
-4. tuple()
+ok 2. list()
+ok 3. dict()
+ok 4. tuple()
+Methods:
+list
+tuple
+dict
+bytes: min, max,
+
 */
+
+func TestListMethods(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// join
+		{`
+		nn = ['Hello','honey','hill']
+		r = nn.join(' | ')
+		`, "r", "Hello | honey | hill"},
+		{`
+		nn = ['Hello','honey','hill']
+		r = nn.join(g'|')
+		`, "r", "Hello|honey|hill"},
+		// map
+		{`
+		func x10(x)
+			x * 10
+		#
+		ss = [1,2,3,4,5]
+		r = ss.map(x10)
+		`, "r", Anis(10, 20, 30, 40, 50)},
+		{`
+		func xcase(x:glif)
+			n = int(x)
+			if n < 65
+				return x
+			if n < 91
+				return glif(n + 32)
+			if n < 97
+				return x
+			if n < 123
+				return glif(n - 32)
+			x
+		#
+		ss = "Abs Hello (SQL)."
+		r = ss.glifs().map(xcase).join('')
+		`, "r", "aBS hELLO (sql)."},
+		{`
+		func rangeN(a, b)
+			r = []
+			for n <- [a .. b]
+				r <- n
+			r
+		#
+		r = rangeN(65, 75).map(glif).join('')
+		`, "r", "ABCDEFGHIJK"},
+		{`
+		# change outer var from map(func)
+		r1 = []
+		func foo(x)
+			r1 <- x
+			(x, 100+x)
+		#
+		nn = [1,2,3,4]
+		r2 = nn.map(foo)
+		r = [r1, r2]
+		# >> [[1,2,3,4], [(1,101),(2,102),(3,103),(4,104)]]
+		`, "r", Anis(Anis(1, 2, 3, 4), Anis(Tanis(1, 101), Tanis(2, 102), Tanis(3, 103), Tanis(4, 104)))},
+		// fold
+		{`
+		func sum(s, x)
+			s + x
+		#
+		nn = [1,2,3,4,5]
+		r = nn.fold(0, sum)
+		`, "r", int64(15)},
+		{`
+		func foo(s:string, n:glif)
+			p = "<%s>" << string(n)
+			s + p
+		#
+		s = "abc".glifs()
+		r = s.fold('', foo)
+		`, "r", "<a><b><c>"},
+		{`
+		func max(s, n)
+			if n > s
+				return n
+			s
+		nn = [-20000,3,5,-9,12,6,8,3,0]
+		r = nn.fold(-1000000, max)
+		`, "r", int64(12)},
+		// flat
+		{`
+		nn = [[1,2], [3,4,5], [6]]
+		r = nn.flat()
+		`, "r", Anis(1, 2, 3, 4, 5, 6)},
+		{`
+		nn = [0, [1,[11, 22],[111, 222, 333]], [[44, 45],[51, 52, 53],[61, 62]], [[1001]], 5005]
+		r = nn.flat().flat()
+		`, "r", Anis(0, 1, 11, 22, 111, 222, 333, 44, 45, 51, 52, 53, 61, 62, 1001, 5005)},
+		{`
+		func glifs(s: string)
+			s.glifs()
+		#
+		s = "Hello Letters 1234"
+		r = s.split(' ').map(glifs).flat()
+		`, "r", Anynn([]obb.Glif("HelloLetters1234"))},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestCollBlockNested(t *testing.T) {
 	tdata := []struct {

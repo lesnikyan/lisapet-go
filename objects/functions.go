@@ -55,7 +55,9 @@ func (fn *Function) Do(cx base.Context) error {
 	if err != nil {
 		return err
 	}
-	fn.resVal = fn.Block.Get()
+	res := fn.Block.Get()
+	// fmt.Printf(" ---- ob.Fu (%s).Do#4 (%T, %v) \n", fn.GetName(), res, res)
+	fn.resVal = res
 	return nil
 }
 
