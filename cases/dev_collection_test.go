@@ -15,12 +15,84 @@ ok 2. list()
 ok 3. dict()
 ok 4. tuple()
 Methods:
-list
-tuple
-dict
+list: TODO: sort
+ok tuple
+ok dict
 bytes: min, max,
 
 */
+
+func TestDictMethods(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// map
+		{`
+		func foo(k, v)
+			k, v + 100
+		#
+		dd = {'1':11, 'a':22}
+		r = dd.map(foo)
+		`, "r", adk(dk{"1": 111, "a": 122})},
+		{`
+		func foo(k, v)
+			'<%s>' << k, '(%d)' << v
+		#
+		dd = {'1':11, 'a':22}
+		r = dd.map(foo)
+		`, "r", adk(dk{"<1>": "(11)", "<a>": "(22)"})},
+		// k-map
+		{`
+		func foo(k)
+			'_%s' << k
+		#
+		dd = {'1':11, 'b':22}
+		r = dd.kmap(foo)
+		`, "r", adk(dk{"_1": 11, "_b": 22})},
+		// v-map
+		{`
+		func foo(v)
+			v + 1000
+		#
+		dd = {'3':33, 'c':44}
+		r = dd.vmap(foo)
+		`, "r", adk(dk{"3": 1033, "c": 1044})},
+		// keys
+		{`
+		dd = {1:11, 2:22, 'aa':'33', 'bb':44}
+		kk = dd.keys()
+		r = {}
+		for k <- kk
+			r <- (k, 0)
+		`, "r", adk(dk{"aa": 0, "bb": 0, 1: 0, 2: 0})},
+		{`
+		func foo(s)
+			'~%s' << s
+		#
+		dd = {'111':11, '2':22, 'aa':'33', 'bb':44}
+		k2 = dd.keys().map(foo)
+		r = {}
+		i = 1
+		for k <- k2
+			r[k] = k[1:]
+			i += 1
+		`, "r", adk(dk{"~111": "111", "~2": "2", "~aa": "aa", "~bb": "bb"})},
+		// vals
+		{`
+		dd = {'111':11, '2':22, 'aa':'33', 'bb':44}
+		vv = dd.vals()
+		r = {}
+		for v <- vv
+			r <- (v, 0)
+		`, "r", adk(dk{"33": 0, 11: 0, 22: 0, 44: 0})},
+		// {``, "r",  Anis( )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestTupleMethods(t *testing.T) {
 	tdata := []struct {

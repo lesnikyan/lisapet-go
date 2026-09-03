@@ -68,4 +68,9 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "tuple", "map", tupleMap)
 	BuiltMethod(cx, "tuple", "join", tupleJoin)
 	// dict
+	BuiltMethod(cx, "dict", "map", dictMap)
+	BuiltMethod(cx, "dict", "kmap", dictKMap)
+	BuiltMethod(cx, "dict", "vmap", dictVMap)
+	BuiltMethod(cx, "dict", "keys", dictKeys)
+	BuiltMethod(cx, "dict", "vals", dictVals)
 }
