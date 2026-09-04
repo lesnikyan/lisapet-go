@@ -52,8 +52,14 @@ func TestConstructBytes(t *testing.T) {
 		r = bytes(byte(4))
 		`, "r", oob.Bytes{0, 0, 0, 0}},
 		{`
+		r = bytes(00x5)
+		`, "r", oob.Bytes{0, 0, 0, 0, 0}},
+		{`
 		r = bytes([])
 		`, "r", oob.Bytes{}},
+		{`
+		r = bytes([00xe5, 00x01])
+		`, "r", oob.Bytes{0xe5, 1}},
 		{`
 		r = bytes((11,22, 255))
 		`, "r", oob.Bytes{11, 22, 255}},

@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -374,7 +375,39 @@ func listFlat(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewListVal(rr), nil
 }
 
-// func listSort(cx base.Context, inst any, args []any) (any, error) {}
+func listSort(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.sort: %T", inst)
+	}
+	vals := src.Elems
+	rr := make([]any, len(vals))
+	for i, v := range vals {
+		switch n := v.(type) {
+		case bool, byte, int64, float64, rune, string:
+			rr[i] = n
+		default:
+			return nil, fmt.Errorf("Not ordered type of elem in list.sort: %T", n)
+		}
+	}
+	slices.SortFunc(rr, CmpOrd)
+	return objects.NewListVal(rr), nil
+}
+
+func listReverse(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.reverse: %T", inst)
+	}
+	vals := src.Elems
+	slen := len(vals)
+	maxl := slen - 1
+	rr := make([]any, slen)
+	for i, v := range vals {
+		rr[maxl-i] = v
+	}
+	return objects.NewListVal(rr), nil
+}
 
 // ---- type Tuple
 

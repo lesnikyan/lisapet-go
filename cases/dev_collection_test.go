@@ -22,6 +22,68 @@ bytes: min, max,
 
 */
 
+func TestListSortRev(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// sort
+		{`
+		nn = [5,4,6,3,7,2,-8,1,0,-1000000,6,4,2]
+		r = nn.sort()
+		`, "r", Anis(-1000000, -8, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7)},
+		{`
+		nn = [1,2,3,4,5,999999999]
+		r = nn.sort()
+		`, "r", Anis(1, 2, 3, 4, 5, 999999999)},
+		{`
+		nn = [9999999,  '5', g'5',  'A', 'S', 'Aaaa', g'a', g'S', true, g'A', -100,-10000000]
+		r = nn.sort()
+		`, "r", Anis(true, -10000000, -100, 9999999, '5', 'A', 'S', 'a', "5", "A", "Aaaa", "S")},
+		{`
+		nn = [9999999, 100, 5, '5', g'5', byte(5), 3, 1 == 3, 1, byte(122), false, 'A', 'S', 'Aaaa', g'a', g'S', byte(255), true, g'A', 4==4, -100,-10000000]
+		r = nn.sort()
+		`, "r", Anis(false, false, true, true, -10000000, -100, 1, 3, byte(0x5), 5, 100, byte(0x7a), byte(0xff), 9999999, '5', 'A', 'S', 'a', "5", "A", "Aaaa", "S")},
+		{`
+		nn = ['a','aa','A', 'S', g'a', g'A', g'S', g'z']
+		r = nn.sort()
+		`, "r", Anis('A', 'S', 'a', 'z', "A", "S", "a", "aa")},
+		{`
+		nn = [300, 500, -1, g'a', g'A', g'S', g'z', 700, 99999]
+		r = nn.sort()
+		`, "r", Anis(-1, 300, 500, 700, 99999, 'A', 'S', 'a', 'z')},
+		{`
+		nn = ['a', 'aa', 'aA', 'az', g'a']
+		r = nn.sort()
+		`, "r", Anis('a', "a", "aA", "aa", "az")},
+		{`
+		nn = [00x1, 00x10, 00xfa, 00x01, 00xf0, 00x0f]
+		r = nn.sort()
+		`, "r", Anynn([]byte{0x1, 0x1, 0xf, 0x10, 0xf0, 0xfa})},
+		{`
+		nn = [1.2, 100.002, 2, 3, byte(250), 'Q', g'Q', true]
+		r = nn.sort()
+		`, "r", Anis(true, 1.2, 2, 3, 100.002, byte(0xfa), 'Q', "Q")},
+		{`
+		nn = [1, byte(1), byte(100), 100, 'A', 1==1, g'A']
+		r = nn.sort()
+		`, "r", Anis(true, 1, byte(0x1), byte(0x64), 100, 'A', "A")},
+		// reverse
+		{`
+		nn = [1,2,3,4,5]
+		r = nn.reverse()
+		`, "r", Anis(5, 4, 3, 2, 1)},
+		{`
+		nn = [1,2,3,4,5, '','A','b','c',true, false, byte(0xee), g'Q', 1.2]
+		r = nn.reverse()
+		`, "r", Anis(1.2, 'Q', byte(0xee), false, true, "c", "b", "A", "", 5, 4, 3, 2, 1)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestDictMethods(t *testing.T) {
 	tdata := []struct {
 		src   string

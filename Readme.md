@@ -71,10 +71,13 @@ next - by dates...
 - -.-.02 Added methods for `list`: `map`, `join`, `fold`, `flat`  
     Added methods for `tuple`: `map`, `join`
 - -.-.03 Added methods for dict: `map`, `keys`, `vals`, `kmap` (map for keys), `vmap`(map for values)
+- -.-.04 Added method `list.sort`: order compare of types: `bool`, numeric, `rune`, `string`
+    Added method `list.reverse`
+    Added short syntax of **byte** with two leading zeros: 00xff  
 
 
 #### next TODO:
-- builtin methods for: bytes, maybe.isNone, list.sort
+- builtin methods for: bytes, maybe.isNone
 - named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}
 - ecscape sequences: ``` \n \t \' \" \` \\ ```
 - multiline string `''' '''`  

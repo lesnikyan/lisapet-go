@@ -63,6 +63,8 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "list", "map", listMap)
 	BuiltMethod(cx, "list", "fold", listFold)
 	BuiltMethod(cx, "list", "flat", listFlat)
+	BuiltMethod(cx, "list", "sort", listSort)
+	BuiltMethod(cx, "list", "reverse", listReverse)
 	// tuple
 	BuiltMethod(cx, "tuple", "join", tupleJoin)
 	BuiltMethod(cx, "tuple", "map", tupleMap)
