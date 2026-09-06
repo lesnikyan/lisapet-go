@@ -74,19 +74,29 @@ next - by dates...
 - -.-.04 Added method `list.sort`: order compare of types: `bool`, numeric, `rune`, `string`
     Added method `list.reverse`
     Added short syntax of **byte** with two leading zeros: 00xff  
+- -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`
 
 
 #### next TODO:
 - builtin methods for: bytes, maybe.isNone
 - named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}
+- CLI: lspt file.et
 - ecscape sequences: ``` \n \t \' \" \` \\ ```
 - multiline string `''' '''`  
 - regex re'.+'ui  
 - type check operator `::`  
+- multitype: var, arg, `::`
 - opers `?>` `!?>`  
 - opers `a ? b : c` `a ?: b`  
+- multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - delete `!@`  
 - `const`  
-- multisource loop-assign `for a, b, c <- aa, bb, cc`  
+
+
+dev names:  
+    foxet: functional-object executable tree  
+    foxen: functional-object executable nodes  
+    folixen: functional-object language interpreter of executable nodes
+    foxilt: functional-object extensible interpreter of lexical tree   
 
 

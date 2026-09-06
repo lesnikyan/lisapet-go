@@ -27,6 +27,10 @@ func floatv(a any) float64 {
 // TODO: int: | & ^ << >>
 func binOperInt(opid Opid, a int64, b any) (any, bool) {
 	// fmt.Println("binInt:", opid, a, b)
+	switch bv := b.(type) {
+	case byte:
+		b = int64(bv)
+	}
 	switch b := b.(type) {
 	case int64:
 		switch opid {
@@ -99,34 +103,40 @@ func binOperInt(opid Opid, a int64, b any) (any, bool) {
 }
 
 func binOperFloat(opid Opid, a float64, b any) (any, bool) {
-	switch b := b.(type) {
+	switch bv := b.(type) {
+	case byte:
+		b = float64(bv)
 	case int64:
-		switch opid {
-		case OpPlus:
-			return a + float64(b), true
-		case OpMinus:
-			return a - float64(b), true
-		case OpMult:
-			return a * float64(b), true
-		case OpDiv:
-			return a / float64(b), true
-		case OpPow:
-			return math.Pow(a, float64(b)), true
-		case OpRoot:
-			return math.Pow(float64(b), 1/float64(a)), true
-		case OpEqual:
-			return a == float64(b), true
-		case OpNotEqual:
-			return a != float64(b), true
-		case OpLess:
-			return a < float64(b), true
-		case OpLessEqual:
-			return a <= float64(b), true
-		case OpMore:
-			return a > float64(b), true
-		case OpMoreEqual:
-			return a >= float64(b), true
-		}
+		b = float64(bv)
+	}
+	switch b := b.(type) {
+	// case int64:
+	// 	switch opid {
+	// 	case OpPlus:
+	// 		return a + float64(b), true
+	// 	case OpMinus:
+	// 		return a - float64(b), true
+	// 	case OpMult:
+	// 		return a * float64(b), true
+	// 	case OpDiv:
+	// 		return a / float64(b), true
+	// 	case OpPow:
+	// 		return math.Pow(a, float64(b)), true
+	// 	case OpRoot:
+	// 		return math.Pow(float64(b), 1/float64(a)), true
+	// 	case OpEqual:
+	// 		return a == float64(b), true
+	// 	case OpNotEqual:
+	// 		return a != float64(b), true
+	// 	case OpLess:
+	// 		return a < float64(b), true
+	// 	case OpLessEqual:
+	// 		return a <= float64(b), true
+	// 	case OpMore:
+	// 		return a > float64(b), true
+	// 	case OpMoreEqual:
+	// 		return a >= float64(b), true
+	// 	}
 	case float64:
 		switch opid {
 		case OpPlus:
@@ -222,7 +232,91 @@ func binOperBytes(opid Opid, a ob.Bytes, b any) (any, bool) {
 	return nil, false
 }
 
-func binOperByte(opid Opid, a byte, b any) (any, bool) { return nil, false }
+func binOperByte(opid Opid, a byte, b any) (any, bool) {
+	// use int type for math except +,-
+	switch b := b.(type) {
+	case byte:
+		switch opid {
+		case OpPlus:
+			return a + b, true
+		case OpMinus:
+			return a - b, true
+		// case OpMult:
+		// 	return a * b, true
+		// case OpDiv:
+		// 	return float64(a) / float64(b), true
+		// case OpPow:
+		// 	return int64(math.Pow(float64(a), float64(b))), true
+		// case OpRoot:
+		// 	return math.Pow(float64(b), 1/float64(a)), true
+		case OpEqual:
+			return a == b, true
+		case OpNotEqual:
+			return a != b, true
+		case OpLess:
+			return a < b, true
+		case OpLessEqual:
+			return a <= b, true
+		case OpMore:
+			return a > b, true
+		case OpMoreEqual:
+			return a >= b, true
+		case OpPercent:
+			return a % b, true
+		case OpBitAnd:
+			return a & b, true
+		case OpBitOr:
+			return a | b, true
+		case OpXor:
+			return a ^ b, true
+		case OpBitLShift:
+			return a << b, true
+		case OpBitRShift:
+			return a >> b, true
+		}
+	case int64:
+		// aa := int64()
+		switch opid {
+		// case OpPlus:
+		// 	return a + b, true
+		// case OpMinus:
+		// 	return a - b, true
+		// case OpMult:
+		// 	return a * b, true
+		// case OpDiv:
+		// 	return float64(a) / float64(b), true
+		// case OpPow:
+		// 	return int64(math.Pow(float64(a), float64(b))), true
+		// case OpRoot:
+		// 	return math.Pow(float64(b), 1/float64(a)), true
+		case OpEqual:
+			return int64(a) == b, true
+		case OpNotEqual:
+			return int64(a) != b, true
+		case OpLess:
+			return int64(a) < b, true
+		case OpLessEqual:
+			return int64(a) <= b, true
+		case OpMore:
+			return int64(a) > b, true
+		case OpMoreEqual:
+			return int64(a) >= b, true
+		// case OpPercent:
+		// 	return a % b, true
+		// case OpBitAnd:
+		// 	return a & b, true
+		// case OpBitOr:
+		// 	return a | b, true
+		// case OpXor:
+		// 	return a ^ b, true
+		case OpBitLShift:
+			return a << b, true
+		case OpBitRShift:
+			return a >> b, true
+		}
+	}
+	return nil, false
+}
 
 func binOperGlyf(opid Opid, a rune, b any) (any, bool) { return nil, false }
 

@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"slices"
@@ -341,7 +342,7 @@ func listFold(cx base.Context, inst any, args []any) (any, error) {
 		foldf.SetArgVals(fargs, nargs)
 		err := foldf.Do(cx)
 		if err != nil {
-			return nil, errors.Join(errors.New("error in list.map "), err)
+			return nil, errors.Join(errors.New("error in list.fold "), err)
 		}
 		fr := foldf.Get()
 		var nr any
@@ -576,3 +577,238 @@ func dictVals(cx base.Context, inst any, args []any) (any, error) {
 	}
 	return objects.NewListVal(nn), nil
 }
+
+// ---- type Bytes
+
+// bits: 0x[f1] >> [1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,1]
+func bytesBits(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(objects.Bytes)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in bytes.bits: %T", inst)
+	}
+	rr := make([]any, len(src)*8)
+	for i, bt := range src {
+		for j := 0; j < 8; j++ {
+			rr[i*8+j] = int64((bt >> (7 - j)) & 1)
+		}
+	}
+	return objects.NewListVal(rr), nil
+}
+
+// blocks
+func bytesBlocks(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(objects.Bytes)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in bytes.blocks: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("method bytes.blocks needs 1 int arg")
+	}
+	var bsize int
+	switch sz := args[0].(type) {
+	case int64:
+		bsize = int(sz)
+	case byte:
+		bsize = int(sz)
+	default:
+		return nil, fmt.Errorf("Bad argument in bytes.blocks: needs int, given: %T", sz)
+	}
+	slen := len(src)
+	// fmt.Printf("bytes.blocks: slen=%d\n", slen)
+	rem := slen % bsize
+	rlen := slen / bsize
+	if rem > 0 {
+		rlen += 1
+	}
+	rr := make([]any, rlen)
+	start := 0
+	si := 0
+	if rem > 0 {
+		r1 := make(objects.Bytes, bsize)
+		shift := bsize - rem
+
+		// fmt.Printf("bytes.blocks: rem=%d, sh=%d\n", rem, shift)
+		for i := 0; i < rem; i++ {
+			r1[shift+i] = src[i]
+		}
+		rr[0] = r1
+		start = rem
+		si = 1
+	}
+	// fin := slen + rem
+	for i := start; i < slen; i += bsize {
+		rn := make(objects.Bytes, bsize)
+		for j := 0; j < bsize; j++ {
+			// fmt.Printf("bytes.blocks: i=%d, j=%d\n", i, j)
+			rn[j] = src[i+j]
+		}
+		rr[si] = rn
+		si++
+	}
+	return objects.NewListVal(rr), nil
+}
+
+// map
+func bytesMap(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(objects.Bytes)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in bytes.map: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("method bytes.map needs 1 int arg")
+	}
+
+	fn, err := objFunc(args[0])
+	if err != nil {
+		return nil, err
+	}
+	// rr := make([]any, len(src))
+	rr := make(objects.Bytes, len(src))
+	fargs := []any{nil}
+	nargs := map[string]any{}
+	for i, n := range src {
+		fargs[0] = n
+		fn.SetArgVals(fargs, nargs)
+		err := fn.Do(cx)
+		if err != nil {
+			return nil, errors.Join(errors.New("error bytes.map "), err)
+		}
+		fr := fn.Get()
+		var nr any
+		if fr == nil {
+			nr = NullV()
+		} else {
+			nr = fr.V
+		}
+		rb, ok := nr.(byte)
+		if !ok {
+			return nil, fmt.Errorf("Bad result of func in in bytes.map: must be a byte, %T given", nr)
+		}
+		rr[i] = rb
+	}
+	return rr, nil
+}
+
+// reverse
+func bytesReverse(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(objects.Bytes)
+	// fmt.Printf("reverse#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in bytes.reverse: %T", inst)
+	}
+	rr := make(objects.Bytes, len(src))
+	maxi := len(src) - 1
+	for i, n := range src {
+		rr[maxi-i] = n
+	}
+	return rr, nil
+}
+
+// fold
+func bytesFold(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(objects.Bytes)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in bytes.fold: %T", inst)
+	}
+	if len(args) < 2 {
+		return nil, fmt.Errorf("method bytes.fold needs 2 args: startVal, func")
+	}
+
+	start := args[0]
+	var foldf base.FuncVal
+
+	switch fval := args[1].(type) {
+	case base.FuncVal:
+		foldf = fval
+	default:
+		return nil, fmt.Errorf("bytes.fold: not a function arg %T", fval)
+	}
+
+	fargs := []any{nil, nil}
+	nargs := map[string]any{}
+	prev := start // prev and final
+	for _, n := range src {
+		fargs[0] = prev
+		fargs[1] = n
+		foldf.SetArgVals(fargs, nargs)
+		err := foldf.Do(cx)
+		if err != nil {
+			return nil, errors.Join(errors.New("error in bytes.fold "), err)
+		}
+		fr := foldf.Get()
+		var nr any
+		if fr == nil {
+			nr = NullV()
+		} else {
+			nr = fr.V
+		}
+		prev = nr
+	}
+	return prev, nil
+
+}
+
+// nums
+
+var validNumSizes = []int{1, 2, 4, 8}
+
+func bytesNums(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(objects.Bytes)
+	// fmt.Printf("#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in bytes.nums: %T", inst)
+	}
+	ns, ok := args[0].(int64)
+	if !ok {
+		return nil, fmt.Errorf("bytes.nums needs int arg, but %T given", ns)
+	}
+	nsize := int(ns)
+	if !slices.Contains(validNumSizes, nsize) {
+		return nil, fmt.Errorf("bytes.nums needs size: 1 | 2 | 4 | 8 bytes, but %d given", ns)
+	}
+	slen := len(src)
+	ncount := slen / nsize
+	rem := slen % nsize
+	// shift := 0
+	if rem > 0 {
+		// fix size
+		// shift = rem
+		return nil, fmt.Errorf("bytes.nums bytes length multiple size of num block, given bytes len=%d num size=%d", slen, nsize)
+	}
+	rr := make([]any, ncount)
+	if rem > 0 {
+		// make 1st num
+	}
+	var tn int64
+	// fmt.Printf("slen %d , nsize %d, ncount %d, \n", slen, nsize, ncount)
+	for i := 0; i < ncount; i++ {
+		si := i * nsize
+		// fmt.Printf(" i %d, si %d \n", i, si)
+		switch nsize {
+		case 1:
+			tn = int64(int8(src[si]))
+		case 2:
+			tn = int64(binary.BigEndian.Uint16(src[si : si+nsize]))
+		case 4:
+			tn = int64(binary.BigEndian.Uint32(src[si : si+nsize]))
+		case 8:
+			tn = int64(binary.BigEndian.Uint64(src[si : si+nsize]))
+			// not sure that it make sence
+			// default:
+			// 	// no negative num in results if size not in 16, 32, 64
+			// 	// all parts will parse as int64, after leading zeros
+			// 	code := make([]byte, 8)
+			// 	sh := 8 - nsize
+			// 	copy(code[sh:8], src[si:si+nsize])
+			// 	tn = int64(binary.BigEndian.Uint64(code))
+		}
+		rr[i] = int64(tn)
+	}
+	return objects.NewListVal(rr), nil
+}
+
+// TODO:
+// list.filter
+// tuple filter
+// tuple.filter
+// string upper, lower

@@ -75,4 +75,11 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "dict", "vmap", dictVMap)
 	BuiltMethod(cx, "dict", "keys", dictKeys)
 	BuiltMethod(cx, "dict", "vals", dictVals)
+	// bytes
+	BuiltMethod(cx, "bytes", "bits", bytesBits)
+	BuiltMethod(cx, "bytes", "blocks", bytesBlocks)
+	BuiltMethod(cx, "bytes", "map", bytesMap)
+	BuiltMethod(cx, "bytes", "reverse", bytesReverse)
+	BuiltMethod(cx, "bytes", "fold", bytesFold)
+	BuiltMethod(cx, "bytes", "nums", bytesNums)
 }

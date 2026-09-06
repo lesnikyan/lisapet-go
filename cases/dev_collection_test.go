@@ -15,12 +15,175 @@ ok 2. list()
 ok 3. dict()
 ok 4. tuple()
 Methods:
-list: TODO: sort
+ok list
 ok tuple
 ok dict
-bytes: min, max,
+ok bytes
 
 */
+
+type Bytes = obb.Bytes
+
+func TestBytesMethods(t *testing.T) {
+	// src := []byte{0, 0, 0xff, 0x1, 0x2, 0x3, 0xf, 0xf0}
+	// src := []byte{0b10000000, 0, 0, 0, 0, 0, 0, 0}
+	// src := []byte{0b00000000, 0, 0, 0, 0, 0, 1, 0}
+	// tn := binary.BigEndian.Uint64(src[0:8])
+	// fmt.Printf(" tt: %v\n - - %v \n", tn, int64(tn))
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// bits
+		{`
+		bb = 0x[01]
+		r = bb.bits()
+		`, "r", Anis(0, 0, 0, 0, 0, 0, 0, 1)},
+		{`
+		bb = 0x[f3]
+		r = bb.bits()
+		`, "r", Anis(1, 1, 1, 1, 0, 0, 1, 1)},
+		{`
+		bb = 0x[f0 07]
+		r = bb.bits()
+		`, "r", Anis(1, 1, 1, 1, 0, 0, 0, 0, 0x0, 0, 0, 0, 0, 1, 1, 1)},
+		{`
+		bb = 0b[11110000 10100000]
+		r = bb.bits()
+		`, "r", Anis(1, 1, 1, 1, 0, 0, 0, 0, 0x1, 0, 1, 0, 0, 0, 0, 0)},
+		{`
+		bb = 0x[01 87 0f f9]
+		r = bb.bits()
+		`, "r", Anis(
+			0, 0, 0, 0, 0, 0, 0, 1, 0x1, 0, 0, 0, 0, 1, 1, 1,
+			0, 0, 0, 0, 1, 1, 1, 1, 0x1, 1, 1, 1, 1, 0, 0, 1)},
+		// blocks
+		{`
+		bb = 0x[01 02 0e f1]
+		r = bb.blocks(2)
+		`, "r", Anis(Bytes{1, 2}, Bytes{0x0e, 0xf1})},
+		// // blocks
+		{`
+		bb = 0x[00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f]
+		r = bb.blocks(4)
+		`, "r", Anis(Bytes{0x0, 0x1, 0x2, 0x3}, Bytes{0x4, 0x5, 0x6, 0x7}, Bytes{0x8, 0x9, 0xa, 0xb}, Bytes{0xc, 0xd, 0xe, 0xf})},
+		{`
+		bb = 0x[00 00 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d]
+		r = bb.blocks(4)
+		`, "r", Anis(Bytes{0x0, 0x0, 0x0, 0x1}, Bytes{0x2, 0x3, 0x4, 0x5}, Bytes{0x6, 0x7, 0x8, 0x9}, Bytes{0xa, 0xb, 0xc, 0xd})},
+		{`
+		bb = 0x[01 02 03 04 05 06 07 08 09 0a 0b 0c 0d]
+		r = bb.blocks(4)
+		`, "r", Anis(Bytes{0x0, 0x0, 0x0, 0x1}, Bytes{0x2, 0x3, 0x4, 0x5}, Bytes{0x6, 0x7, 0x8, 0x9}, Bytes{0xa, 0xb, 0xc, 0xd})},
+		{`
+		bb = 0x[01 02 03 04 05 06 07 08 09 0a 0b 0c 0d]
+		r = bb.blocks(10)
+		`, "r", Anis(Bytes{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3}, Bytes{0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd})},
+		// map
+		{`
+		func b2i(x: bytes)
+			nn = []
+			for n <- x
+				nn <- int(n)
+			nn
+		#
+		bb = 0x[01 02 03 04 05 06 07 08 09 0a 0b 0c 0d]
+		bs = bb.blocks(4)
+		r = bs.map(b2i)
+		`, "r", Anis(Anis(0, 0, 0, 1), Anis(2, 3, 4, 5), Anis(6, 7, 8, 9), Anis(0xa, 0xb, 0xc, 0xd))},
+		{`
+		func foo(b: byte)
+			00xff - b
+		#
+		bb = 0x[00 01 02 03 f1 f2]
+		r = bb.map(foo)
+		`, "r", Bytes{0xff, 0xfe, 0xfd, 0xfc, 0xe, 0xd}},
+		{`
+		func foo(b: byte)
+			00xf0 + b
+		#
+		bb = 0x[00 01 02 03 0f 0e 0d]
+		r = bb.map(foo)
+		`, "r", Bytes{0xf0, 0xf1, 0xf2, 0xf3, 0xff, 0xfe, 0xfd}},
+		// reverse
+		{`
+		bb = 0x[01 02 f1 f5]
+		r = bb.reverse()
+		`, "r", Bytes{0xf5, 0xf1, 0x2, 0x1}},
+		{`
+		r = 0x[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15].reverse()
+		`, "r", Bytes{0x15, 0x14, 0x13, 0x12, 0x11, 0x10, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1}},
+		{`
+		func foo(b: byte)
+			00xff - b
+		bb = 0x[01 02 f1 f5]
+		r = bb.reverse().map(foo)
+		`, "r", Bytes{0xa, 0xe, 0xfd, 0xfe}},
+		// fold
+		{`
+		func foo (s:int, n:byte)
+			s + int(n)
+		#
+		bb = [1 2 3 4 5 f0]
+		r = bb.fold(0, foo)
+		 `, "r", int64(255)},
+		{`
+		func foo (s:list, n)
+			s <- n
+			s
+		#
+		bb = [1 2 3 4 5 f0]
+		r = bb.fold([], foo)
+		 `, "r", Anynn([]byte{1, 2, 3, 4, 5, 0xf0})},
+		{`
+		func foo (s:list, n)
+			s <- int(n) * 5
+		#
+		bb = [1 2 3 4 5 f0]
+		r = bb.fold([], foo)
+		 `, "r", Anis(5, 10, 15, 20, 25, 1200)},
+		{`
+		func foo(s, n)
+			s + string(glif(n))
+		bb = [48 65 6c 6c 6f 2c 20 46 6f 6c 64 21]
+		r= bb.fold('result ', foo)
+		`, "r", "result Hello, Fold!"},
+		// nums
+		{`
+		bb = 0d[0 1 0 2 0 3 0 4 0 5]
+		r = bb.nums(2)
+		`, "r", Anis(1, 2, 3, 4, 5)},
+		{`
+		bb = 0x[0 1 2 3 5 9 a b f]
+		r = bb.nums(1)
+		`, "r", Anis(0, 1, 2, 3, 5, 9, 0xa, 0xb, 0xf)},
+		{`
+		bb = 0d[100 1 100 2 100 3 100 4 100 5]
+		r = bb.nums(2)
+		`, "r", Anis(25601, 25602, 25603, 25604, 25605)},
+		{`
+		bb = 0d[10 1 10 2 10 3 10 4 10 5]
+		r = bb.nums(2)
+		`, "r", Anis(2561, 2562, 2563, 2564, 2565)},
+		{`
+		bb = 0x[ff 00 80 01 00 01 7f ff]
+		r = bb.nums(2)
+		`, "r", Anis(65280, 32769, 1, 32767)},
+		{`
+		bb = 0x[ff 00 00 00 80 00 00 01 00 00 00 01 7f ff ff ff]
+		r = bb.nums(4)
+		`, "r", Anis(4278190080, 2147483649, 1, 2147483647)},
+		{`
+		bb = 0x[00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 80 00 00 00 00 00 00 01 ff ff ff ff ff ff ff fb]
+		r = bb.nums(8)
+		`, "r", Anis(1, 0, -9223372036854775807, -5)},
+		// {``, "r",  Anis(1)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestListSortRev(t *testing.T) {
 	tdata := []struct {
