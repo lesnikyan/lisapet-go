@@ -68,7 +68,7 @@ func constr_string(cx base.Context, args []any) (any, error) {
 
 func constr_byte(cx base.Context, args []any) (any, error) {
 	if len(args) != 1 {
-		return 0, errors.New("constr string: incorrect count of args")
+		return 0, errors.New("constr byte: incorrect count of args")
 	}
 	switch a := args[0].(type) {
 	case int64:
@@ -85,7 +85,7 @@ func constr_byte(cx base.Context, args []any) (any, error) {
 
 func constr_some(cx base.Context, args []any) (any, error) {
 	if len(args) != 1 {
-		return 0, errors.New("constr string: incorrect count of args")
+		return 0, errors.New("constr some: incorrect count of args")
 	}
 	if args[0] != nil {
 		return objects.Some(args[0]), nil
@@ -97,7 +97,7 @@ func constr_some(cx base.Context, args []any) (any, error) {
 
 func constr_int(cx base.Context, args []any) (any, error) {
 	if len(args) != 1 {
-		return 0, errors.New("constr string: incorrect count of args")
+		return 0, errors.New("constr int: incorrect count of args")
 	}
 	switch a := args[0].(type) {
 	case int64:
@@ -128,7 +128,7 @@ func constr_int(cx base.Context, args []any) (any, error) {
 
 func constr_float(cx base.Context, args []any) (any, error) {
 	if len(args) != 1 {
-		return 0, errors.New("constr string: incorrect count of args")
+		return 0, errors.New("constr float: incorrect count of args")
 	}
 	switch a := args[0].(type) {
 	case int64:
@@ -159,7 +159,7 @@ func constr_float(cx base.Context, args []any) (any, error) {
 
 func constr_bool(cx base.Context, args []any) (any, error) {
 	if len(args) != 1 {
-		return 0, errors.New("constr string: incorrect count of args")
+		return 0, errors.New("constr bool: incorrect count of args")
 	}
 	switch a := args[0].(type) {
 	case int64:
@@ -185,7 +185,7 @@ func constr_bool(cx base.Context, args []any) (any, error) {
 
 func constr_glif(cx base.Context, args []any) (any, error) {
 	if len(args) != 1 {
-		return 0, errors.New("constr string: incorrect count of args")
+		return 0, errors.New("constr glif: incorrect count of args")
 	}
 	switch a := args[0].(type) {
 	case int64:

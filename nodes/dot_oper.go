@@ -26,6 +26,8 @@ func (op *OperDot) Get() *base.Val {
 	case *objects.StrMember:
 		// fmt.Printf(" <.> Get mb:(%T, %v) \n", mb, mb)
 		return mb.Get()
+	case *MFunc:
+		return base.NewVal(op.res)
 	}
 	return nil
 }
@@ -63,6 +65,9 @@ func (op *OperDot) Do(cx base.Context) error {
 	}
 
 	// fmt.Printf(" <.> Do n=`%s` obj(%T, %v) \n", mname, left, left)
+	if mname == "" {
+		return errors.New("OperDot: method with empty name ")
+	}
 	// access to objects member
 	switch obj := left.(type) {
 	case *objects.StructInst:
@@ -85,7 +90,31 @@ func (op *OperDot) Do(cx base.Context) error {
 		return fmt.Errorf("OperDot: member `%s` in struct not found", mname)
 
 	default:
+		tInf := objects.TypeByVal(obj)
+		if tInf.Id == base.TypeUndefined {
+			return fmt.Errorf("Undefined type of instance in method call: %T", obj)
+		}
+		tp := cx.GetType(tInf.Name)
+
+		// fmt.Printf("OperDot3: instType `%s` : %T \n", mname, tp)
+		if tp == nil {
+			return fmt.Errorf("Undefined type `%T` in method call", obj)
+		}
+		fn, ok := tp.GetMethod(mname)
+		if !ok {
+			return fmt.Errorf("method call: method `%s` of type `%s` not found", mname, tp.Name)
+		}
+		// fmt.Printf("OperDot5: mt: `%s` : %T \n", mname, fn)
+		switch mt := fn.(type) {
+		case *MFunc:
+			mt.SetInst(obj)
+			// return &objects.StrMember{Obj: st, Method: mt}
+			op.res = mt
+			return nil
+		default:
+			return fmt.Errorf("OperDot: unknown type of method `%T`", obj)
+		}
 		// fmt.Printf("OperDot: unknown type of object %T \n", obj)
-		return errors.New("OperDot: unknown type of object " + fmt.Sprintf("%T", obj))
+		// return errors.New("OperDot: unknown type of object " + fmt.Sprintf("%T", obj))
 	}
 }

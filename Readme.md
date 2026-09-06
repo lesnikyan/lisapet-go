@@ -66,17 +66,42 @@ next - by dates...
 - 2026.8.31 Implemented collable constructs for builtin types: `typeName(args)`:  
     `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
     **maybe**: `some(val)`, `none`.  
+- -.-31 Implemented **builtin methods**. Added method `string.split`  
+- -.09.01 Added builtin methods of `string` type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`  
+- -.-.02 Added methods for `list`: `map`, `join`, `fold`, `flat`  
+    Added methods for `tuple`: `map`, `join`
+- -.-.03 Added methods for dict: `map`, `keys`, `vals`, `kmap` (map for keys), `vmap`(map for values)
+- -.-.04 Added method `list.sort`: order compare of types: `bool`, numeric, `rune`, `string`
+    Added method `list.reverse`
+    Added short syntax of **byte** with two leading zeros: 00xff  
+- -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`
 
 
 #### next TODO:
-- builtin methods: `"a b c".split(' ')`
+- builtin methods for: 
+    maybe.isNone
+    list.filter
+    tuple filter
+    dict.filter
+    string upper, lower
+- named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}
+- CLI: lspt file.et
+- ecscape sequences: ``` \n \t \' \" \` \\ ```
 - multiline string `''' '''`  
 - regex re'.+'ui  
 - type check operator `::`  
+- multitype: var, arg, `::`
 - opers `?>` `!?>`  
 - opers `a ? b : c` `a ?: b`  
+- multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - delete `!@`  
 - `const`  
-- multisource loop-assign `for a, b, c <- aa, bb, cc`  
+
+
+dev names:  
+    foxet: functional-object executable tree  
+    foxen: functional-object executable nodes  
+    folixen: functional-object language interpreter of executable nodes
+    foxilt: functional-object extensible interpreter of lexical tree   
 
 

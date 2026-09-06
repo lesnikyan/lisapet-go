@@ -59,6 +59,7 @@ func (tp *Type) AddMethod(funcv FuncVal) {
 	if tp.Methods == nil {
 		tp.Methods = MethMap{}
 	}
+	// fmt.Printf(" T.AddMethod %s (%T) \n", funcv.GetName(), funcv)
 	tp.Methods[funcv.GetName()] = funcv
 }
 

@@ -23,6 +23,100 @@ glif(int|string|0x[])
 bytes([]int, string, glif, []glif)
 */
 
+func TestStrigMethods(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// split
+		{`
+		r = []
+		s = "aa bb cc"
+		r <- s.split(' ')
+		r <- "q-w-e-r-t-y".split(g'-')
+		r <- 'lorem,iprum,dolor'.split(glif(','))
+		`, "r", Anis(Anis("aa", "bb", "cc"),
+			Anis("q", "w", "e", "r", "t", "y"), Anis("lorem", "iprum", "dolor"))},
+		// join
+		{`
+		ss = ['uuu','roo','roo']
+		r = '_'.join(ss)
+		`, "r", "uuu_roo_roo"},
+		{`
+		ss = ('uuu','roo','boom')
+		r = '_'.join(ss)
+		`, "r", "uuu_roo_boom"},
+		{`
+		gg = [g'A', g'r', g'a', g'm', g'-', g'C', g'h', g'u', ]
+		r = '/'.join(gg)
+		`, "r", "A/r/a/m/-/C/h/u"},
+		// bytes
+		{`
+		r  = "a b c def.ABCD,xz".bytes()
+		`, "r", obb.Bytes{0x61, 0x20, 0x62, 0x20, 0x63, 0x20, 0x64, 0x65, 0x66, 0x2e, 0x41, 0x42, 0x43, 0x44, 0x2c, 0x78, 0x7a}},
+		//glifs
+		{`
+		r = "ABC abc αβγ 零 一 二 九".glifs()
+		`, "r", Anis('A', 'B', 'C', ' ', 'a', 'b', 'c', ' ', 'α', 'β', 'γ', ' ', '零', ' ', '一', ' ', '二', ' ', '九')},
+		// replace
+		{`
+		s = 'a b c d'
+		r = s.replace(' ', '@')
+		`, "r", "a@b@c@d"},
+		{`
+		s = 'Some man woke up. Man has breakfast. Man went out and met another man.'
+		r = s.replace('man', 'cat').replace('Man','Cat')
+		`, "r", "Some cat woke up. Cat has breakfast. Cat went out and met another cat."},
+		{`
+		s = "This man shines over the city."
+		r = s.replace(g'a', 'oo')
+		`, "r", "This moon shines over the city."},
+		{`
+		s = "capy flappy saan"
+		r = s.replace(g'a', g'o')
+		`, "r", "copy floppy soon"},
+		// has
+		{`
+		s = 'Hello Holland!'
+		r = []
+		r <- s.has('llo')
+		r <- s.has('oll')
+		r <- s.has('u')
+		`, "r", Anis(true, true, false)},
+		{`
+		s = 'Logos'
+		r = []
+		r <- s.has(g'L')
+		r <- s.has(g'i')
+		r <- s.has(g's')
+		`, "r", Anis(true, false, true)},
+		//trim
+		{`
+		s = "     abc 132    .    "
+		r = s.trim(' ')
+		`, "r", "abc 132    ."},
+		{`
+		s = "     abc 134    .    "
+		r = s.trim(g' ')
+		`, "r", "abc 134    ."},
+		{`
+		s = "  =>   abc 134:,    .  ?,  "
+		r = s.trim(' ,.?=><')
+		`, "r", "abc 134:"},
+		// TODO: lines for multiline strings
+		// TODO: escape sequences in line
+		// {`
+		// s = "Lorem \n ipsum \n belor \n"
+		// r = s.lines()
+		// `, "r", ""},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestBytesActions(t *testing.T) {
 	tdata := []struct {
 		src   string

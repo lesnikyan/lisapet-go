@@ -15,6 +15,7 @@ func PreloadContext(cx base.Context) {
 	nodes.PreloadTypes(cx)
 	nodes.PreloadConstr(cx)
 	nodes.PreloadFuncs(cx)
+	nodes.BuiltMethods(cx)
 }
 
 // convert []T to []any
@@ -23,6 +24,8 @@ func Anynn[T any](vals []T) []any {
 	for i, n := range vals {
 		var x any = n
 		switch v := x.(type) {
+		case obb.Glif:
+			x = v
 		case int:
 			x = int64(v)
 		case []int64:

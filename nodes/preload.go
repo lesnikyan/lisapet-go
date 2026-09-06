@@ -47,3 +47,39 @@ func PreloadTypes(cx base.Context) {
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
 }
+
+func BuiltMethods(cx base.Context) {
+	// string
+	BuiltMethod(cx, "string", "split", stringSplit)
+	BuiltMethod(cx, "string", "replace", stringReplace)
+	BuiltMethod(cx, "string", "join", stringJoin)
+	BuiltMethod(cx, "string", "bytes", stringBytes)
+	BuiltMethod(cx, "string", "glifs", stringGlifs)
+	BuiltMethod(cx, "string", "has", stringHas)
+	BuiltMethod(cx, "string", "lines", stringLines)
+	BuiltMethod(cx, "string", "trim", stringTrim)
+	// list
+	BuiltMethod(cx, "list", "join", listJoin)
+	BuiltMethod(cx, "list", "map", listMap)
+	BuiltMethod(cx, "list", "fold", listFold)
+	BuiltMethod(cx, "list", "flat", listFlat)
+	BuiltMethod(cx, "list", "sort", listSort)
+	BuiltMethod(cx, "list", "reverse", listReverse)
+	// tuple
+	BuiltMethod(cx, "tuple", "join", tupleJoin)
+	BuiltMethod(cx, "tuple", "map", tupleMap)
+	BuiltMethod(cx, "tuple", "join", tupleJoin)
+	// dict
+	BuiltMethod(cx, "dict", "map", dictMap)
+	BuiltMethod(cx, "dict", "kmap", dictKMap)
+	BuiltMethod(cx, "dict", "vmap", dictVMap)
+	BuiltMethod(cx, "dict", "keys", dictKeys)
+	BuiltMethod(cx, "dict", "vals", dictVals)
+	// bytes
+	BuiltMethod(cx, "bytes", "bits", bytesBits)
+	BuiltMethod(cx, "bytes", "blocks", bytesBlocks)
+	BuiltMethod(cx, "bytes", "map", bytesMap)
+	BuiltMethod(cx, "bytes", "reverse", bytesReverse)
+	BuiltMethod(cx, "bytes", "fold", bytesFold)
+	BuiltMethod(cx, "bytes", "nums", bytesNums)
+}

@@ -15,6 +15,7 @@ type NFunc struct {
 	resV *base.Val
 }
 
+// Builtin function object
 func (fn *NFunc) Do(cx base.Context) error {
 	fn.resV = nil
 	// TODO: named args, vary arg list, multi-result
@@ -88,4 +89,57 @@ func BuiltConstr(cx base.Context, name string, adapter func(base.Context, []any)
 	// }
 	// fmt.Printf(" BCnstr `%s` %T con: %T \n", ttp.Name, ttp, ttp.Construct)
 	// cx.AddFunc(nf)
+}
+
+// Builtin method object
+type MFunc struct {
+	Name string
+	fun  func(base.Context, any, []any) (any, error) // func-apapter called in Do()
+
+	inst  any
+	args  []any          // passed args
+	mvals map[string]any // passed named args
+
+	resV *base.Val
+}
+
+func (fn *MFunc) Do(cx base.Context) error {
+	fn.resV = nil
+	// TODO: named args, vary arg list, multi-result
+	res, err := fn.fun(cx, fn.inst, fn.args)
+	if err != nil {
+		return err
+	}
+	fn.resV = base.NewVal(res)
+	return nil
+}
+
+func (fn *MFunc) Get() *base.Val {
+	if fn.resV == nil {
+		return nil
+	}
+	return fn.resV
+}
+
+func (fn *MFunc) GetName() string {
+	return fn.Name
+}
+
+func (fn *MFunc) SetInst(inst any) {
+	fn.inst = inst
+}
+
+func (fn *MFunc) SetArgVals(vals []any, mvals map[string]any) {
+	fn.args = vals
+	fn.mvals = mvals
+}
+
+func BuiltMethod(cx base.Context, typeName string, name string, adapter func(base.Context, any, []any) (any, error)) error {
+	fn := &MFunc{Name: name, fun: adapter}
+	tp := cx.GetType(typeName)
+	if tp == nil {
+		panic("can't find type " + name)
+	}
+	tp.AddMethod(fn)
+	return nil
 }

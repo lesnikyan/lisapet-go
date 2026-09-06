@@ -8,9 +8,6 @@ import (
 	lang "github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 
-	// "github.com/lesnikyan/lisapet-go/parser"
-
-	// "github.com/lesnikyan/lisapet-go/parser"
 	"github.com/stretchr/testify/assert"
 )
 

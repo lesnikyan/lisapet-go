@@ -135,6 +135,8 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 		res, ok = binOperInt(oper, val, right)
 	case float64:
 		res, ok = binOperFloat(oper, val, right)
+	case byte:
+		res, ok = binOperByte(oper, val, right)
 	case bool:
 		res, ok = binOperBool(oper, val, right)
 	case string:
@@ -147,8 +149,6 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 		res, ok = binOperDict(oper, val, right)
 	case ob.Bytes:
 		res, ok = binOperBytes(oper, val, right)
-	case byte:
-		res, ok = binOperByte(oper, val, right)
 	}
 	return res, ok
 }

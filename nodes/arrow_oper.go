@@ -47,6 +47,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 		// append to List
 		// fmt.Println("Append ListVal")
 		targ.Add(rvv)
+		op.res = targ
 	case ob.Bytes:
 		// little hack for append to []bytes
 		switch vrx := op.left.(type) {
@@ -60,6 +61,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 			}
 			vrx.vr.Val = res
 		}
+		op.res = targ
 	case *ob.DictVal:
 		// update Dict
 		switch rval := rvv.(type) {
@@ -78,6 +80,7 @@ func (op *LeftArrow) DoAppend(cx base.Context) error {
 				targ.Set(k, v)
 			}
 		}
+		op.res = targ
 	default:
 		// fmt.Printf("!!trying append to non-collection: (%T, %v) v(%T, %v) \n", targ, targ, rvv, rvv)
 		return errors.New("trying append to non-collection")
@@ -104,6 +107,8 @@ func (op *LeftArrow) DoIter(cx base.Context) error {
 		iter = NewListIter(ss.Elems)
 	case *ob.DictVal:
 		iter = NewDictIter(ss.Vmap)
+	case ob.Bytes:
+		iter = NewBytesIter(ss)
 	case *ob.NumSeqGen:
 		iter = ss // &NumGenIter{Src: ss}
 	}
@@ -197,6 +202,38 @@ func (it *ListIter) Next() (base.Pair, error) {
 
 func NewListIter(val []any) *ListIter {
 	return &ListIter{Src: val, maxInd: len(val) - 1}
+}
+
+// ===
+
+type BytesIter struct {
+	Src    ob.Bytes
+	index  int
+	maxInd int
+}
+
+func (it *BytesIter) Init() {
+	it.index = 0
+	it.maxInd = len(it.Src) - 1
+}
+
+func (it *BytesIter) Finished() bool {
+	return it.index > it.maxInd
+}
+
+func (it *BytesIter) Next() (base.Pair, error) {
+	var r base.Pair
+	if it.Finished() {
+		return r, errors.New("trying to Next of Finished iterator")
+	}
+	i := int64(it.index)
+	val := it.Src[it.index]
+	it.index += 1
+	return base.Pair{i, val}, nil
+}
+
+func NewBytesIter(val ob.Bytes) *BytesIter {
+	return &BytesIter{Src: val, maxInd: len(val) - 1}
 }
 
 // ===

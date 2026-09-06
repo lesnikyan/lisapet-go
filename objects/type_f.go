@@ -24,7 +24,7 @@ func TypeByVal(val any) *TypeInfo {
 	case byte:
 		return NewTypeInf("byte", base.TypeByte)
 	case Bytes:
-		return NewTypeInf("byte", base.TypeBytes)
+		return NewTypeInf("bytes", base.TypeBytes)
 	case float64:
 		return NewTypeInf("float", base.TypeFloat)
 	case bool:

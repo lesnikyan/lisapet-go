@@ -25,6 +25,7 @@ var _contsVals = map[string]any{
 }
 var rxInt = re.MustCompile(`^^[0-9]+$`)
 var rxInt16 = re.MustCompile(`^0x[0-9a-fA-F]+$`)
+var rxHexByte = re.MustCompile(`^00x[0-9a-fA-F]{1,2}$`)
 var rxInt8 = re.MustCompile(`^0o[0-7]+$`)
 var rxInt2 = re.MustCompile((`^0b[01]+$`))
 var rxFloat = re.MustCompile(`^[0-9]+\.[0-9]*$`)
@@ -107,6 +108,10 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 				val, err = strconv.ParseInt(etext, 10, 64)
 			} else if rxInt16.MatchString(etext) {
 				val, err = strconv.ParseInt(etext[2:], 16, 64)
+			} else if rxHexByte.MatchString(etext) {
+				var i int64
+				i, err = strconv.ParseInt(etext[3:], 16, 64)
+				val = byte(i)
 			} else if rxInt8.MatchString(etext) {
 				val, err = strconv.ParseInt(etext[2:], 8, 64)
 			} else if rxInt2.MatchString(etext) {

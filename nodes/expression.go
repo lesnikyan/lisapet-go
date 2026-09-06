@@ -8,6 +8,10 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
+func NullV() *objects.Null {
+	return &objects.Null{}
+}
+
 // *** EMPTY
 
 type EmptyExpr struct {
@@ -248,15 +252,22 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	case *EmptyExpr:
 		return &objects.EmptyVal{}
 	case *OperDot:
+		// fmt.Printf("GetExprVal# operDot: %T, %v\n", vv, vv)
 		// fmt.Printf("GetExprVal# `a.b` : %T, %v\n", vv.Get(), vv.Get())
 		// fmt.Printf("GetExprVal#  member: %T, %v\n", vv.GetMember(), vv.GetMember())
 		member := vv.GetMember()
+		var mval *base.Val
 		if member == nil {
 			// fmt.Printf("GetExprVal# no member %v\n", member)
-			return nil
+			mres := vv.Get()
+			if mres == nil {
+				return nil
+			}
+			mval = mres
+		} else {
+			mval = member.Get()
 		}
 
-		mval := member.Get()
 		if mval == nil {
 			// fmt.Printf("GetExprVal# no member value %v\n", mval)
 			return nil
@@ -265,6 +276,9 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		switch val := mval.V.(type) {
 		case *objects.Method:
 			val.Inst = member.Obj
+			return val
+		case *MFunc:
+			// val.Inst
 			return val
 		default:
 			return val
