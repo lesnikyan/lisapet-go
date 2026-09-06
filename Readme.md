@@ -78,7 +78,12 @@ next - by dates...
 
 
 #### next TODO:
-- builtin methods for: bytes, maybe.isNone
+- builtin methods for: 
+    maybe.isNone
+    list.filter
+    tuple filter
+    dict.filter
+    string upper, lower
 - named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}
 - CLI: lspt file.et
 - ecscape sequences: ``` \n \t \' \" \` \\ ```

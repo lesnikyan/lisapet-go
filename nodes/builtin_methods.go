@@ -810,5 +810,5 @@ func bytesNums(cx base.Context, inst any, args []any) (any, error) {
 // TODO:
 // list.filter
 // tuple filter
-// tuple.filter
+// dict.filter
 // string upper, lower
