@@ -39,11 +39,22 @@ func (vex *ValExpr) Get() *base.Val {
 	switch val := v.(type) {
 	case string:
 		v = val[1 : len(val)-1]
+	case *MString:
+		// fmt.Println("ValExp:", val.V)
+		v = val.V[3 : len(val.V)-3]
 	default:
 		v = val
 	}
 	return base.NewVal(v)
 }
+
+// ====
+
+type MString struct {
+	V string
+}
+
+// ====
 
 type NumField struct {
 	V []string

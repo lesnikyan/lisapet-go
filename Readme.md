@@ -53,15 +53,15 @@ next - by dates...
 - -.-.- nested block of struct constructors is Done.  
 - -.-.21 Implemented **methods** of struct: `T1{a: 5}.foo(10)`  
 - -.-.23 **Struct inheritance**: fields, methods. Prepared multi-inheritance  
-    Compatibility  between parent and child struct types.
+    Compatibility  between parent and child struct types.  
 - -.-.24  Implemented **multi-inheritance** of struct type: `struct TypeC(TypeA, TypeB) <fields> `   
     Checked deep (chain of inheritance more than 2) and wide (more than 2 parents at once) inheritance.  
 - -.-.25 Implemented type **glif**: `g'S'`  
 - -.-.26 Implemented type **bytes**:  `0x[f000 abcd]`  
 - -.-.27 Implemented `get element` operation for `bytes`: `x0[1 2 3 4][2]`  
     Added hidden type **byte** for elements of `bytes` and future needs.  
-    Bytes: Implemented slice, `+` operator, append by `<-` operator.
-    Fixed negative indexes of slice.
+    Bytes: Implemented slice, `+` operator, append by `<-` operator.  
+    Fixed negative indexes of slice.  
 - -.-.28 Implemented method how to add constructor of builtin types. Added constructor for string type: `s = string(1)`  
 - 2026.8.31 Implemented collable constructs for builtin types: `typeName(args)`:  
     `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
@@ -69,31 +69,31 @@ next - by dates...
 - -.-31 Implemented **builtin methods**. Added method `string.split`  
 - -.09.01 Added builtin methods of `string` type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`  
 - -.-.02 Added methods for `list`: `map`, `join`, `fold`, `flat`  
-    Added methods for `tuple`: `map`, `join`
-- -.-.03 Added methods for dict: `map`, `keys`, `vals`, `kmap` (map for keys), `vmap`(map for values)
-- -.-.04 Added method `list.sort`: order compare of types: `bool`, numeric, `rune`, `string`
+    Added methods for `tuple`: `map`, `join`  
+- -.-.03 Added methods for dict: `map`, `keys`, `vals`, `kmap` (map for keys), `vmap`(map for values)  
+- -.-.04 Added method `list.sort`: order compare of types: `bool`, numeric, `rune`, `string`  
     Added method `list.reverse`
     Added short syntax of **byte** with two leading zeros: 00xff  
-- -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`
+- -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`  
+- -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
 
 
-#### next TODO:
+#### next TODO:  
+- ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
+- regex re'.+'ui // ```re`` ```: `re~expr~ui`: repl(~, `)  
+- multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - builtin methods for: 
-    maybe.isNone
-    list.filter
-    tuple filter
-    dict.filter
-    string upper, lower
-- named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}
-- CLI: lspt file.et
-- ecscape sequences: ``` \n \t \' \" \` \\ ```
-- multiline string `''' '''`  
-- regex re'.+'ui  
-- type check operator `::`  
-- multitype: var, arg, `::`
+    maybe.isNone  
+    list.filter  
+    tuple filter  
+    dict.filter  
+    string upper, lower, lcut(lencth):#cut left indentsin multiline string:  
+- named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}  
+- CLI: lspt file.et  
+- type check operator `::`   
+- multitype: var, arg, `::`  
 - opers `?>` `!?>`  
 - opers `a ? b : c` `a ?: b`  
-- multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - delete `!@`  
 - `const`  
 
@@ -101,7 +101,7 @@ next - by dates...
 dev names:  
     foxet: functional-object executable tree  
     foxen: functional-object executable nodes  
-    folixen: functional-object language interpreter of executable nodes
+    folixen: functional-object language interpreter of executable nodes  
     foxilt: functional-object extensible interpreter of lexical tree   
 
 

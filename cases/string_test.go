@@ -1,6 +1,7 @@
 package cases
 
 import (
+	"strings"
 	"testing"
 
 	obb "github.com/lesnikyan/lisapet-go/objects"
@@ -22,6 +23,109 @@ string.glifs()
 glif(int|string|0x[])
 bytes([]int, string, glif, []glif)
 */
+
+// Multiline strings
+func TestMultistring(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r= '''
+		One
+		X'''
+		`, "r", "\nOne\nX"},
+		{`
+		s = """
+		Two
+		XX
+		YYY
+		132
+		"""
+		r = s
+		`, "r", "\nTwo\nXX\nYYY\n132\n"},
+		{`
+		s = """
+			Three
+				SSS
+			"""
+		r = s
+		`, "r", "\n\tThree\n\t\tSSS\n\t"},
+		{`
+		r = [
+		"""
+		AAA BBB
+		CCC DDD
+		""",
+		'''
+		EEE FFF
+		GGG HHH 1
+		''']
+		`, "r", Anis("\nAAA BBB\nCCC DDD\n", "\nEEE FFF\nGGG HHH 1\n")},
+		{`
+		r = []
+			"""
+		AAA BBB
+		CCC DDD
+		"""
+			'''
+		EEE FFF
+		GGG HHH 2
+		'''
+		`, "r", Anis("\nAAA BBB\nCCC DDD\n", "\nEEE FFF\nGGG HHH 2\n")},
+		{`
+		r = []
+			"""
+			AAA BBB
+			CCC DDD
+			"""
+			'''
+			EEE FFF
+			GGG HHH 3
+			'''
+		`, "r", Anis("\n\tAAA BBB\n\tCCC DDD\n\t", "\n\tEEE FFF\n\tGGG HHH 3\n\t")},
+		{`
+		r = []
+			"""
+		  AAA BBB
+		    CCC DDD 4
+			"""
+		`, "r", Anis("\n  AAA BBB\n    CCC DDD 4\n\t")},
+		{
+			// it looks like perversion, yep
+			strings.ReplaceAll(`
+		r = []
+			"""
+		  AAA BBB
+		    CCC DDD 5
+			"""
+		`, `"""`, "```"), "r", Anis("\n  AAA BBB\n    CCC DDD 5\n\t")},
+		{strings.ReplaceAll(`
+		r = [""" One """, ''' Two ''', !!! N-3 !!!]
+		`, `!!!`, "```"), "r", Anis(" One ", " Two ", " N-3 ")},
+		{`
+		r = """ He110 """.replace('1', 'L').replace('0','o')
+		`, "r", " HeLLo "},
+		{`
+		s = '''
+		123
+		456
+		'''
+		r = """ 
+		ABC
+		DDD
+		07 """ + s
+		`, "r", " \nABC\nDDD\n07 \n123\n456\n"},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+	// var aa []any = []any{1, 2, 3}
+	// fmt.Println(aa)
+}
 
 func TestStrigMethods(t *testing.T) {
 	tdata := []struct {
