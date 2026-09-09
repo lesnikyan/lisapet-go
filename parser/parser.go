@@ -12,7 +12,7 @@ import (
 
 var spaceSet = lang.Kmap([]rune{' ', '\t', '\n', '\r'})
 var c_esc = "'\"ntr\\/`"
-var c_esc_map = map[rune]rune{'n': '\n', 't': '\t', 'r': '\r', '\\': '\\', '/': '/', '\'': '\'', '"': '"', '`': '`'}
+var escMap = map[rune]rune{'n': '\n', 't': '\t', 'r': '\r', '\\': '\\', '/': '/', '\'': '\'', '"': '"', '`': '`'}
 var c_nums = `1234567890`
 var c_oper = `+~-*/=%^&!?<>()[]:.;,|${}@\\`
 
@@ -30,7 +30,7 @@ var charSet = lang.Kmap([]rune("qwertyuiopasdfghjklzxcvbnm" +
 
 var quotSet = lang.Kmap([]rune("'\"`"))
 
-var c_regex = `| / % `
+// var c_regex = `| / % `
 
 // var ext_in = []rune{'j', 'x', 'b', 'o', 'a', 'b', 'c', 'd', 'e', 'f'}
 
@@ -229,7 +229,9 @@ func nextType(ntype Lt.Lt, c rune) Lt.Lt {
 	return ntype
 }
 
-var closeMstrEnd = []int{0, -3, -2}
+type Er rune // escaped rune
+
+// var closeMstrEnd = []int{0, -3, -2}
 var closeMstr = []int{0, -2, -1}
 
 func closeMult(prev []rune, cc []int, last rune) bool {
@@ -267,8 +269,11 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 	ctx.Ltype = Lt.None
 	ctx.prev = nil
 	ctx.elems = nil
+	esc := false
+	lastEsc := -1
 
-	// log.Printf("SpLine#1:  , c<%s: %d>  \"%s\" ", Lt.TName(ctype), ctype, string(cur))
+	// log.Printf("SpLine#1:  , c<%s: %d> esc:%v  \"%s\" ", Lt.TName(ctype), ctype, esc, string(cur))
+	// log.Printf("SpLine#2:  \\\\%s//", string(runes))
 	// muq := '*'         // multiline string quote char
 	for _, c := range runes {
 		// cur = append(cur, c)
@@ -287,13 +292,38 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 			// 	continue
 		}
 
-		xtype := elemType(c, ctype) // next type
-		// log.Printf("next#1:  , x<%s>  _%s_ ", Lt.TName(xtype), string(c))
 		curStr := ctype == Lt.Text || ctype == Lt.Mttext // prev is text
+		xtype := elemType(c, ctype)                      // next type
+		if curStr && !esc && xtype == Lt.Esc {
+			// escMap
+			// log.Printf("esc#1:  , x<%s>  _%s_ opnch: <%s>", Lt.TName(xtype), string(c), string(cur[0]))
+			if cur[0] != '`' {
+				// backtics string doesn't support escapes
+				esc = true
+				lastEsc = len(cur)
+				continue
+			} else {
+				// log.Printf("#no esc by  _%s_ ", string(c))
+				xtype = ctype
+			}
+		}
+		if curStr && esc {
+			// log.Printf("esc#2:  , c<%s>  _%s_ ", Lt.TName(xtype), string(c))
+			esc = false
+			if rep, ok := escMap[c]; ok {
+				// c = rep
+				// cur = cur[0 : len(cur)-2]
+				cur = append(cur, rep)
+				continue
+			} else {
+				panic(fmt.Sprintf("Incorrect escape sequence in string: `%s`", string(c)))
+			}
+		}
 		switch xtype {
 		case Lt.Quot:
 			if !curStr {
 				xtype = Lt.Text
+				lastEsc = -1
 			}
 			if len(res) > 0 && len(cur) == 0 {
 				// if prev == [quot, quot]
@@ -313,6 +343,18 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 		}
 
 		fin := finCond(cur, c, xtype, ctype)
+		if fin {
+			switch ctype {
+			case Lt.Mttext:
+				if lastEsc > len(cur)-3 {
+					fin = false
+				}
+			case Lt.Text:
+				if lastEsc > len(cur)-1 {
+					fin = false
+				}
+			}
+		}
 		// log.Printf("SL1:  , c<%s> : cur=\"%s\", _%s_  ?%v", Lt.TName(ctype), string(cur), string(c), fin)
 		// log.Printf("SL2: %s  c<%s>, x<%s> : s=\"%s\"  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
 		if fin {

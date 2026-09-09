@@ -24,6 +24,87 @@ glif(int|string|0x[])
 bytes([]int, string, glif, []glif)
 */
 
+// Escaping bytes, multibytes (\377 \xff, \u00ff): thinking
+
+// Escape sequences: \n \t \' \" \` \\
+
+// """ .. \n .. \n """.lines()
+
+func TestStringEscSeq(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = '1\n2'
+		`, "r", "1\n2"},
+		{`
+		r = "2\n3\t4\'\"\\"
+		`, "r", "2\n3\t4'\"\\"},
+		{`
+		r = '3 \' \" \$$ \\ \/ /'
+		`, "r", "3 ' \" ` \\ / /"},
+		{`
+		r = $$\ \n \'$$
+		`, "r", `\ \n \'`},
+		{`
+		r = """<node>
+		Hello 2-quote \"\"\"
+		AAA 1
+		</node>"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\nAAA 1\n</node>"},
+		{`
+		r = """<node>
+		Hello 2-quote \"""
+		AAA 2
+		</node>"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\nAAA 2\n</node>"},
+		{`
+		r = """<node>
+		Hello 2-quote "\""
+		</node> 3"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\n</node> 3"},
+		{`
+		r = """<node>
+		Hello 2-quote ""\"
+		</node> 4"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\n</node> 4"},
+		{`
+		r = '\''
+		`, "r", "'"},
+		{`
+		r = ''' $$ $$$$ $%$ ' '' " "" """ '''
+		`, "r", " ` `` ``` ' '' \" \"\" \"\"\" "},
+		{`
+		r = "\\ \\\\ \\\""
+		`, "r", "\\ \\\\ \\\""},
+		{`
+		r = $%$ 11 $%$
+		`, "r", " 11 "},
+		{`
+		r = $%$ "11" $%$
+		`, "r", " \"11\" "},
+		{`
+		r = $%$ """\ $%$
+		`, "r", " \"\"\"\\ "},
+		{`
+		r = $%$ $$ \$$ ''' """ \' \" \n \t \s $%$
+		`, "r", " ` \\` ''' \"\"\" \\' \\\" \\n \\t \\s "},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
+		tt.src = strings.ReplaceAll(tt.src, "$$", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 // Multiline strings
 func TestMultistring(t *testing.T) {
 	tdata := []struct {
@@ -123,8 +204,6 @@ func TestMultistring(t *testing.T) {
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
-	// var aa []any = []any{1, 2, 3}
-	// fmt.Println(aa)
 }
 
 func TestStrigMethods(t *testing.T) {
