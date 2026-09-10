@@ -43,6 +43,8 @@ func TypeByVal(val any) *TypeInfo {
 		return NewTypeInf("dict", base.TypeDict)
 	case Glif:
 		return NewTypeInf("glif", base.TypeGlif)
+	case *Regexp:
+		return NewTypeInf("regexp", base.TypeRegexp)
 	case base.FuncVal:
 		return NewTypeInf("function", base.TypeFunction)
 		// case *Maybe:
@@ -79,6 +81,8 @@ func TypeIdByVal(val any) base.TypeId {
 		return base.TypeFunction
 	case *Maybe:
 		return base.TypeMaybe
+	case *Regexp:
+		return base.TypeRegexp
 	}
 
 	return base.TypeUndefined

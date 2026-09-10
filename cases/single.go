@@ -44,9 +44,10 @@ func MakeNumField(ee []*lang.Elem) *nodes.NumField {
 }
 
 func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
-
 	elen := len(ee)
 	// fmt.Println("CaseVal#0", ee[0].Text, ":", elen, "t:", Lt.TName(ee[0].Type))
+	// fmt.Println("CaseVal#1", FPrintElems(ee), " Len=", elen)
+
 	etype := ee[0].Type
 	etext := ee[0].Text
 	if !slices.Contains(_valLexms, ee[0].Type) {
@@ -68,29 +69,60 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 			}
 			// string-prefixes
 			switch elen {
-			case 2:
-				// glif, etc
-				if ee[1].Type == Lt.Text {
-					// fmt.Printf("CaseVal prefix[2] %s, %s \n", ee[0].Text, ee[1].Text)
-					switch ee[0].Text {
-					case "g":
-						// glif
-						// fmt.Printf("CaseVal Glif %s, %s \n", ee[0].Text, ee[1].Text)
-						rrs := []rune(ee[1].Text)
-						if len(rrs) != 3 {
-							// fmt.Printf("Error bad Glif %s \n", ee[1].Text)
-							return nil, false
-						}
-						return valex(rrs[1]), true
-					case "re":
-						//regexp
+			case 2, 3:
+				switch ee[0].Text {
+				case "g":
+					// glif
+					// fmt.Printf("CaseVal Glif %s, %s \n", ee[0].Text, ee[1].Text)
+					if ee[1].Type != Lt.Text {
+						// panic("Non text in glif")
+						return nil, false
 					}
+					rrs := []rune(ee[1].Text)
+					if len(rrs) != 3 {
+						// fmt.Printf("Error bad Glif %s \n", ee[1].Text)
+						return nil, false
+					}
+					return valex(rrs[1]), true
+
+				case "re":
+					//regexp
+					rstr := ""
+					rfl := ""
+					switch ee[1].Type {
+					case Lt.Text:
+						// tlen := len(ee[1].Text)
+						rstr = base.CropStr(ee[1].Text, 1, 1)
+					case Lt.Mttext:
+						rstr = base.CropStr(ee[1].Text, 3, 3)
+					}
+					if elen > 2 {
+						switch elen {
+						case 3:
+							if ee[2].Type != Lt.Word {
+								return nil, false
+							}
+							rfl = ee[2].Text
+						case 5:
+							// var inc: {varname}
+						}
+					}
+					v := obb.MakeRegexp(rstr, rfl)
+					return valex(v), true
 				}
-			case 3:
-				// regexp
-				if ee[1].Type == Lt.Text {
-					// fmt.Printf("CaseVal prefix[3] %s, %s, %s \n", ee[0].Text, ee[1].Text, ee[2].Text)
+			}
+			// glif, etc
+			if ee[1].Type == Lt.Text {
+				// fmt.Printf("CaseVal prefix[2] %s, %s \n", ee[0].Text, ee[1].Text)
+				switch ee[0].Text {
 				}
+				// case 3:
+				// 	// regexp
+				// 	if ee[1].Type == Lt.Text && ee[2].Type == Lt.Text {
+				// 		// fmt.Printf("CaseVal prefix[3] %s, %s, %s \n", ee[0].Text, ee[1].Text, ee[2].Text)
+				// 		v := obb.MakeRegexp(ee[1].Text, ee[2].Text)
+				// 		return valex(v), true
+				// 	}
 			}
 		}
 	}

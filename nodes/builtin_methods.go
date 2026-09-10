@@ -11,7 +11,7 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
-func vals2anys[T any](vals []T) []any {
+func vals2anis[T any](vals []T) []any {
 	res := make([]any, len(vals))
 	for i, v := range vals {
 		res[i] = v
@@ -37,7 +37,7 @@ func stringSplit(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("Bad separator in string.split: %T", args[0])
 	}
 	ee := strings.Split(s, sep)
-	res := objects.NewListVal(vals2anys(ee))
+	res := objects.NewListVal(vals2anis(ee))
 	return res, nil
 }
 
@@ -805,6 +805,102 @@ func bytesNums(cx base.Context, inst any, args []any) (any, error) {
 		rr[i] = int64(tn)
 	}
 	return objects.NewListVal(rr), nil
+}
+
+// Regexp
+
+func regexpMatch(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.Regexp)
+	// fmt.Printf("#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+	}
+	s, ok := args[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+	}
+
+	// fmt.Printf("#куі  %s : %v, \n", s, src.Match(s))
+	return src.Match(s), nil
+}
+
+func regexpFind(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.Regexp)
+	// fmt.Printf("#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+	}
+	s, ok := args[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+	}
+	ss := src.Find(s)
+
+	return objects.NewListVal(vals2anis(ss)), nil
+}
+
+func regexpFindSubs(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.Regexp)
+	// fmt.Printf("#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+	}
+	s, ok := args[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+	}
+	sss := src.FindSubs(s)
+	res := make([]any, len(sss))
+	for i, ss := range sss {
+		res[i] = objects.NewListVal(vals2anis(ss))
+	}
+	return objects.NewListVal(res), nil
+}
+
+func regexpReplace(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.Regexp)
+	// fmt.Printf("#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
+	}
+	if len(args) < 2 {
+		return nil, fmt.Errorf("regexp.match needs 2 arg, but %d given", len(args))
+	}
+	s, ok := args[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+	}
+	repl, ok := args[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+	}
+	return src.Replace(s, repl), nil
+}
+
+func regexpSplit(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.Regexp)
+	// fmt.Printf("#1 src %T : %v, \n", inst, inst)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+	}
+	s, ok := args[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+	}
+	ss := src.Split(s)
+	return objects.NewListVal(vals2anis(ss)), nil
 }
 
 // TODO:

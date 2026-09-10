@@ -3,7 +3,7 @@ package objects
 import (
 	"fmt"
 	"regexp"
-	rexs "regexp/syntax"
+	"slices"
 
 	"github.com/lesnikyan/lisapet-go/base"
 )
@@ -23,10 +23,71 @@ type EmptyVal struct {
 type Regexp struct {
 	Pattern *regexp.Regexp
 	Src     string
-	Flags   []rexs.Flags
+	// Flags   []rexs.Flags
 }
 
+func (rx *Regexp) Init() error {
+	// TODO: flags
+	ptt, err := regexp.Compile(rx.Src)
+	if err != nil {
+		return err
+	}
+	rx.Pattern = ptt
+	return nil
+}
+
+func (rx *Regexp) Match(s string) bool {
+	return rx.Pattern.MatchString(s)
+}
+
+func (rx *Regexp) Find(s string) []string {
+	ss := rx.Pattern.FindAllString(s, -1)
+	// fmt.Printf("rx.Find#2: L=%d %v \n", len(ss), ss)
+	return ss
+}
+
+func (rx *Regexp) FindSubs(s string) [][]string {
+	ss := rx.Pattern.FindAllStringSubmatch(s, -1)
+	return ss
+}
+
+func (rx *Regexp) Split(s string) []string {
+	ss := rx.Pattern.Split(s, -1)
+	return ss
+}
+
+func (rx *Regexp) Replace(s string, repl string) string {
+	res := rx.Pattern.ReplaceAllString(s, repl)
+	return res
+}
+
+var validFlags = []rune("aimsU")
+
+func MakeRegexp(src string, flags string) *Regexp {
+	pref := ""
+	if flags != "" {
+		for _, s := range []rune(flags) {
+			if !slices.Contains(validFlags, s) {
+				panic(fmt.Sprintf("regexp: incorrect flag of regexp: `%s`", string(s)))
+			}
+		}
+		pref = fmt.Sprintf("(?%s)", flags)
+	}
+	ptt := fmt.Sprintf("%s%s", pref, src)
+	rx := &Regexp{Src: ptt}
+	err := rx.Init()
+	if err != nil {
+		panic(fmt.Sprintf("regexp: incorrect final pattern of regexp: `%s`", ptt))
+	}
+	// fmt.Printf("regexp ptt: \"%s\" \n", ptt)
+	return rx
+}
+
+//====
+
 type Glif = rune
+
+//====
 
 type Bytes []byte
 

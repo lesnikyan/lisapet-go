@@ -31,8 +31,8 @@ func SetVarVal(target *base.Var, rval any) error {
 		typeOk, cval := PrepareVal(target.Type, rval)
 		if !typeOk {
 			// bad val
-			// fmt.Printf("SetValTo#4 val conv error: var %v, val: %T, vtype: %s \n", target, rval, target.Type.Name)
-			return fmt.Errorf("oper assign: incorrecttype of value in right operand ")
+			fmt.Printf("SetValTo#4 val conv error: var %v, val: %T, vtype: %s \n", target, rval, target.Type.Name)
+			return fmt.Errorf("oper assign: incorrect type of value in right operand ")
 		}
 		rval = cval
 	}

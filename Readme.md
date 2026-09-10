@@ -76,18 +76,21 @@ next - by dates...
     Added short syntax of **byte** with two leading zeros: 00xff  
 - -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`  
 - -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
+    Implemented ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
+- -.-.10 Implemented regular expressions as a builtin type: `re'.+'ui`, ```re`expression`flags ```  
+    Added builtin methods of regexp: match, find, findSubs, replace, split.
 
 
 #### next TODO:  
-- ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
-- regex re'.+'ui // ```re`` ```: `re~expr~ui`: repl(~, `)  
+- regexp operators: =~, ?~ [ split oper: `/~`-  thinking]
+- string.split(regext), string.replace(regexp, repl)
 - multisource loop-assign `for a, b, c <- aa, bb, cc`  
-- builtin methods for: 
+- /postpone after lambdas/ builtin methods for: 
     maybe.isNone  
     list.filter  
     tuple filter  
     dict.filter  
-    string upper, lower, lcut(lencth):#cut left indentsin multiline string:  
+    string: fix lines(), add: upper, lower, lcut(lencth):#cut left indentsin multiline string:  
 - named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}  
 - CLI: lspt file.et  
 - type check operator `::`   
@@ -96,6 +99,7 @@ next - by dates...
 - opers `a ? b : c` `a ?: b`  
 - delete `!@`  
 - `const`  
+- formatting by expression include: "Hello {name}!"
 
 
 dev names:  

@@ -195,6 +195,8 @@ func binOperString(opid Opid, a string, b any) (any, bool) {
 			switch src := b.(type) {
 			case *ob.ListVal:
 				vals = src.Elems
+			case *ob.TupleVal:
+				vals = src.Elems
 			default:
 				vals = []any{b}
 			}

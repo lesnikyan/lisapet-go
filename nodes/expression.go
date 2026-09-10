@@ -39,10 +39,12 @@ func (vex *ValExpr) Get() *base.Val {
 	switch val := v.(type) {
 	case string:
 		// fmt.Println("ValExp: T:", val)
-		v = val[1 : len(val)-1]
+		// v = val[1 : len(val)-1]
+		v = base.CropStr(val, 1, 1)
 	case *MString:
-		// fmt.Println("ValExp:MT:", val.V)
-		v = val.V[3 : len(val.V)-3]
+		// fmt.Println("ValExp:MT:", val.V
+		// v = val.V[3 : len(val.V)-3]
+		v = base.CropStr(val.V, 3, 3)
 	default:
 		v = val
 	}
