@@ -44,6 +44,7 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "dict", base.TypeDict)
 	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "maybe", base.TypeMaybe)
+	AddType(cx, "regexp", base.TypeRegexp)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
 }
@@ -82,4 +83,11 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "bytes", "reverse", bytesReverse)
 	BuiltMethod(cx, "bytes", "fold", bytesFold)
 	BuiltMethod(cx, "bytes", "nums", bytesNums)
+	// regexp
+	BuiltMethod(cx, "regexp", "match", regexpMatch)
+	BuiltMethod(cx, "regexp", "find", regexpFind)
+	BuiltMethod(cx, "regexp", "findSubs", regexpFindSubs)
+	BuiltMethod(cx, "regexp", "replace", regexpReplace)
+	BuiltMethod(cx, "regexp", "split", regexpSplit)
+
 }

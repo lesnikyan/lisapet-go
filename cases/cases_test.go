@@ -93,6 +93,14 @@ func adk(src dk) dk {
 	return res
 }
 
+type TRx struct {
+	Ptt string
+}
+
+func Rx(s string) *TRx {
+	return &TRx{Ptt: s}
+}
+
 // prepare test result
 func pres(src any) any {
 	// fmt.Printf("pres#1: (%T, %v) \n", src, src)
@@ -103,6 +111,8 @@ func pres(src any) any {
 		return val
 	case obb.Glif:
 		// TGf(val)
+	case *obb.Regexp:
+		return Rx(val.Src)
 	case *obb.Maybe:
 		if val.IsNone() {
 			return val
@@ -275,6 +285,10 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 		case obb.Bytes:
 			// fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)
+		case *obb.Regexp:
+			// fmt.Printf("tt#*Regexp  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			res := pres(vobj)
+			assert.Equal(t2, tt.res, res)
 		case *obb.Maybe:
 			// fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			// assert.Equal(t2, tt.res, vobj)

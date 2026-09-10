@@ -187,6 +187,9 @@ func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
 	case Lt.Space:
 		return curType != prevType
 	case Lt.Text:
+		if curType != Lt.Quot {
+			return false
+		}
 		if cur[0] == next {
 			return true // end of string
 		}
@@ -294,30 +297,36 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 
 		curStr := ctype == Lt.Text || ctype == Lt.Mttext // prev is text
 		xtype := elemType(c, ctype)                      // next type
-		if curStr && !esc && xtype == Lt.Esc {
-			// escMap
-			// log.Printf("esc#1:  , x<%s>  _%s_ opnch: <%s>", Lt.TName(xtype), string(c), string(cur[0]))
-			if cur[0] != '`' {
-				// backtics string doesn't support escapes
-				esc = true
-				lastEsc = len(cur)
-				continue
-			} else {
-				// log.Printf("#no esc by  _%s_ ", string(c))
+		if curStr {
+			if !esc && xtype == Lt.Esc {
+				// escMap
+				// log.Printf("esc#1:  , x<%s>  _%s_ opnch: <%s>", Lt.TName(xtype), string(c), string(cur[0]))
+				if cur[0] != '`' {
+					// backtics string doesn't support escapes
+					esc = true
+					lastEsc = len(cur)
+					continue
+				} else {
+					// log.Printf("#no esc by  _%s_ ", string(c))
+					xtype = ctype
+				}
+			}
+			if esc {
+				// log.Printf("esc#2:  , c<%s>  _%s_ ", Lt.TName(xtype), string(c))
+				esc = false
+				if rep, ok := escMap[c]; ok {
+					// c = rep
+					// cur = cur[0 : len(cur)-2]
+					cur = append(cur, rep)
+					continue
+				} else {
+					panic(fmt.Sprintf("Incorrect escape sequence in string: `%s`", string(c)))
+				}
+			}
+			if c != cur[0] {
 				xtype = ctype
 			}
-		}
-		if curStr && esc {
-			// log.Printf("esc#2:  , c<%s>  _%s_ ", Lt.TName(xtype), string(c))
-			esc = false
-			if rep, ok := escMap[c]; ok {
-				// c = rep
-				// cur = cur[0 : len(cur)-2]
-				cur = append(cur, rep)
-				continue
-			} else {
-				panic(fmt.Sprintf("Incorrect escape sequence in string: `%s`", string(c)))
-			}
+
 		}
 		switch xtype {
 		case Lt.Quot:
@@ -358,7 +367,8 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 		// log.Printf("SL1:  , c<%s> : cur=\"%s\", _%s_  ?%v", Lt.TName(ctype), string(cur), string(c), fin)
 		// log.Printf("SL2: %s  c<%s>, x<%s> : s=\"%s\"  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
 		if fin {
-			// fmt.Println("-- fin")
+			// log.Printf("SL2: %s  c<%s>, x<%s> : s=\"%s\"  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
+			// fmt.Printf("-- fin |%s|, |%s| \n", string(cur), string(c))
 			ntype := nextType(xtype, c)
 			switch xtype {
 			case Lt.Quot:

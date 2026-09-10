@@ -95,6 +95,7 @@ const (
 	TypeEnum
 	TypeGrup
 	TypeMaybe
+	TypeRegexp
 	// Last defined type:
 	TypeUndefined  TypeId = 2001
 	TypeStructBase TypeId = 5000
@@ -149,6 +150,8 @@ func DefaultVal(ti TypeId) any {
 	case TypeEnum:
 		return nil
 	case TypeGrup:
+		return nil
+	case TypeRegexp:
 		return nil
 	}
 	return nil
