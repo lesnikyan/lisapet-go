@@ -2,6 +2,7 @@ package cases
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -53,12 +54,6 @@ func tanynn[T any](vals []T) *Tup {
 
 func Tanis(vals ...any) *Tup {
 	return &Tup{Anynn(vals)}
-}
-
-type TTst = struct {
-	src   string // code
-	vname string // var
-	res   any    // exp
 }
 
 // type Gf struct {
@@ -179,6 +174,18 @@ func Stf(name string, vals dk) *TStruct {
 
 func Tmay(v any) *obb.Maybe {
 	return obb.Some(pres(v))
+}
+
+type TTst = struct {
+	src   string // code
+	vname string // var
+	res   any    // exp
+}
+
+type TStr string
+
+func (s TStr) repl(a string, b string) string {
+	return strings.ReplaceAll(string(s), a, b)
 }
 
 func RunTCodeVarExp(t *testing.T, i int, tt TTst) {

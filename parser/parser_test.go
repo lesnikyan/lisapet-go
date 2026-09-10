@@ -74,7 +74,7 @@ func TestSplitOpers(t *testing.T) {
 
 	for j, tt := range data {
 		t.Run(fmt.Sprintf(" %d) %s", j, tt.code), func(t2 *testing.T) {
-			sctx := SplitContext{}
+			sctx := &SplitContext{}
 			elems := SplitLine([]rune(tt.code), sctx)
 			res := make([]string, len(elems))
 			for i, el := range elems {
@@ -183,7 +183,7 @@ func TestSplitLine(t *testing.T) {
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("%s", tt.cline), func(t2 *testing.T) {
-			ctx := SplitContext{Ltype: tt.pretype, strval: tt.strval}
+			ctx := &SplitContext{Ltype: tt.pretype, strval: tt.strval}
 			rline := Runes(tt.cline)
 			res := SplitLine(rline, ctx)
 			exp := telems(tt.exp)

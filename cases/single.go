@@ -15,7 +15,7 @@ import (
 	obb "github.com/lesnikyan/lisapet-go/objects"
 )
 
-var _valLexms = []Lt.Lt{Lt.Num, Lt.Text, Lt.Word}
+var _valLexms = []Lt.Lt{Lt.Num, Lt.Text, Lt.Word, Lt.Mttext}
 
 var _contsVals = map[string]any{
 	`null`:  &obb.Null{},
@@ -44,7 +44,9 @@ func MakeNumField(ee []*lang.Elem) *nodes.NumField {
 }
 
 func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
+
 	elen := len(ee)
+	// fmt.Println("CaseVal#0", ee[0].Text, ":", elen, "t:", Lt.TName(ee[0].Type))
 	etype := ee[0].Type
 	etext := ee[0].Text
 	if !slices.Contains(_valLexms, ee[0].Type) {
@@ -123,7 +125,11 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 			}
 		}
 	case Lt.Text:
+		// fmt.Println("CaseVal. Text")
 		return valex(etext), true
+	case Lt.Mttext:
+		// fmt.Println("CaseVal. Mttext")
+		return valex(&nodes.MString{V: etext}), true
 	case Lt.Word:
 		switch elen {
 		case 1:
@@ -133,6 +139,7 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 			}
 		}
 	}
+	// fmt.Println("CaseVal. END")
 	return res, res != nil
 }
 

@@ -91,7 +91,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 	if len(clines) == 0 {
 		return nil, errors.New("empty code to build tree")
 	}
-	firstIndent := clines[0].Indent
+	firstIndent := -1
 	var nblock *BlockLink = &BlockLink{elem: top, indent: firstIndent - 1} // current parent block
 	parents := []*BlockLink{nblock}
 	cind := firstIndent
@@ -99,8 +99,12 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 	var prevExpr *ExprLink
 	var nExpr *ExprLink
 	for _, cline := range clines {
-		if len(cline.Elems) == 0 {
+		if cline == nil || len(cline.Elems) == 0 {
 			continue
+		}
+		if firstIndent == -1 {
+			// 1-st non-empty line
+			firstIndent = cline.Indent
 		}
 		var ltree *LineTree
 		if prevState != nil {
@@ -110,7 +114,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			// new expression
 			cind = cline.Indent
 		}
-		// fmt.Println(">>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind)
+		// fmt.Println(">>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind, "L-inden:", cline.Indent)
 		curState, err := Line2Expr(cline, ltree)
 		if err != nil {
 			return nil, err

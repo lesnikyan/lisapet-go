@@ -253,6 +253,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		if etp == Lt.Space {
 			continue
 		}
+		// log.Println("split:", Lt.TName(etp), " tx:", tx)
 		// log.Println("cb0:", closeBr)
 		// log.Println("split:", i, tx, "operT:", Lt.Oper, "curT:", etp)
 		if etp == Lt.Comm {
@@ -270,6 +271,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 
 		curPart = append(curPart, i)
 		if etp != Lt.Oper {
+			// log.Println("AddRElem:", el.Text, Lt.TName(el.Type))
 			cNode.AddRElem(el)
 			continue
 		}
@@ -342,7 +344,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 				obj.mem[1][2](3)(4)
 			*/
 			fParent := cNode
-			if prev != nil && (prev.Type == Lt.Word || prev.Type == Lt.Text ||
+			if prev != nil && (prev.Type == Lt.Word || prev.Type == Lt.Text || prev.Type == Lt.Mttext ||
 				(prev.Type == Lt.Oper && slices.Contains(solidEnd, prev.Text)) || // ) ] } ~>
 				(prev.Type == Lt.Num && prev.Text[0] == '0')) { // 0x[]
 				// log.Println("$_if_brop1", tx)

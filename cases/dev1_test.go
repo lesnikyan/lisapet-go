@@ -123,7 +123,7 @@ func TestOperSplit2(t *testing.T) {
 		// {"func inst:StrType Name(a:itn, b:list)", -1, []ints2{}},
 	}
 	for _, tt := range tdata {
-		sctx := par.SplitContext{}
+		sctx := &par.SplitContext{}
 		line := par.SplitLine([]rune(tt.src), sctx)
 		res, err := Line2tree(line, nil)
 		assert.Nil(t, err)
@@ -153,7 +153,7 @@ func TestCaseOfAssignSimpleVal(t *testing.T) {
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("%s >>", tt.src), func(t2 *testing.T) {
-			sctx := par.SplitContext{}
+			sctx := &par.SplitContext{}
 			line := par.SplitLine([]rune(tt.src), sctx)
 			res, err := Line2tree(line, nil)
 			assert.Nil(t, err)
@@ -185,7 +185,7 @@ func TestCaseSeqVal(t *testing.T) {
 	}
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("%s >>", tt.src), func(t2 *testing.T) {
-			sctx := par.SplitContext{}
+			sctx := &par.SplitContext{}
 			line := par.SplitLine([]rune(tt.src), sctx)
 			res, err := Line2tree(line, nil)
 			assert.Nil(t, err)
@@ -218,7 +218,7 @@ func TestSimpleExpressionsDo(t *testing.T) {
 	for _, tt := range tdata {
 		t.Run(fmt.Sprintf("ExprDo, %s >>", tt.src), func(t2 *testing.T) {
 
-			sctx := par.SplitContext{}
+			sctx := &par.SplitContext{}
 			line := par.SplitLine([]rune(tt.src), sctx)
 			res, err := Line2tree(line, nil)
 			assert.Nil(t, err)

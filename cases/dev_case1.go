@@ -155,10 +155,11 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		}
 	}
 	rArg, rok := OperSub(rNode.rightNode, rNode.rightElems)
+	// fmt.Printf("POT#4 %v (%T: %v) \n", oper, rArg, rArg)
 	if rok {
 		expr.SetRight(rArg)
 	}
-	// fmt.Println("POT#10:", nodes.OperArgsInfo(lArg), lok, nodes.OperArgsInfo(rArg), rok)
+	// fmt.Println("POT#10:", "L:", nodes.OperArgsInfo(lArg), lok, "|| R:", nodes.OperArgsInfo(rArg), rok)
 
 	return expr, expr != nil
 }
@@ -434,6 +435,7 @@ func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
 
 func ProcSubElems(elems []*lang.Elem) (base.Expression, bool) {
 	xpr, ok := CaseVal(elems)
+	// fmt.Println("ProcSubElems", ok, xpr)
 	if ok {
 		return xpr, true
 	}

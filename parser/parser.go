@@ -12,7 +12,7 @@ import (
 
 var spaceSet = lang.Kmap([]rune{' ', '\t', '\n', '\r'})
 var c_esc = "'\"ntr\\/`"
-var c_esc_map = map[rune]rune{'n': '\n', 't': '\t', 'r': '\r', '\\': '\\', '/': '/', '\'': '\'', '"': '"', '`': '`'}
+var escMap = map[rune]rune{'n': '\n', 't': '\t', 'r': '\r', '\\': '\\', '/': '/', '\'': '\'', '"': '"', '`': '`'}
 var c_nums = `1234567890`
 var c_oper = `+~-*/=%^&!?<>()[]:.;,|${}@\\`
 
@@ -30,7 +30,7 @@ var charSet = lang.Kmap([]rune("qwertyuiopasdfghjklzxcvbnm" +
 
 var quotSet = lang.Kmap([]rune("'\"`"))
 
-var c_regex = `| / % `
+// var c_regex = `| / % `
 
 // var ext_in = []rune{'j', 'x', 'b', 'o', 'a', 'b', 'c', 'd', 'e', 'f'}
 
@@ -129,6 +129,9 @@ func elemType(c rune, prev Lt.Lt) Lt.Lt {
 type SplitContext struct {
 	Ltype  Lt.Lt
 	strval string
+	elems  []*lang.Elem
+	prev   []rune
+	indent int
 }
 
 var spaceInds = []rune(" \t")
@@ -192,10 +195,17 @@ func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
 			return false
 		}
 		// TODO: need 1-st line of mttext to detect valid close sequence
-	case Lt.Num:
-		// if next == '.' {
-		// 	return slices.Contains(cur, '.') // possibly decimal point
+		// clen := len(cur)
+		// if clen < 5 {
+		// 	return false
 		// }
+		// if next == cur[clen-1] && next == cur[clen-2] {
+		// 	return true
+		// }
+		return closeMult(cur, closeMstr, next)
+
+	case Lt.Num:
+
 		return curType != Lt.Num
 	case Lt.Oper:
 		if curType != Lt.Oper {
@@ -219,11 +229,52 @@ func nextType(ntype Lt.Lt, c rune) Lt.Lt {
 	return ntype
 }
 
-func SplitLine(runes []rune, ctx SplitContext) []*lang.Elem {
+type Er rune // escaped rune
 
+// var closeMstrEnd = []int{0, -3, -2}
+var closeMstr = []int{0, -2, -1}
+
+func closeMult(prev []rune, cc []int, last rune) bool {
+	clen := len(prev)
+	if clen < 5 {
+		return false
+	}
+	// last := prev[clen-1]
+	for _, c := range cc {
+		ci := c
+		if c < 0 {
+			ci = clen + c
+		}
+		// fmt.Printf("CM?1: %d, <%s> [%d>>%d] \n", clen, string(last), c, ci)
+		// fmt.Printf("CM?2: <%s> [%d] == %s \n", string(last), ci, string(prev[ci]))
+		if prev[ci] != last {
+			return false
+		}
+	}
+	return true
+	// return cmp.Compare(cur[0:3], cur[clen-3:clen-1]) == 0
+}
+
+var endLine = '\n'
+
+func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 	res := []*lang.Elem{}
 	cur := []rune{}
-	ctype := ctx.Ltype // cur elem type
+	ctype := Lt.None
+	if len(ctx.prev) > 0 {
+		cur = ctx.prev
+		ctype = ctx.Ltype // cur elem type
+		res = ctx.elems
+	}
+	ctx.Ltype = Lt.None
+	ctx.prev = nil
+	ctx.elems = nil
+	esc := false
+	lastEsc := -1
+
+	// log.Printf("SpLine#1:  , c<%s: %d> esc:%v  \"%s\" ", Lt.TName(ctype), ctype, esc, string(cur))
+	// log.Printf("SpLine#2:  \\\\%s//", string(runes))
+	// muq := '*'         // multiline string quote char
 	for _, c := range runes {
 		// cur = append(cur, c)
 
@@ -231,47 +282,121 @@ func SplitLine(runes []rune, ctx SplitContext) []*lang.Elem {
 		case Lt.Comm:
 			cur = append(cur, c)
 			continue
-		case Lt.Mtcomm:
-			// if not close
-			cur = append(cur, c)
-			continue
-		case Lt.Mttext:
-			// if not close
-			cur = append(cur, c)
-			continue
+			// case Lt.Mtcomm:
+			// 	// if not close
+			// 	cur = append(cur, c)
+			// 	continue
+			// case Lt.Mttext:
+			// 	// if not close
+			// 	cur = append(cur, c)
+			// 	continue
 		}
 
-		xtype := elemType(c, ctype) // next type
-
+		curStr := ctype == Lt.Text || ctype == Lt.Mttext // prev is text
+		xtype := elemType(c, ctype)                      // next type
+		if curStr && !esc && xtype == Lt.Esc {
+			// escMap
+			// log.Printf("esc#1:  , x<%s>  _%s_ opnch: <%s>", Lt.TName(xtype), string(c), string(cur[0]))
+			if cur[0] != '`' {
+				// backtics string doesn't support escapes
+				esc = true
+				lastEsc = len(cur)
+				continue
+			} else {
+				// log.Printf("#no esc by  _%s_ ", string(c))
+				xtype = ctype
+			}
+		}
+		if curStr && esc {
+			// log.Printf("esc#2:  , c<%s>  _%s_ ", Lt.TName(xtype), string(c))
+			esc = false
+			if rep, ok := escMap[c]; ok {
+				// c = rep
+				// cur = cur[0 : len(cur)-2]
+				cur = append(cur, rep)
+				continue
+			} else {
+				panic(fmt.Sprintf("Incorrect escape sequence in string: `%s`", string(c)))
+			}
+		}
 		switch xtype {
 		case Lt.Quot:
-			if ctype != Lt.Text {
+			if !curStr {
 				xtype = Lt.Text
+				lastEsc = -1
+			}
+			if len(res) > 0 && len(cur) == 0 {
+				// if prev == [quot, quot]
+				rlast := res[len(res)-1]
+				if rlast.Type == Lt.Text && len(rlast.Text) == 2 {
+					preRr := []rune(rlast.Text)
+					if c == preRr[0] {
+						// s = ''' '''
+						// start of multiline string
+						// muq = c
+						res = res[0 : len(res)-1]
+						cur = preRr
+						xtype = Lt.Mttext
+					}
+				}
 			}
 		}
 
 		fin := finCond(cur, c, xtype, ctype)
-		// log.Printf("SL1: %s  c<%s>, x<%s> : s='%s'  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
 		if fin {
+			switch ctype {
+			case Lt.Mttext:
+				if lastEsc > len(cur)-3 {
+					fin = false
+				}
+			case Lt.Text:
+				if lastEsc > len(cur)-1 {
+					fin = false
+				}
+			}
+		}
+		// log.Printf("SL1:  , c<%s> : cur=\"%s\", _%s_  ?%v", Lt.TName(ctype), string(cur), string(c), fin)
+		// log.Printf("SL2: %s  c<%s>, x<%s> : s=\"%s\"  ?%v", string(c), Lt.TName(ctype), Lt.TName(xtype), string(cur), fin)
+		if fin {
+			// fmt.Println("-- fin")
 			ntype := nextType(xtype, c)
-			if xtype == Lt.Quot { // close string
+			switch xtype {
+			case Lt.Quot:
+				// last qoute in string
 				cur = append(cur, c)
 			}
 			text := nPart(cur)
 			elem := &lang.Elem{Text: text, Type: ctype}
 			res = append(res, elem)
 			cur = []rune{}
-			if ctype != Lt.Text {
+			// if ctype != Lt.Text && ctype != Lt.Mttext{
+			if !curStr {
 				cur = append(cur, c)
 			}
 			ctype = ntype
 			continue
+		} else {
+			switch xtype {
+			case Lt.Quot:
+				switch ctype {
+				case Lt.Mttext:
+					xtype = Lt.Mttext
+				}
+			}
+		}
+		if ctype == Lt.Mttext {
+
 		}
 		ctype = xtype
 		cur = append(cur, c)
 	}
 	if len(cur) > 0 {
-		res = append(res, &lang.Elem{Text: nPart(cur), Type: ctype})
+		if ctype == Lt.Mttext {
+			ctx.prev = cur
+			ctx.Ltype = ctype
+		} else {
+			res = append(res, &lang.Elem{Text: nPart(cur), Type: ctype})
+		}
 	}
 	return res
 }
@@ -281,9 +406,10 @@ var BaseIndent = 0
 var rrr = regexp.MustCompile(`\s`)
 var _spaces = " \t"
 
-func cutIndent(rline []rune) ([]rune, int) {
+func cutIndent(rline []rune, fixCut int) ([]rune, int) {
+	// cutSize := fixCut + 1
 	for i, r := range rline {
-		if !strings.ContainsRune(_spaces, r) {
+		if i < fixCut && !strings.ContainsRune(_spaces, r) {
 			return rline[i:], i
 		}
 	}
@@ -291,13 +417,14 @@ func cutIndent(rline []rune) ([]rune, int) {
 }
 
 func SplitCode(code string) []*lang.CLine {
-	ctx := SplitContext{}
+	ctx := &SplitContext{}
 	lines := Lines(code)
 	indSize := 0
 	res := make([]*lang.CLine, len(lines))
 	if BaseIndent > 0 {
 
 	}
+	// prepare lines
 	for _, ln := range lines {
 		if len(ln) == 0 {
 			continue
@@ -313,6 +440,7 @@ func SplitCode(code string) []*lang.CLine {
 		}
 		break
 	}
+	// parse lines
 	for i, line := range lines {
 		rline := Runes(line)
 		if BaseIndent > 0 {
@@ -320,7 +448,13 @@ func SplitCode(code string) []*lang.CLine {
 		}
 		curInd := 0
 		// if strings.ContainsRune(_spaces, rline[0]) {}
-		rline, size := cutIndent(rline)
+		cutSize := len(rline)
+		if ctx.Ltype == Lt.Mttext {
+			// continuation of multiline text
+			curInd = ctx.indent
+			cutSize = ctx.indent
+		}
+		rline, size := cutIndent(rline, cutSize)
 		if size > 0 {
 			// indent detected
 			if indSize == 0 {
@@ -330,6 +464,22 @@ func SplitCode(code string) []*lang.CLine {
 			curInd = size / indSize
 		}
 		lems := SplitLine(rline, ctx)
+		// lastEl := lems[len(lems)-1]
+		// fmt.Printf("pars.Line last: type: %s, tx: %s\n", Lt.TName(ctx.Ltype), string(ctx.prev))
+		switch ctx.Ltype {
+		case Lt.Mttext:
+			// ctx.Ltype = lastEl.Type
+			ctx.elems = append(ctx.elems, lems...)
+			ctx.prev = append(ctx.prev, endLine)
+			ctx.indent = curInd
+			continue
+		default:
+			ctx = &SplitContext{}
+		}
+		if len(lems) == 0 {
+			continue
+		}
+
 		res[i] = &lang.CLine{Elems: lems, Src: line, Indent: curInd}
 	}
 	return res

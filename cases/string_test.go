@@ -1,6 +1,7 @@
 package cases
 
 import (
+	"strings"
 	"testing"
 
 	obb "github.com/lesnikyan/lisapet-go/objects"
@@ -22,6 +23,188 @@ string.glifs()
 glif(int|string|0x[])
 bytes([]int, string, glif, []glif)
 */
+
+// Escaping bytes, multibytes (\377 \xff, \u00ff): thinking
+
+// Escape sequences: \n \t \' \" \` \\
+
+// """ .. \n .. \n """.lines()
+
+func TestStringEscSeq(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = '1\n2'
+		`, "r", "1\n2"},
+		{`
+		r = "2\n3\t4\'\"\\"
+		`, "r", "2\n3\t4'\"\\"},
+		{`
+		r = '3 \' \" \$$ \\ \/ /'
+		`, "r", "3 ' \" ` \\ / /"},
+		{`
+		r = $$\ \n \'$$
+		`, "r", `\ \n \'`},
+		{`
+		r = """<node>
+		Hello 2-quote \"\"\"
+		AAA 1
+		</node>"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\nAAA 1\n</node>"},
+		{`
+		r = """<node>
+		Hello 2-quote \"""
+		AAA 2
+		</node>"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\nAAA 2\n</node>"},
+		{`
+		r = """<node>
+		Hello 2-quote "\""
+		</node> 3"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\n</node> 3"},
+		{`
+		r = """<node>
+		Hello 2-quote ""\"
+		</node> 4"""
+		`, "r", "<node>\nHello 2-quote \"\"\"\n</node> 4"},
+		{`
+		r = '\''
+		`, "r", "'"},
+		{`
+		r = ''' $$ $$$$ $%$ ' '' " "" """ '''
+		`, "r", " ` `` ``` ' '' \" \"\" \"\"\" "},
+		{`
+		r = "\\ \\\\ \\\""
+		`, "r", "\\ \\\\ \\\""},
+		{`
+		r = $%$ 11 $%$
+		`, "r", " 11 "},
+		{`
+		r = $%$ "11" $%$
+		`, "r", " \"11\" "},
+		{`
+		r = $%$ """\ $%$
+		`, "r", " \"\"\"\\ "},
+		{`
+		r = $%$ $$ \$$ ''' """ \' \" \n \t \s $%$
+		`, "r", " ` \\` ''' \"\"\" \\' \\\" \\n \\t \\s "},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
+		tt.src = strings.ReplaceAll(tt.src, "$$", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+// Multiline strings
+func TestMultistring(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r= '''
+		One
+		X'''
+		`, "r", "\nOne\nX"},
+		{`
+		s = """
+		Two
+		XX
+		YYY
+		132
+		"""
+		r = s
+		`, "r", "\nTwo\nXX\nYYY\n132\n"},
+		{`
+		s = """
+			Three
+				SSS
+			"""
+		r = s
+		`, "r", "\n\tThree\n\t\tSSS\n\t"},
+		{`
+		r = [
+		"""
+		AAA BBB
+		CCC DDD
+		""",
+		'''
+		EEE FFF
+		GGG HHH 1
+		''']
+		`, "r", Anis("\nAAA BBB\nCCC DDD\n", "\nEEE FFF\nGGG HHH 1\n")},
+		{`
+		r = []
+			"""
+		AAA BBB
+		CCC DDD
+		"""
+			'''
+		EEE FFF
+		GGG HHH 2
+		'''
+		`, "r", Anis("\nAAA BBB\nCCC DDD\n", "\nEEE FFF\nGGG HHH 2\n")},
+		{`
+		r = []
+			"""
+			AAA BBB
+			CCC DDD
+			"""
+			'''
+			EEE FFF
+			GGG HHH 3
+			'''
+		`, "r", Anis("\n\tAAA BBB\n\tCCC DDD\n\t", "\n\tEEE FFF\n\tGGG HHH 3\n\t")},
+		{`
+		r = []
+			"""
+		  AAA BBB
+		    CCC DDD 4
+			"""
+		`, "r", Anis("\n  AAA BBB\n    CCC DDD 4\n\t")},
+		{
+			// it looks like perversion, yep
+			strings.ReplaceAll(`
+		r = []
+			"""
+		  AAA BBB
+		    CCC DDD 5
+			"""
+		`, `"""`, "```"), "r", Anis("\n  AAA BBB\n    CCC DDD 5\n\t")},
+		{strings.ReplaceAll(`
+		r = [""" One """, ''' Two ''', !!! N-3 !!!]
+		`, `!!!`, "```"), "r", Anis(" One ", " Two ", " N-3 ")},
+		{`
+		r = """ He110 """.replace('1', 'L').replace('0','o')
+		`, "r", " HeLLo "},
+		{`
+		s = '''
+		123
+		456
+		'''
+		r = """ 
+		ABC
+		DDD
+		07 """ + s
+		`, "r", " \nABC\nDDD\n07 \n123\n456\n"},
+		// {``, "r",  ""},
+		// {``, "r",  ""},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestStrigMethods(t *testing.T) {
 	tdata := []struct {
