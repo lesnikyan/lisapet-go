@@ -27,8 +27,71 @@ bytes([]int, string, glif, []glif)
 // Escaping bytes, multibytes (\377 \xff, \u00ff): thinking
 
 // Escape sequences: \n \t \' \" \` \\
+// ? escape [ ` \ ] in ``-strings
 
 // """ .. \n .. \n """.lines()
+
+func TestStringMethRX(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// replace
+		{`
+		rx = re~[\s\-\\=]+~
+		ss = [('a aa aaa', ','), ('bb-bbb=bbbb', ':'), ('d-11 dd-22 ddd-33', '-X-')]
+		r = []
+		for i, nn <- ss
+			s, rep = nn
+			r <- i+101
+			r <- s.replace(rx, rep)
+		`, "r", Anis(101, "a,aa,aaa", 102, "bb:bbb:bbbb", 103, "d-X-11-X-dd-X-22-X-ddd-X-33")},
+		{`
+		rx = re~<([^<>]+)>~
+		ss = [('<div><p>a b c</p> 111 </div>', '[$1]'), ('Info: <color> Red <:color>, options: <size>28<:size>', '[$1]')]
+		r = []
+		for i, nn <- ss
+			s, rep = nn
+			r <- i+101
+			r <- s.replace(rx, rep)
+		`, "r", Anis(101, "[div][p]a b c[/p] 111 [/div]", 102, "Info: [color] Red [:color], options: [size]28[:size]")},
+		// {``, "r",  ""},
+		//split
+		{`
+		tt = []
+			('a aa aaa--bb-bbb====cccc', re~[\s\-\=]+~)
+			('11/22/333|4|5|66|777', re~[\|/]~)
+			('obj.val:11, oobb.var:22, min-max:33', re~[\s\.\,\:]+~)
+		r = []
+		r <- len(tt)
+		for i, nn <- tt
+			s, rx = nn
+			r <- i+1
+			r <- s.split(rx).join(',')
+		`, "r", Anis(3, 1, "a,aa,aaa,bb,bbb,cccc", 2, "11,22,333,4,5,66,777", 3, "obj,val,11,oobb,var,22,min-max,33")},
+		{`
+		rx1 = re~\.~
+		rx2 = re~[,:]~
+		r = []
+		src = "Colors: red, green, blue. Sizes: small, big, large. Numbers: 1, 2, 3."
+		for s <- src.split(rx1)
+			r <- s.split(rx2)
+		`, "r", Anis(
+			Anis("Colors", " red", " green", " blue"),
+			Anis(" Sizes", " small", " big", " large"),
+			Anis(" Numbers", " 1", " 2", " 3"),
+			Anis(""))},
+		// {``, "r",  Anis()},
+		// {``, "r",  Anis()},
+		// {``, "r",  Anis()},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
+		tt.src = strings.ReplaceAll(tt.src, "~", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestStringEscSeq(t *testing.T) {
 	tdata := []struct {

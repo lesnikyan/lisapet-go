@@ -78,12 +78,11 @@ next - by dates...
 - -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
     Implemented ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
 - -.-.10 Implemented regular expressions as a builtin type: `re'.+'ui`, ```re`expression`flags ```  
-    Added builtin methods of regexp: match, find, findSubs, replace, split.
-
+    Added builtin methods of regexp: match, find, findSubs, replace, split.  
+- -.-.11 Add regexp as an argument to `string.split`, `string.replace`  
 
 #### next TODO:  
 - regexp operators: =~, ?~ [ split oper: `/~`-  thinking]
-- string.split(regext), string.replace(regexp, repl)
 - multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - /postpone after lambdas/ builtin methods for: 
     maybe.isNone  

@@ -33,6 +33,9 @@ func stringSplit(cx base.Context, inst any, args []any) (any, error) {
 		sep = sepv
 	case objects.Glif:
 		sep = string([]rune{sepv})
+	case *objects.Regexp:
+		ss := sepv.Split(s)
+		return objects.NewListVal(vals2anis(ss)), nil
 	default:
 		return nil, fmt.Errorf("Bad separator in string.split: %T", args[0])
 	}
@@ -63,6 +66,7 @@ type GS interface {
 // 	return strings.ReplaceAll(s, old, rep)
 // }
 
+// TODO: replace({dict}) : {old1:repl1, ...}
 func stringReplace(cx base.Context, inst any, args []any) (any, error) {
 	// args[0,1]: string|glif|Regexp, string|glif
 	// args[0]: dict
@@ -98,7 +102,8 @@ func stringReplace(cx base.Context, inst any, args []any) (any, error) {
 	case *objects.DictVal:
 		return nil, fmt.Errorf("string.replace: dict arg not implemented")
 	case *objects.Regexp:
-		return nil, fmt.Errorf("string.replace: regexp arg not implemented")
+		res := old.Replace(s, rep)
+		return res, nil
 	default:
 		return nil, fmt.Errorf("string.replace: pattern mast be string or glif")
 	}
