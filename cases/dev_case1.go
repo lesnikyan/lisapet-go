@@ -123,6 +123,8 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.OperBin{Oper: OperByStr(oper)}
 	case "+=", "-=", "*=", "/=", "%=":
 		expr = &nodes.OperBinAssign{Oper: OperByStr(oper)}
+	case "=~", "?~", "/~":
+		expr = &nodes.OperBin{Oper: OperByStr(oper)} // Rx opers
 	case "..":
 		expr = nodes.NewDots2(nil, nil)
 	case ":":

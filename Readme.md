@@ -77,12 +77,13 @@ next - by dates...
 - -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`  
 - -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
     Implemented ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
-- -.-.10 Implemented regular expressions as a builtin type: `re'.+'ui`, ```re`expression`flags ```  
+- -.-.10 Implemented regular expressions as a builtin type **regexp**: `re'.+'ui`, ```re`expression`flags ```  
     Added builtin methods of regexp: match, find, findSubs, replace, split.  
 - -.-.11 Add regexp as an argument to `string.split`, `string.replace`  
+    Add regexp operators `=~` match, `?~` - find (works like findSubs)  
+
 
 #### next TODO:  
-- regexp operators: =~, ?~ [ split oper: `/~`-  thinking]
 - multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - /postpone after lambdas/ builtin methods for: 
     maybe.isNone  
@@ -90,6 +91,7 @@ next - by dates...
     tuple filter  
     dict.filter  
     string: fix lines(), add: upper, lower, lcut(lencth):#cut left indentsin multiline string:  
+    regexp operators [ split: `/~`-  thinking]
 - named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}  
 - CLI: lspt file.et  
 - type check operator `::`   

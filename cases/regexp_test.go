@@ -20,15 +20,54 @@ func TestRXOper(t *testing.T) {
 		res   any
 	}{
 		// =~
-		// {``, "r",  ""},
+		{`
+		rx = re@@^[a-z\-\.]+$@@
+		ss = ['Abc', 'abc', 'abc ', 'ab12', '132', 'qwerty', 'my-dom.com']
+		r = []
+		for s <- ss
+			t = rx =~ s
+			r <- s
+			r <- t
+		`, "r", Anis("Abc", false, "abc", true, "abc ", false, "ab12", false, "132", false, "qwerty", true, "my-dom.com", true)},
+		{`
+		rx = re@@^[a-z\-\.]+$@@
+		ss = ['Abc', 'abc', 'abc ', "qwerty", 'my-dom-bom.com', 'v123.net']
+		r = []
+		for i, s <- ss
+			if rx =~ s
+				r <- s
+		`, "r", Anis("abc", "qwerty", "my-dom-bom.com")},
+		{`
+		rx = re@@^[a-z\-\.]+$@@
+		ss = ['Abc', 'abc', 'abc ', "qwerty", 'my-dom-bom.com', 'v123.net']
+		r = []
+		for i, s <- ss
+			r <- i	
+			r <- rx =~ s
+		`, "r", Anis(0, false, 1, true, 2, false, 3, true, 4, true, 5, false)},
 		// {``, "r",  ""},
 		// ?~
-		// {``, "r",  ""},
+		{`
+		rx = re@@\d+[a-z]+@@
+		s = "1 aaa bbb 2cc dd 3eee"
+		ss = rx ?~ s
+		r = []
+		for n <- ss
+			r <- n[0]
+		`, "r", Anis("2cc", "3eee")},
+		{`
+		rx = re@@\d+([a-z]+)@@
+		s = "1aaa bbb 2cc dd 3eee"
+		ss = rx ?~ s
+		r = []
+		for n <- ss
+			r <- n[1]
+		`, "r", Anis("aaa", "cc", "eee")},
 		// {``, "r",  ""},
 	}
 	for i, tt := range tdata {
 		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
-		tt.src = strings.ReplaceAll(tt.src, "~", "`")
+		tt.src = strings.ReplaceAll(tt.src, "@@", "`")
 		RunTCodeVarExp(t, i, tt)
 	}
 }

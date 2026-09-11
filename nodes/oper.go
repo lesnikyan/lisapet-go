@@ -48,6 +48,10 @@ const (
 	OpTildLArrow
 	OpSlashColon
 	OpColonQm
+	// Regexp
+	OpRxMatch
+	OpRxFind
+	OpRxSplit
 )
 
 type Oper struct {
@@ -108,7 +112,9 @@ var _operStrMap = map[Opid]string{
 	OpQmAndColon:    "?:",
 	OpTildLArrow:    "~>",
 	OpSlashColon:    "/:",
-	OpColonQm:       ":?",
+	OpRxMatch:       "=~",
+	OpRxFind:        "?~",
+	OpRxSplit:       "/~",
 }
 
 var _operMap = func() map[string]Opid {
