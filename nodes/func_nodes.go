@@ -187,7 +187,7 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 	i := 0
 	for _, vex := range fc.args {
 		nmExp, ok := vex.(*OperAssign)
-		// fmt.Printf("FunCall (Args1): exp:(%T, %v) isAssign: %v \n", vex, vex, ok)
+		// fmt.Printf("FunCall <func:%s> (Args1): exp:(%T, %v) isAssign: %v \n", fc.fun.GetName(), vex, vex, ok)
 		if !ok {
 			// ordered arg
 			err := vex.Do(cx)
@@ -207,14 +207,14 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 		// named arg
 		lvar, ok := nmExp.Left.(*VarExpr)
 		if !ok {
-			return errors.New("func call (Args2): Named arg in func call without left part")
+			return fmt.Errorf("func call (Args2): Named arg in func call without left part: %T", nmExp.Left)
 		}
 		err := nmExp.Right.Do(cx)
 		if err != nil {
 			return err
 		}
 		lval := nmExp.Right.Get()
-		// fmt.Printf("FunCall (Args3): r-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.right, nmExp.right, lval, lval == nil)
+		// fmt.Printf("FunCall (Args3): r-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.Right, nmExp.Right, lval, lval == nil)
 		if lval == nil {
 			return errors.New("func call (Args): Named arg in func call without value")
 		}

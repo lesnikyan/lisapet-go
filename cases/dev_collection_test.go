@@ -885,7 +885,7 @@ func TestTupleCase(t *testing.T) {
 		`, "nn", tanynn([]any{1, 2, true, false, "5", "hello"})},
 		{`
 		# read from tuple
-		nn = (1,2,3,4,100])
+		nn = (1,2,3,4,100)
 		a = 0
 		for i = 0; i < 5; i += 1
 			a += nn[i]

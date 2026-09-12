@@ -411,6 +411,13 @@ func TestBytesActions(t *testing.T) {
 		bb = 0x[0 1]
 		bb <- 5
 		`, "bb", obb.Bytes{0, 1, 5}},
+		{`
+		# for loop by bytes
+		bb = 0x[0 1 2 3 4 5]
+		r = []
+		for b <- bb
+			r <- b
+		`, "r", Anynn([]byte{0x0, 0x1, 0x2, 0x3, 0x4, 0x5})},
 		// {``, "r",  ""},
 	}
 	for i, tt := range tdata {

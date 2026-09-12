@@ -425,7 +425,7 @@ func SeqSubs(rNode *OperNode) ([]base.Expression, bool) {
 }
 
 func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
-	// fmt.Println("OperSubs#1", node, len(elems), FPrintElems(elems))
+	// fmt.Println("OperSubs#1", node == nil, len(elems), FPrintElems(elems))
 	// PrintONode(node, 0)
 	if node != nil {
 		return ProcExprTree(node)
