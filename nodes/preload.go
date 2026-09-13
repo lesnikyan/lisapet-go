@@ -10,6 +10,11 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "print", Print_blin, nil)
 	BuiltFunc(cx, "iter", Iter_blin, nil)
 	BuiltFunc(cx, "some", constr_some, nil)
+	// dev funcs
+	BuiltFunc(cx, "devNM", devNamed, nil)
+	BuiltFunc(cx, "devORNM", devOrdNamed, nil)
+	BuiltFunc(cx, "devDef33", devDefArgs33, nil)
+	BuiltFunc(cx, "devDefOrd", devDefOrds, nil)
 }
 
 func PreloadConstr(cx base.Context) {

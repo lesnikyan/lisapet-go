@@ -27,6 +27,10 @@ func TestConstructDict(t *testing.T) {
 		{`
 		r = dict([1,2,3,4,5], split('6,7,8,9,0,10,12,13', ","))
 		`, "r", adk(dk{1: "6", 2: "7", 3: "8", 4: "9", 5: "0"})},
+		// by named args
+		{`
+		r:dict = dict(aa=11, bb=22.22, cc=g'Q', dd='Hey hey!')
+		`, "r", adk(dk{"aa": 11, "bb": 22.22, "cc": 'Q', "dd": "Hey hey!"})},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
@@ -192,6 +196,32 @@ func TestConstructIBFG(t *testing.T) {
 		# int
 		r = int(null)
 		`, "r", int64(0)},
+		// int by custom base
+		{`
+		# int
+		r = int("12", base=10)
+		`, "r", int64(12)},
+		{`
+		# int
+		r = int("1000", base=2)
+		`, "r", int64(8)},
+		{`
+		# int
+		r = int("100", base=8)
+		`, "r", int64(64)},
+		{`
+		# int
+		r = int("77", base=8)
+		`, "r", int64(63)},
+		{`
+		# int
+		r = int("f00caab", base=16)
+		`, "r", int64(0xf00caab)},
+		{`
+		# int
+		r = int("ff7701", base=16)
+		`, "r", int64(0xff7701)},
+		//bool
 		{`
 		r:bool = bool(0)
 		`, "r", false},

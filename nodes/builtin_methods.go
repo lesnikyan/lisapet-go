@@ -11,14 +11,6 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
-func vals2anis[T any](vals []T) []any {
-	res := make([]any, len(vals))
-	for i, v := range vals {
-		res[i] = v
-	}
-	return res
-}
-
 func stringSplit(cx base.Context, inst any, args []any) (any, error) {
 	s, ok := inst.(string)
 	if !ok {

@@ -29,6 +29,89 @@ ok 12. constructors of builtin types: int(), list(), tuple(), etc
 
 */
 
+func TestFuncBuiltNamedArg(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// named only
+		{`
+		r = devNM(lorem=123, ipsum=1.25, ups=(1.5), dolor='Banana')
+		`, "r", adk(dk{"dolor": "Banana", "ipsum": "1.25", "lorem": "123", "ups": "1.5"})},
+		{`
+		r=devNM(aaa=(1.25), bbb=2.5, cc=(3+4))
+		`, "r", adk(dk{"aaa": "1.25", "bbb": "2.5", "cc": "7"})},
+		// ordered and named
+		{`
+		r=devORNM(111, 'Bubble', 2.22, bbb=2.5, cc=(3+4))
+		`, "r", adk(dk{"#ordered": Anis(111, "Bubble", 2.22), "bbb": "2.5", "cc": "7"})},
+		{`
+		r=devORNM(1,2,3,4,5, a=6, b=7, c=8, d=9, e=10, f=11, g=12, h=13, i=14, j=15, k=16)
+		`, "r", adk(dk{"#ordered": Anis(1, 2, 3, 4, 5), "a": "6", "b": "7", "c": "8", "d": "9",
+			"e": "10", "f": "11", "g": "12", "h": "13", "i": "14", "j": "15", "k": "16"})},
+		// default args
+		{`
+		r=devDef33(10, 12.5, 'Com.port1')
+		`, "r", "a=10, b=12.50, c=`Com.port1`; dd=6f ee=2.22, ff=FooBar"},
+		{`
+		r=devDef33(10, 12.5, 'Com.port2')
+		`, "r", "a=10, b=12.50, c=`Com.port2`; dd=6f ee=2.22, ff=FooBar"},
+		{`
+		r=devDef33(10, 12.5, 'Com.port3', dd=0xf00ba11, ee=44.44, ff='FineBeer')
+		`, "r", "a=10, b=12.50, c=`Com.port3`; dd=f00ba11 ee=44.44, ff=FineBeer"},
+		// ordered default
+		{`
+		r=devDefOrd()
+		`, "r", "a=10 , b=1.00 , c=`---`"},
+		{`
+		r=devDefOrd(11, 22.25, 'Homo')
+		`, "r", "a=11 , b=22.25 , c=`Homo`"},
+		{`
+		r=devDefOrd(111, 22.25, 'Lama', sep='_/_')
+		`, "r", "a=111 _/_ b=22.25 _/_ c=`Lama`"},
+		// named as ordered
+		{`
+		r=devDefOrd(111, 22.25,  sep=';', c='Puma')
+		`, "r", "a=111 ; b=22.25 ; c=`Puma`"},
+		{`
+		r=devDefOrd(sep=';', c='Pumba', b=33.55, a=10101)
+		`, "r", "a=10101 ; b=33.55 ; c=`Pumba`"},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestFuncNamedArgNestedBrackets(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func f1(a=1, b=2, c=3)
+			[a, b, c]
+		#
+		r = f1(a=(1.25), b=2.5, c=(3,4))
+		`, "r", Anis(1.25, 2.5, Tanis(3, 4))},
+		{`
+		func f1(a=1, b=2, c=3)
+			[a, b, c]
+		#
+		func f2(a)
+			a + 1000
+		#
+		r = f1(a=(2.25), b=4.5, c=f2(6))
+		`, "r", Anis(2.25, 4.5, 1006)},
+		// {``, "r",  Anis()},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestFuncBuiltMethods(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -202,6 +285,12 @@ func TestFuncCallNamedArgs(t *testing.T) {
 		r <- foo(1,2,c=3, e=7, d=5)
 		r <- foo(1 ,2 ,3, e=9, d=6)
 		`, "r", Anis(12345, 23456, 54321, 12357, 12369)},
+		{`
+		func foo(a=0, b:float=0)
+			a + b
+		#
+		r = foo(a=9, b=1.25)
+		`, "r", float64(10.25)},
 		// {``, "r",  int64(205)},
 		// {``, "r",  Anis(11, )},
 	}
@@ -243,7 +332,7 @@ func TestFuncBuiltins(t *testing.T) {
 		aa = [11,22]
 		bb = [33,44]
 		print(aa, bb)
-		r = 16)
+		r = (16)
 		`, "r", int64(16)},
 		{`
 		a1 = join([], "")

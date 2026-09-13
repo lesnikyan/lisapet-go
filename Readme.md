@@ -81,10 +81,18 @@ next - by dates...
     Added builtin methods of regexp: match, find, findSubs, replace, split.  
 - -.-.11 Add regexp as an argument to `string.split`, `string.replace`  
     Add regexp operators `=~` match, `?~` - find (works like findSubs)  
+- -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
+    Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
 
 
 #### next TODO:  
+- named args in builin methods
 - multisource loop-assign `for a, b, c <- aa, bb, cc`  
+- type check operator `::`   
+- multitype: var, arg, `::`  
+- opers `?>` `!?>`  
+- opers `a ? b : c` `a ?: b`  
+- formatting by expression include: "Hello {name}!"
 - /postpone after lambdas/ builtin methods for: 
     maybe.isNone  
     list.filter  
@@ -92,15 +100,9 @@ next - by dates...
     dict.filter  
     string: fix lines(), add: upper, lower, lcut(lencth):#cut left indentsin multiline string:  
     regexp operators [ split: `/~`-  thinking]
-- named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}  
 - CLI: lspt file.et  
-- type check operator `::`   
-- multitype: var, arg, `::`  
-- opers `?>` `!?>`  
-- opers `a ? b : c` `a ?: b`  
 - delete `!@`  
 - `const`  
-- formatting by expression include: "Hello {name}!"
 
 
 dev names:  
