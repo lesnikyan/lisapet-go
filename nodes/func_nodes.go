@@ -155,7 +155,7 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	// fmt.Printf("FunCall#1: expr: %T elem: (%T, %v) \n", fc.Src, fv, fv)
 	// fmt.Printf("FunCall#2: non func: (%T, %v) \n", fv, fv)
 	if fv == nil {
-		return errors.New("trying to call nil elem")
+		return errors.New("trying to call nil instead of func")
 	}
 	switch fn := fv.(type) {
 	case *objects.Function:

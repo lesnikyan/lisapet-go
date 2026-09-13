@@ -18,14 +18,13 @@ ok 6.1 arg type
 ok 7. multi assign
 ok 8. multi result: return a, b, 10
 ok 12. constructors of builtin types: int(), list(), tuple(), etc
+ok 15. builtin methods: 'a b c'.split(' ')
 
 9. return from: match-case
-
 11. variative count of args, triple-dot operator
 13. func overaload: by arg count, by arg types
 14.1 multitype for var
 14.2 multitype for args
-15. builtin methods: 'a b c'.split(' ')
 
 */
 

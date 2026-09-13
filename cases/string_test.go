@@ -84,7 +84,6 @@ func TestStringMethRX(t *testing.T) {
 			Anis(""))},
 		// {``, "r",  Anis()},
 		// {``, "r",  Anis()},
-		// {``, "r",  Anis()},
 	}
 	for i, tt := range tdata {
 		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
@@ -154,11 +153,6 @@ func TestStringEscSeq(t *testing.T) {
 		{`
 		r = $%$ $$ \$$ ''' """ \' \" \n \t \s $%$
 		`, "r", " ` \\` ''' \"\"\" \\' \\\" \\n \\t \\s "},
-		// {``, "r",  ""},
-		// {``, "r",  ""},
-		// {``, "r",  ""},
-		// {``, "r",  ""},
-		// {``, "r",  ""},
 		// {``, "r",  ""},
 	}
 	for i, tt := range tdata {
@@ -350,12 +344,17 @@ func TestStrigMethods(t *testing.T) {
 		s = "  =>   abc 134:,    .  ?,  "
 		r = s.trim(' ,.?=><')
 		`, "r", "abc 134:"},
-		// TODO: lines for multiline strings
-		// TODO: escape sequences in line
-		// {`
-		// s = "Lorem \n ipsum \n belor \n"
-		// r = s.lines()
-		// `, "r", ""},
+		// lines
+		{`
+		s = """aaaa bbb 
+		cc dd 
+		 """
+		r = s.lines()
+		`, "r", Anis("aaaa bbb ", "cc dd ", " ")},
+		{`
+		s = """aaaa bbb \ncc dd\n    fin\n """
+		r = s.lines()
+		`, "r", Anis("aaaa bbb ", "cc dd", "    fin", " ")},
 		// {``, "r",  ""},
 	}
 	for i, tt := range tdata {

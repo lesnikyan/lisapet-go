@@ -73,16 +73,19 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "list", "flat", listFlat)
 	BuiltMethod(cx, "list", "sort", listSort)
 	BuiltMethod(cx, "list", "reverse", listReverse)
+	BuiltMethod(cx, "list", "filter", listFilter)
 	// tuple
 	BuiltMethod(cx, "tuple", "join", tupleJoin)
 	BuiltMethod(cx, "tuple", "map", tupleMap)
 	BuiltMethod(cx, "tuple", "join", tupleJoin)
+	BuiltMethod(cx, "tuple", "filter", tupleFilter)
 	// dict
 	BuiltMethod(cx, "dict", "map", dictMap)
 	BuiltMethod(cx, "dict", "kmap", dictKMap)
 	BuiltMethod(cx, "dict", "vmap", dictVMap)
 	BuiltMethod(cx, "dict", "keys", dictKeys)
 	BuiltMethod(cx, "dict", "vals", dictVals)
+	BuiltMethod(cx, "dict", "filter", dictFilter)
 	// bytes
 	BuiltMethod(cx, "bytes", "bits", bytesBits)
 	BuiltMethod(cx, "bytes", "blocks", bytesBlocks)

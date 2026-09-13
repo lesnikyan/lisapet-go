@@ -191,6 +191,7 @@ func stringLines(cx base.Context, inst any, args []any) (any, error) {
 	}
 	vv := []any{}
 	for n := range strings.Lines(s) {
+		n = strings.TrimRight(n, "\n")
 		vv = append(vv, n)
 	}
 	return objects.NewListVal(vv), nil
@@ -407,6 +408,53 @@ func listReverse(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewListVal(rr), nil
 }
 
+func SeqFilter(cx base.Context, src []any, farg any) ([]any, error) {
+	fn, err := objFunc(farg)
+	if err != nil {
+		return nil, err
+	}
+	rr := make([]any, len(src))
+	fargs := []any{nil}
+	// nargs := map[string]any{}
+	oknum := 0
+	for _, n := range src {
+		fargs[0] = n
+		fn.SetArgVals(fargs, nil)
+		err := fn.Do(cx)
+		if err != nil {
+			return nil, errors.Join(errors.New("error .map "), err)
+		}
+		fr := fn.Get()
+		if fr == nil {
+			return nil, errors.Join(errors.New("error: no result from func in .filter"), err)
+		}
+		nr, ok := fr.V.(bool)
+		if !ok {
+			return nil, errors.Join(errors.New("error: result of func in .filter mast be bool, %T given "), err)
+		}
+		if nr {
+			rr[oknum] = n
+			oknum++
+		}
+	}
+	return rr[0:oknum], nil
+}
+
+func listFilter(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.ListVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.filter: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("list.filter: need 1 arg")
+	}
+	rr, err := SeqFilter(cx, src.Elems, args[0])
+	if err != nil {
+		return nil, errors.Join(errors.New("error list.filter res:"), err)
+	}
+	return objects.NewListVal(rr), nil
+}
+
 // ---- type Tuple
 
 func tupleJoin(cx base.Context, inst any, args []any) (any, error) {
@@ -428,6 +476,21 @@ func tupleMap(cx base.Context, inst any, args []any) (any, error) {
 	rr, err := SeqMap(cx, src.Elems, args[0])
 	if err != nil {
 		return nil, errors.Join(errors.New("error tuple.map res:"), err)
+	}
+	return objects.NewTupleVal(rr), nil
+}
+
+func tupleFilter(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.TupleVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in list.filter: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("list.filter: need 1 arg")
+	}
+	rr, err := SeqFilter(cx, src.Elems, args[0])
+	if err != nil {
+		return nil, errors.Join(errors.New("error list.filter res:"), err)
 	}
 	return objects.NewTupleVal(rr), nil
 }
@@ -472,6 +535,42 @@ func dictMap(cx base.Context, inst any, args []any) (any, error) {
 			}
 			rk, rv := vals[0], vals[1]
 			rr[rk] = rv
+		}
+	}
+	return objects.NewDictVal(rr), nil
+}
+func dictFilter(cx base.Context, inst any, args []any) (any, error) {
+	src, ok := inst.(*objects.DictVal)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of list in dict.filter: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("dict.filter: need 1 arg")
+	}
+	fn, err := objFunc(args[0])
+	if err != nil {
+		return nil, err
+	}
+	rr := make(map[any]any)
+	fargs := make([]any, 2)
+	for k, v := range src.Vmap {
+		fargs[0] = k
+		fargs[1] = v
+		fn.SetArgVals(fargs, nil)
+		err := fn.Do(cx)
+		if err != nil {
+			return nil, errors.Join(errors.New("error dict.filter "), err)
+		}
+		fr := fn.Get()
+		if fr == nil {
+			return nil, errors.Join(errors.New("error: no result from func in dict.filter"), err)
+		}
+		nr, ok := fr.V.(bool)
+		if !ok {
+			return nil, errors.Join(errors.New("error: result of func in dict.filter mast be bool, %T given "), err)
+		}
+		if nr {
+			rr[k] = v
 		}
 	}
 	return objects.NewDictVal(rr), nil

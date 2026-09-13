@@ -20,16 +20,63 @@ ok tuple
 ok dict
 ok bytes
 
+BUG: (1 2 3)
+
 */
 
 type Bytes = obb.Bytes
 
+func TestFilterMethod(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// list.filter
+		{`
+		func even(x)
+			x % 2 == 0
+		#
+		nn = [1,2,3,4,5,6,7,8]
+		r = nn.filter(even)
+		`, "r", Anis(2, 4, 6, 8)},
+		{`
+		func check(s)
+			re'[A-Z][a-z]*' =~ s
+		#
+		nn = "Hello dier testing text we Search Words with A Big letters in String".split(' ')
+		r = nn.filter(check)
+		`, "r", Anis("Hello", "Search", "Words", "A", "Big", "String")},
+		// tuple.filter
+		{`
+		func rangeN(x)
+			0 < x && x < 20 
+		#
+		nn = (10, 0, -5, 15, 16, 20, 5, 7, 22, 100, 19, -8, 1)
+		r = nn.filter(rangeN)
+		`, "r", Tanis(10, 15, 16, 5, 7, 19, 1)},
+		// dict.filter
+		{`
+		func check(k:string, v)
+			len(k) < 4
+		#
+		dd = dict(aa=1, bbb=2, cc=3, ddddd=4, eee=5, ffffff=6, g=7)
+		r = dd.filter(check)
+		`, "r", adk(dk{"aa": 1, "bbb": 2, "cc": 3, "eee": 5, "g": 7})},
+		{`
+		func check(k:string, v:int)
+			2 < v && v < 10
+		#
+		dd = dict(aa=1, bbb=2, cc=13, ddddd=4, eee=15, ffffff=6, g=7)
+		r = dd.filter(check)
+		`, "r", adk(dk{"ddddd": 4, "ffffff": 6, "g": 7})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestBytesMethods(t *testing.T) {
-	// src := []byte{0, 0, 0xff, 0x1, 0x2, 0x3, 0xf, 0xf0}
-	// src := []byte{0b10000000, 0, 0, 0, 0, 0, 0, 0}
-	// src := []byte{0b00000000, 0, 0, 0, 0, 0, 1, 0}
-	// tn := binary.BigEndian.Uint64(src[0:8])
-	// fmt.Printf(" tt: %v\n - - %v \n", tn, int64(tn))
 	tdata := []struct {
 		src   string
 		vname string

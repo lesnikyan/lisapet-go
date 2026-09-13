@@ -84,6 +84,8 @@ next - by dates...
 - -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
     Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
     Added named args in builin methods. Tested with special type `mur` :)
+    Added method filter for types: `list`, `tuple`, `dict`
+    Fixed string.lines: trim endline `\n`
 
 
 #### next TODO:  
@@ -94,13 +96,10 @@ next - by dates...
 - opers `a ? b : c` `a ?: b`  
 - formatting by expression include: "Hello {name}!"
 - /postpone after lambdas/ builtin methods for: 
-    maybe.isNone  
-    list.filter  
-    tuple filter  
-    dict.filter  
-    string: fix lines(), add: upper, lower, lcut(lencth):#cut left indentsin multiline string:  
+    maybe.isNone   
+    string: upper, lower, lcut(length):#cut left indents in multiline string:  
     regexp operators [ split: `/~`-  thinking]
-- CLI: lspt file.et  
+- CLI: lp file.et  
 - delete `!@`  
 - `const`  
 
