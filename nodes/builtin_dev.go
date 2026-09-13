@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -195,4 +196,47 @@ func devDefOrds(cx base.Context, args []any) (any, error) {
 
 	res := fmt.Sprintf("a=%d %[2]s b=%0.2f %[2]s c=`%[4]s`", a, sepv, b, c)
 	return res, nil
+}
+
+func constr_mur(cx base.Context, args []any) (any, error) {
+	if len(args) < 1 {
+		return 0, errors.New("constr int: incorrect count of args")
+	}
+	k := int(1)
+	ordd, named := SplitNamed(args)
+	if x, ok := named["x"]; ok {
+		if xx, ok := x.(int64); ok {
+			k = int(xx)
+		}
+	}
+	switch a := ordd[0].(type) {
+	case int64:
+		return base.Mur(int(a) * k), nil
+	}
+	return 0, nil
+}
+
+func murMult(cx base.Context, inst any, args []any) (any, error) {
+	ii, ok := inst.(base.Mur)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of string in mur.mult: %T", inst)
+	}
+	if len(args) < 1 {
+		return nil, fmt.Errorf("No args of in mur.mult")
+	}
+	k := int64(1)
+	ordd, named := SplitNamed(args)
+	if x, ok := named["x"]; ok {
+		if xx, ok := x.(int64); ok {
+			k = int64(xx)
+		}
+	}
+	switch aa := ordd[0].(type) {
+	case int64:
+		return ii * base.Mur(aa*k), nil
+	case float64:
+		return base.Mur(float64(ii) * aa * float64(k)), nil
+	default:
+		panic("mur.mult: bad argument")
+	}
 }

@@ -28,6 +28,7 @@ func PreloadConstr(cx base.Context) {
 	BuiltConstr(cx, "list", constr_list, nil)
 	BuiltConstr(cx, "tuple", constr_tuple, nil)
 	BuiltConstr(cx, "dict", constr_dict, nil)
+	BuiltConstr(cx, "mur", constr_mur, nil)
 }
 
 func AddType(cx base.Context, name string, id base.TypeId) {
@@ -50,6 +51,7 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "maybe", base.TypeMaybe)
 	AddType(cx, "regexp", base.TypeRegexp)
+	AddType(cx, "mur", base.TypeMur)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
 }
@@ -94,5 +96,7 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "regexp", "findSubs", regexpFindSubs)
 	BuiltMethod(cx, "regexp", "replace", regexpReplace)
 	BuiltMethod(cx, "regexp", "split", regexpSplit)
+	// mur
+	BuiltMethod(cx, "mur", "mult", murMult)
 
 }

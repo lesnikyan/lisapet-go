@@ -111,6 +111,8 @@ func pres(src any) any {
 		return val
 	case obb.Glif:
 		// TGf(val)
+	case base.Mur:
+		return mr(val)
 	case *obb.Regexp:
 		return Rx(val.Src)
 	case *obb.Maybe:
@@ -198,6 +200,8 @@ func (s TStr) repl(a string, b string) string {
 	return strings.ReplaceAll(string(s), a, b)
 }
 
+type mr base.Mur
+
 func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 	t.Run(fmt.Sprintf("Test, %d) %s >>", i, TrunkString(tt.src)), func(t2 *testing.T) {
 		clines := par.SplitCode(tt.src[1:])
@@ -282,6 +286,9 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			assert.Equal(t2, ts.Name, vobj.Def.Name)
 			tstr := pres(vobj)
 			assert.Equal(t2, ts, tstr)
+		case base.Mur:
+			// fmt.Printf("tt#Mur  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
+			assert.Equal(t2, tt.res, pres(vobj))
 		case obb.Bytes:
 			// fmt.Printf("tt#Bytes  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
 			assert.Equal(t2, tt.res, vobj)

@@ -29,6 +29,31 @@ ok 12. constructors of builtin types: int(), list(), tuple(), etc
 
 */
 
+func TestBuiltMethodNamedArg(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// mur type
+		{`
+		r = mur(1)
+		`, "r", mr(1)},
+		{`
+		m = mur(2)
+		r = m.mult(3)
+		`, "r", mr(6)},
+		{`
+		m = mur(2)
+		r = m.mult(5, x=7)
+		`, "r", mr(70)},
+		// {``, "r",  Anis(11, )},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestFuncBuiltNamedArg(t *testing.T) {
 	tdata := []struct {
 		src   string

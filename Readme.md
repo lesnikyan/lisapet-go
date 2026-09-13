@@ -83,10 +83,10 @@ next - by dates...
     Add regexp operators `=~` match, `?~` - find (works like findSubs)  
 - -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
     Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
+    Added named args in builin methods. Tested with special type `mur` :)
 
 
 #### next TODO:  
-- named args in builin methods
 - multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - type check operator `::`   
 - multitype: var, arg, `::`  

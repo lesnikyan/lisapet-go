@@ -145,9 +145,13 @@ func (fn *MFunc) SetInst(inst any) {
 	fn.inst = inst
 }
 
-func (fn *MFunc) SetArgVals(vals []any, mvals map[string]any) {
+func (fn *MFunc) SetArgVals(vals []any, nmvals map[string]any) {
+	if len(nmvals) > 0 {
+		fn.mvals = nmvals
+		nm := NewNamedArgs(nmvals)
+		vals = append(vals, nm)
+	}
 	fn.args = vals
-	fn.mvals = mvals
 }
 
 func BuiltMethod(cx base.Context, typeName string, name string, adapter func(base.Context, any, []any) (any, error)) error {
