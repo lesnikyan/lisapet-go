@@ -234,6 +234,27 @@ func binOperBytes(opid Opid, a ob.Bytes, b any) (any, bool) {
 	return nil, false
 }
 
+func binOperRegexp(opid Opid, a *ob.Regexp, b any) (any, bool) {
+	switch b := b.(type) {
+	case string:
+		switch opid {
+		case OpRxMatch:
+			return a.Match(b), true
+		case OpRxFind:
+			// ss := a.Find(b)
+			sss := a.FindSubs(b)
+			res := make([]any, len(sss))
+			for i, ss := range sss {
+				rr := ob.NewAnyListVal(ss)
+				res[i] = rr
+			}
+			return ob.NewAnyListVal(res), true
+		case OpRxSplit:
+		}
+	}
+	return nil, false
+}
+
 func binOperByte(opid Opid, a byte, b any) (any, bool) {
 	// use int type for math except +,-
 	switch b := b.(type) {

@@ -10,6 +10,11 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "print", Print_blin, nil)
 	BuiltFunc(cx, "iter", Iter_blin, nil)
 	BuiltFunc(cx, "some", constr_some, nil)
+	// dev funcs
+	BuiltFunc(cx, "devNM", devNamed, nil)
+	BuiltFunc(cx, "devORNM", devOrdNamed, nil)
+	BuiltFunc(cx, "devDef33", devDefArgs33, nil)
+	BuiltFunc(cx, "devDefOrd", devDefOrds, nil)
 }
 
 func PreloadConstr(cx base.Context) {
@@ -23,6 +28,7 @@ func PreloadConstr(cx base.Context) {
 	BuiltConstr(cx, "list", constr_list, nil)
 	BuiltConstr(cx, "tuple", constr_tuple, nil)
 	BuiltConstr(cx, "dict", constr_dict, nil)
+	BuiltConstr(cx, "mur", constr_mur, nil)
 }
 
 func AddType(cx base.Context, name string, id base.TypeId) {
@@ -45,6 +51,7 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "maybe", base.TypeMaybe)
 	AddType(cx, "regexp", base.TypeRegexp)
+	AddType(cx, "mur", base.TypeMur)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )
 }
@@ -66,16 +73,19 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "list", "flat", listFlat)
 	BuiltMethod(cx, "list", "sort", listSort)
 	BuiltMethod(cx, "list", "reverse", listReverse)
+	BuiltMethod(cx, "list", "filter", listFilter)
 	// tuple
 	BuiltMethod(cx, "tuple", "join", tupleJoin)
 	BuiltMethod(cx, "tuple", "map", tupleMap)
 	BuiltMethod(cx, "tuple", "join", tupleJoin)
+	BuiltMethod(cx, "tuple", "filter", tupleFilter)
 	// dict
 	BuiltMethod(cx, "dict", "map", dictMap)
 	BuiltMethod(cx, "dict", "kmap", dictKMap)
 	BuiltMethod(cx, "dict", "vmap", dictVMap)
 	BuiltMethod(cx, "dict", "keys", dictKeys)
 	BuiltMethod(cx, "dict", "vals", dictVals)
+	BuiltMethod(cx, "dict", "filter", dictFilter)
 	// bytes
 	BuiltMethod(cx, "bytes", "bits", bytesBits)
 	BuiltMethod(cx, "bytes", "blocks", bytesBlocks)
@@ -89,5 +99,7 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "regexp", "findSubs", regexpFindSubs)
 	BuiltMethod(cx, "regexp", "replace", regexpReplace)
 	BuiltMethod(cx, "regexp", "split", regexpSplit)
+	// mur
+	BuiltMethod(cx, "mur", "mult", murMult)
 
 }

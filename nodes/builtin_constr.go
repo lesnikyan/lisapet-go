@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 	"strconv"
 	"unicode/utf8"
 
@@ -95,11 +96,14 @@ func constr_some(cx base.Context, args []any) (any, error) {
 	return false, errors.New("constr byte: incorrect arg type")
 }
 
+var validIntBases = []int{2, 8, 10, 16}
+
 func constr_int(cx base.Context, args []any) (any, error) {
-	if len(args) != 1 {
+	if len(args) < 1 {
 		return 0, errors.New("constr int: incorrect count of args")
 	}
-	switch a := args[0].(type) {
+	ordd, named := SplitNamed(args)
+	switch a := ordd[0].(type) {
 	case int64:
 		return a, nil
 	case bool:
@@ -111,7 +115,16 @@ func constr_int(cx base.Context, args []any) (any, error) {
 	case *objects.Null:
 		return int64(0), nil
 	case string:
-		return strconv.ParseInt(a, 10, 64)
+		base := 10
+		if bb, ok := named["base"]; ok {
+			if bint, ok := bb.(int64); ok {
+				bval := int(bint)
+				if slices.Contains(validIntBases, bval) {
+					base = bval
+				}
+			}
+		}
+		return strconv.ParseInt(a, base, 64)
 	case float64:
 		return int64(a), nil
 	case objects.Glif:
@@ -334,6 +347,10 @@ func constr_dict(cx base.Context, args []any) (any, error) {
 				}
 				k, v := n.Elems[0], n.Elems[1]
 				dd[k] = v
+			}
+		case *NamedArgs:
+			for key, val := range a.Nvals {
+				dd[key] = val
 			}
 		default:
 			return nil, errors.New("dict constr: incorrect arg")

@@ -78,6 +78,8 @@ type UserType interface {
 
 type TypeId = int
 
+type Mur int // internal sevice type, is used for dev and test needs only
+
 const (
 	TypeAny TypeId = iota + 1001
 	TypeNull
@@ -96,6 +98,7 @@ const (
 	TypeGrup
 	TypeMaybe
 	TypeRegexp
+	TypeMur
 	// Last defined type:
 	TypeUndefined  TypeId = 2001
 	TypeStructBase TypeId = 5000
@@ -153,6 +156,8 @@ func DefaultVal(ti TypeId) any {
 		return nil
 	case TypeRegexp:
 		return nil
+	case TypeMur:
+		return 0
 	}
 	return nil
 }

@@ -114,6 +114,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			// new expression
 			cind = cline.Indent
 		}
+		// fmt.Println(">>>>", cline.Src, "Elems:", FPrintElems(cline.Elems))
 		// fmt.Println(">>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind, "L-inden:", cline.Indent)
 		curState, err := Line2Expr(cline, ltree)
 		if err != nil {

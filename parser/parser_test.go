@@ -44,11 +44,16 @@ func TestSplitCode(t *testing.T) {
 		{"str?^word", " ?^space", "=?^oper", " ?^space", "\"Hello Vasya!\"?^text"},
 		{"r?^word", " ?^space", "=?^oper", " ?^space", "obj?^word", ".?^oper", "foo?^word", "(?^oper", "bar?^word",
 			"(?^oper", "[?^oper", "{?^oper", "1?^num", ":?^oper", "2?^num", "}?^oper", "]?^oper", ")?^oper", ")?^oper"},
-		{},
+		nil,
 	}
 	clines := SplitCode(code)
 	rts := make([][]string, len(clines))
 	for i, cl := range clines {
+		// fmt.Println("", i, ")", cl == nil)
+		if cl == nil {
+			rts[i] = nil
+			continue
+		}
 		rw := make([]string, len(cl.Elems))
 		for j, el := range cl.Elems {
 			rw[j] = fmt.Sprintf("%s?^%s", el.Text, Lt.TName(el.Type))
@@ -168,10 +173,10 @@ func TestSplitLine(t *testing.T) {
 	}{
 		{"123", non, "", ([]tte{{"123", num}})},
 		{"qwe rty", non, "", ([]tte{{"qwe", wrd}, {" ", spc}, {"rty", wrd}})},
-		{"123.05 + 0x9f", non, "", []tte{{"123.05", num}, {" ", spc}, {"+", opr}, {" ", spc}, {"0x9f", num}}},
+		{"123.05 + 0x9f", non, "", []tte{{"123", num}, {".", opr}, {"05", num}, {" ", spc}, {"+", opr}, {" ", spc}, {"0x9f", num}}},
 		{`name = "Vasya Pupkin"`, non, "", []tte{{"name", wrd}, {" ", spc}, {"=", opr}, {" ", spc}, {`"Vasya Pupkin"`, txt}}},
 		{"nums = [12, 34, 55.5]", non, "", []tte{{"nums", wrd}, {" ", spc}, {"=", opr}, {" ", spc}, {"[", opr}, {"12", num}, {",", opr},
-			{" ", spc}, {"34", num}, {",", opr}, {" ", spc}, {"55.5", num}, {"]", opr}}},
+			{" ", spc}, {"34", num}, {",", opr}, {" ", spc}, {"55", num}, {".", opr}, {"5", num}, {"]", opr}}},
 		{"obj.foo()", non, "", []tte{{"obj", wrd}, {".", opr}, {"foo", wrd}, {"(", opr}, {")", opr}}},
 		{`ss=["a","9",]`, non, "", []tte{{"ss", wrd}, {"=", opr}, {"[", opr}, {`"a"`, txt}, {",", opr}, {`"9"`, txt}, {",", opr}, {"]", opr}}},
 		{"n # qwerty1", non, "", []tte{{"n", wrd}, {" ", spc}, {"# qwerty1", cmm}}},

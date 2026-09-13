@@ -77,29 +77,31 @@ next - by dates...
 - -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`  
 - -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
     Implemented ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
-- -.-.10 Implemented regular expressions as a builtin type: `re'.+'ui`, ```re`expression`flags ```  
-    Added builtin methods of regexp: match, find, findSubs, replace, split.
+- -.-.10 Implemented regular expressions as a builtin type **regexp**: `re'.+'ui`, ```re`expression`flags ```  
+    Added builtin methods of regexp: match, find, findSubs, replace, split.  
+- -.-.11 Add regexp as an argument to `string.split`, `string.replace`  
+    Add regexp operators `=~` match, `?~` - find (works like findSubs)  
+- -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
+    Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
+    Added named args in builin methods. Tested with special type `mur` :)
+    Added method filter for types: `list`, `tuple`, `dict`
+    Fixed string.lines: trim endline `\n`
 
 
 #### next TODO:  
-- regexp operators: =~, ?~ [ split oper: `/~`-  thinking]
-- string.split(regext), string.replace(regexp, repl)
 - multisource loop-assign `for a, b, c <- aa, bb, cc`  
-- /postpone after lambdas/ builtin methods for: 
-    maybe.isNone  
-    list.filter  
-    tuple filter  
-    dict.filter  
-    string: fix lines(), add: upper, lower, lcut(lencth):#cut left indentsin multiline string:  
-- named arg in builtin func/meth: arg[n] = NArg{Name string, Val: any}  
-- CLI: lspt file.et  
 - type check operator `::`   
 - multitype: var, arg, `::`  
 - opers `?>` `!?>`  
 - opers `a ? b : c` `a ?: b`  
+- formatting by expression include: "Hello {name}!"
+- /postpone after lambdas/ builtin methods for: 
+    maybe.isNone   
+    string: upper, lower, lcut(length):#cut left indents in multiline string:  
+    regexp operators [ split: `/~`-  thinking]
+- CLI: lp file.et  
 - delete `!@`  
 - `const`  
-- formatting by expression include: "Hello {name}!"
 
 
 dev names:  

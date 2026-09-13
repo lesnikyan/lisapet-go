@@ -6,11 +6,23 @@ import (
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
+type anym map[any]any
+
+type NamedArgs struct {
+	Nvals map[string]any
+}
+
+func NewNamedArgs(v map[string]any) *NamedArgs {
+	return &NamedArgs{Nvals: v}
+}
+
+// ---
+
 type NFunc struct {
-	Name  string
-	args  []any                                  // passed args
-	mvals map[string]any                         // passed named args
-	fun   func(base.Context, []any) (any, error) // func-apapter called in Do()
+	Name   string
+	args   []any                                  // passed args
+	nmargs map[string]any                         // passed named args
+	fun    func(base.Context, []any) (any, error) // func-apapter called in Do()
 
 	resV *base.Val
 }
@@ -38,9 +50,13 @@ func (fn *NFunc) GetName() string {
 	return fn.Name
 }
 
-func (fn *NFunc) SetArgVals(vals []any, mvals map[string]any) {
+func (fn *NFunc) SetArgVals(vals []any, nmvals map[string]any) {
+	if len(nmvals) > 0 {
+		fn.nmargs = nmvals
+		nm := NewNamedArgs(nmvals)
+		vals = append(vals, nm)
+	}
 	fn.args = vals
-	fn.mvals = mvals
 }
 
 /// ================= Usage Example ====================
@@ -129,9 +145,13 @@ func (fn *MFunc) SetInst(inst any) {
 	fn.inst = inst
 }
 
-func (fn *MFunc) SetArgVals(vals []any, mvals map[string]any) {
+func (fn *MFunc) SetArgVals(vals []any, nmvals map[string]any) {
+	if len(nmvals) > 0 {
+		fn.mvals = nmvals
+		nm := NewNamedArgs(nmvals)
+		vals = append(vals, nm)
+	}
 	fn.args = vals
-	fn.mvals = mvals
 }
 
 func BuiltMethod(cx base.Context, typeName string, name string, adapter func(base.Context, any, []any) (any, error)) error {
