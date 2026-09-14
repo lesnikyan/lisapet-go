@@ -101,26 +101,29 @@ func (op *LeftArrow) DoIter(cx base.Context) error {
 		src = GetExprVal(op.right, cx)
 	}
 	// fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Src: (%T, %v) \n", targ, targ, src, src)
-	var iter SourceIter
-	switch ss := src.(type) {
-	case *ob.ListVal:
-		iter = NewListIter(ss.Elems)
-	case *ob.DictVal:
-		iter = NewDictIter(ss.Vmap)
-	case ob.Bytes:
-		iter = NewBytesIter(ss)
-	case *ob.NumSeqGen:
-		iter = ss // &NumGenIter{Src: ss}
-	}
+	// var iter SourceIter
+	// switch ss := src.(type) {
+	// case *ob.ListVal:
+	// 	iter = NewListIter(ss.Elems)
+	// case *ob.DictVal:
+	// 	iter = NewDictIter(ss.Vmap)
+	// case ob.Bytes:
+	// 	iter = NewBytesIter(ss)
+	// case *ob.NumSeqGen:
+	// 	iter = ss // &NumGenIter{Src: ss}
+	// case []any: // DEBUG
+	// 	fmt.Printf("Multisource %T \n", ss)
+	// 	for i, srcv := range ss {
+	// 		fmt.Printf(" msrc#1 %d Src: (%T, %v) \n", i, srcv, srcv)
+	// 	}
+	// 	iter =
+	// }
+	iter := MakeIter(src)
 	// fmt.Printf(" >>>  LArr.Do3.iter (%T, %v) Src: (%T, %v) \n", iter, iter, src, src)
 	op.iter = NewIterAssign(iter, targ)
 	// fmt.Printf(" %T \n", op.iter)
 	return nil
 }
-
-// func (op *LeftArrow) DoAppend(cx base.Context) {
-
-// }
 
 func (op *LeftArrow) Do(cx base.Context) error {
 	err := op.right.Do(cx)
@@ -142,136 +145,6 @@ func (op *LeftArrow) Do(cx base.Context) error {
 	}
 	// return nil
 }
-
-// ====
-
-func MKeys(s map[any]any) []any {
-	r := make([]any, len(s))
-	i := 0
-	for k := range s {
-		r[i] = k
-		i++
-	}
-	return r
-}
-
-// ====
-
-type SourceIter interface {
-	Init()
-	Next() (base.Pair, error) // index:val | key:val
-	Finished() bool           // true if iter has ended
-}
-
-// ====
-
-type PairIntAny struct {
-	A int
-	B any
-}
-
-func NewIntAny(a int, b any) *PairIntAny {
-	return &PairIntAny{a, b}
-}
-
-type ListIter struct {
-	Src    []any
-	index  int
-	maxInd int
-}
-
-func (it *ListIter) Init() {
-	it.index = 0
-	it.maxInd = len(it.Src) - 1
-}
-
-func (it *ListIter) Finished() bool {
-	return it.index > it.maxInd
-}
-
-func (it *ListIter) Next() (base.Pair, error) {
-	var r base.Pair
-	if it.Finished() {
-		return r, errors.New("trying to Next of Finished iterator")
-	}
-	i := int64(it.index)
-	val := it.Src[it.index]
-	it.index += 1
-	return base.Pair{i, val}, nil
-}
-
-func NewListIter(val []any) *ListIter {
-	return &ListIter{Src: val, maxInd: len(val) - 1}
-}
-
-// ===
-
-type BytesIter struct {
-	Src    ob.Bytes
-	index  int
-	maxInd int
-}
-
-func (it *BytesIter) Init() {
-	it.index = 0
-	it.maxInd = len(it.Src) - 1
-}
-
-func (it *BytesIter) Finished() bool {
-	return it.index > it.maxInd
-}
-
-func (it *BytesIter) Next() (base.Pair, error) {
-	var r base.Pair
-	if it.Finished() {
-		return r, errors.New("trying to Next of Finished iterator")
-	}
-	i := int64(it.index)
-	val := it.Src[it.index]
-	it.index += 1
-	return base.Pair{i, val}, nil
-}
-
-func NewBytesIter(val ob.Bytes) *BytesIter {
-	return &BytesIter{Src: val, maxInd: len(val) - 1}
-}
-
-// ===
-
-type DictIter struct {
-	MSrc map[any]any
-	iter *ListIter
-	keys []any
-}
-
-func (it *DictIter) Finished() bool {
-	return it.iter.Finished()
-}
-
-func (it *DictIter) Init() {
-	it.iter = NewListIter(MKeys(it.MSrc))
-	it.iter.Init()
-}
-
-func (it *DictIter) Next() (base.Pair, error) {
-	var r base.Pair
-	if it.iter.Finished() {
-		return r, errors.New("trying to Next of Finished iterator")
-	}
-	ival, err := it.iter.Next()
-	if err != nil {
-		return r, err
-	}
-	k := ival[1]
-	val := it.MSrc[k]
-	return base.Pair{k, val}, nil
-}
-
-func NewDictIter(val map[any]any) *DictIter {
-	return &DictIter{MSrc: val}
-}
-
-// ===
 
 // type NumGenIter struct {
 // 	Src *ob.NumSeqGen
@@ -311,12 +184,14 @@ func (it *IterAssign) Finished() bool {
 }
 
 func (it *IterAssign) Next() error {
-	vals, err := it.Src.Next()
+	var vals []any
+	vv, err := it.Src.Next()
 	if err != nil {
 		// fmt.Printf(" -- ItAs#0  (%T, %v) \n", err, err)
 		return err
 	}
-	// fmt.Printf(" -- ItAs#1 %d (%T, %v) \n", len(vals), vals[0], vals[0])
+	vals = vv
+	// fmt.Printf(" -- ItAs#1 <%T> %d (%T, %v) \n", it.Src, len(vals), vals[0], vals[0])
 	// check val ciunt for multi source: for a, b, c <- nn, cc, vv
 	switch len(it.Target) {
 	case 0:
@@ -325,9 +200,9 @@ func (it *IterAssign) Next() error {
 		// TODO: novar: for _ <- src
 		v := vals[1]
 		it.Target[0].Val = v
-	case 2:
-		it.Target[0].Val = vals[0]
-		it.Target[1].Val = vals[1]
+	// case 2:
+	// 	it.Target[0].Val = vals[0]
+	// 	it.Target[1].Val = vals[1]
 	default:
 		if len(it.Target) != len(vals) {
 			return errors.New("IterAssign: number of left and right args is not equal")
@@ -348,40 +223,4 @@ func NewIterAssign(src SourceIter, targ any) *IterAssign {
 		left = tt
 	}
 	return &IterAssign{Src: src, Target: left}
-}
-
-// =====
-type AppendOper struct {
-	Target any // *T of [T ob.ListVal | ob.DitcVal]
-	Src    any // right arg
-}
-
-// Expression that make and return Lambda-obiect
-type LambdaExpr struct {
-	Args       []base.Expression
-	BlockNodes []base.Expression
-
-	res *ob.Function
-}
-
-// ser Args: var, colon, CommaSeq
-func (md *LambdaExpr) SetLeft(base.Expression) {
-	count := 1
-	// if nor single vcar count = len of seq
-	md.Args = make([]base.Expression, +count)
-}
-
-// set block expression: oper, value, semicolon seq, brackets
-func (md *LambdaExpr) SetRight(base.Expression) {
-	// need process passed expr
-}
-
-func (md *LambdaExpr) Do(base.Context) error {
-	// TODO: make lambda (Function)
-	return nil
-}
-
-func (md *LambdaExpr) Get() *base.Val {
-	// TODO: return lambda
-	return nil
 }
