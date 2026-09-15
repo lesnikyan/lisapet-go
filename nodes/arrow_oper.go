@@ -100,24 +100,6 @@ func (op *LeftArrow) DoIter(cx base.Context) error {
 	default:
 		src = GetExprVal(op.right, cx)
 	}
-	// fmt.Printf(" >>>  LArr.Do1.iter (%T, %v) Src: (%T, %v) \n", targ, targ, src, src)
-	// var iter SourceIter
-	// switch ss := src.(type) {
-	// case *ob.ListVal:
-	// 	iter = NewListIter(ss.Elems)
-	// case *ob.DictVal:
-	// 	iter = NewDictIter(ss.Vmap)
-	// case ob.Bytes:
-	// 	iter = NewBytesIter(ss)
-	// case *ob.NumSeqGen:
-	// 	iter = ss // &NumGenIter{Src: ss}
-	// case []any: // DEBUG
-	// 	fmt.Printf("Multisource %T \n", ss)
-	// 	for i, srcv := range ss {
-	// 		fmt.Printf(" msrc#1 %d Src: (%T, %v) \n", i, srcv, srcv)
-	// 	}
-	// 	iter =
-	// }
 	iter := MakeIter(src)
 	// fmt.Printf(" >>>  LArr.Do3.iter (%T, %v) Src: (%T, %v) \n", iter, iter, src, src)
 	op.iter = NewIterAssign(iter, targ)
@@ -137,13 +119,10 @@ func (op *LeftArrow) Do(cx base.Context) error {
 	if op.IsIter {
 		// 1) loop-assign: for n <- nn
 		return op.DoIter(cx)
-
 	} else {
-		// TODO:
 		// 2) append: nn <- v
 		return op.DoAppend(cx)
 	}
-	// return nil
 }
 
 // type NumGenIter struct {
@@ -200,9 +179,6 @@ func (it *IterAssign) Next() error {
 		// TODO: novar: for _ <- src
 		v := vals[1]
 		it.Target[0].Val = v
-	// case 2:
-	// 	it.Target[0].Val = vals[0]
-	// 	it.Target[1].Val = vals[1]
 	default:
 		if len(it.Target) != len(vals) {
 			return errors.New("IterAssign: number of left and right args is not equal")

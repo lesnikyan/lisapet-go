@@ -1,11 +1,8 @@
 package cases
 
 import (
-	"log"
 	"strings"
 	"testing"
-
-	"github.com/lesnikyan/lisapet-go/base"
 )
 
 /*
@@ -26,15 +23,8 @@ ok 6.3 append to dict: d1 <- (k, v)
 ok 7.1 break
 ok 7.2 continue
 ok 8. num list: [1..5], [1, 3 .. 7]
-9. multi-source: for a, b, c <- aa, bb, cc
+ok 9. multi-source: for a, b, c <- aa, bb, cc
 */
-
-func _TestInterfaceNil(t *testing.T) {
-	var ee base.Expression
-	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
-	ee = nil
-	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
-}
 
 func TestLoopMultisource(t *testing.T) {
 	tdata := []struct {
@@ -75,10 +65,16 @@ func TestLoopMultisource(t *testing.T) {
 		// dict
 		{`
 		dd = {'A':111,'B':222,'C':333}
-		r = {'result':'999'}
+		r = {'result':'991'}
 		for a, b <- dd
 			r <- (a, b)
-		`, "r", adk(dk{"A": 111, "B": 222, "C": 333, "result": "999"})},
+		`, "r", adk(dk{"A": 111, "B": 222, "C": 333, "result": "991"})},
+		{`
+		dd = {'A':111,'B':222,'C':333}
+		r = {'result':'992'}
+		for a, b <- [1 .. 3], dd.keys().sort()
+			r <- (b, '%d_%d' << (a, dd[b]))
+		`, "r", adk(dk{"A": "1_111", "B": "2_222", "C": "3_333", "result": "992"})},
 		//l ist, tuple, num-iter
 		{`
 		aa = 'aaa bbb ccc ddd'.split(' ')
@@ -132,42 +128,6 @@ func TestWhileCase(t *testing.T) {
 		`, "r", Anis(1, 7, 11, 13, 17, 19)},
 		// {``, "a",  int64(1)},
 	}
-	// for i, tt := range tdata {
-	// 	t.Run(fmt.Sprintf("Test, %d) %s >>", i, tt.src), func(t2 *testing.T) {
-	// 		clines := par.SplitCode(tt.src[1:])
-	// 		block, err := TreeBlock(clines)
-	// 		assert.Nil(t, err)
-	// 		// t.Log("--- --- --- Do ...")
-	// 		ctx := obb.NewContext(nil)
-	// 		block.Do(ctx)
-	// 		vr := ctx.GetVar(tt.vname)
-	// 		// t.Log("tt#vr", vr)
-	// 		if vr == nil {
-	// 			// fmt.Printf(" TT#0: %T %v\n", vr, vr)
-	// 			assert.Fail(t2, "No expected Var")
-	// 			return
-	// 		}
-	// 		val := vr.Val
-	// 		// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
-	// 		switch vobj := val.(type) {
-	// 		case *obb.ListVal:
-	// 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-	// 			assert.Equal(t2, tt.res, vobj.Elems)
-	// 		case *obb.DictVal:
-	// 			// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-	// 			tm, tok := tt.res.(map[any]any)
-	// 			assert.True(t2, tok)
-	// 			res := pres(vobj)
-	// 			assert.Equal(t2, tm, res)
-	// 		case int64:
-	// 			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 			assert.Equal(t2, tt.res, vobj)
-	// 		default:
-	// 			// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 		}
-	// 		// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-	// 	})
-	// }
 
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
@@ -230,42 +190,7 @@ func TestNumberSequenceCase(t *testing.T) {
 		// {``, "a",  int64(1)},
 		// {``, "a",  int64(1)},
 	}
-	// for _, tt := range tdata {
-	// 	t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
-	// 		clines := par.SplitCode(tt.src[1:])
-	// 		block, err := TreeBlock(clines)
-	// 		assert.Nil(t, err)
-	// 		// t.Log("--- --- --- Do ...")
-	// 		ctx := obb.NewContext(nil)
-	// 		block.Do(ctx)
-	// 		vr := ctx.GetVar(tt.vname)
-	// 		// t.Log("tt#vr", vr)
-	// 		if vr == nil {
-	// 			// fmt.Printf(" TT#0: %T %v\n", vr, vr)
-	// 			assert.Fail(t2, "No expected Var")
-	// 			return
-	// 		}
-	// 		val := vr.Val
-	// 		// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
-	// 		switch vobj := val.(type) {
-	// 		case *obb.ListVal:
-	// 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-	// 			assert.Equal(t2, tt.res, vobj.Elems)
-	// 		case *obb.DictVal:
-	// 			// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-	// 			tm, tok := tt.res.(map[any]any)
-	// 			assert.True(t2, tok)
-	// 			res := pres(vobj)
-	// 			assert.Equal(t2, tm, res)
-	// 		case int64:
-	// 			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 			assert.Equal(t2, tt.res, vobj)
-	// 		default:
-	// 			// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 		}
-	// 		// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-	// 	})
-	// }
+
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
@@ -325,42 +250,6 @@ func TestForArrowAppendCase(t *testing.T) {
 		`, "dd", adk(dk{1: 11, 2: 22, 3: 33, 4: 44})},
 		// {``, "a",  int64(1)},
 	}
-	// for _, tt := range tdata {
-	// 	t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
-	// 		clines := par.SplitCode(tt.src[1:])
-	// 		block, err := TreeBlock(clines)
-	// 		assert.Nil(t, err)
-	// 		// t.Log("--- --- --- Do ...")
-	// 		ctx := obb.NewContext(nil)
-	// 		block.Do(ctx)
-	// 		vr := ctx.GetVar(tt.vname)
-	// 		// t.Log("tt#vr", vr)
-	// 		if vr == nil {
-	// 			// fmt.Printf(" TT#0: %T %v\n", vr, vr)
-	// 			assert.Fail(t2, "No expected Var")
-	// 			return
-	// 		}
-	// 		val := vr.Val
-	// 		// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
-	// 		switch vobj := val.(type) {
-	// 		case *obb.ListVal:
-	// 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-	// 			assert.Equal(t2, tt.res, vobj.Elems)
-	// 		case *obb.DictVal:
-	// 			// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-	// 			tm, tok := tt.res.(map[any]any)
-	// 			assert.True(t2, tok)
-	// 			res := pres(vobj)
-	// 			assert.Equal(t2, tm, res)
-	// 		case int64:
-	// 			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 			assert.Equal(t2, tt.res, vobj)
-	// 		default:
-	// 			// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 		}
-	// 		// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-	// 	})
-	// }
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
@@ -393,15 +282,6 @@ func TestForArrowIterCase(t *testing.T) {
 		for i, v <- ss
 			a += i + v
 		`, "a", int64(70)},
-		// {`
-		// # k,v <- dict # Incorrect approach: expecting order of dict keys
-		// dd = {1:100, 2:200, 3:300}
-		// a = []
-		// a <- 0
-		// for k,v <- dd
-		// 	a <- k
-		// 	a <- v
-		// `, "a", Anynn([]int64{0, 1, 100, 2, 200, 3, 300})},
 		{`
 		# k,v <- dict
 		dd = {1:100, 2:200, 3:300}
@@ -424,42 +304,6 @@ func TestForArrowIterCase(t *testing.T) {
 		`, "rr", Anis(1, 2, 6, 7, 88)},
 		// {``, "a",  int64(1)},
 	}
-	// for _, tt := range tdata {
-	// 	t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
-	// 		clines := par.SplitCode(tt.src[1:])
-	// 		block, err := TreeBlock(clines)
-	// 		assert.Nil(t, err)
-	// 		// t.Log("--- --- --- Do ...")
-	// 		ctx := obb.NewContext(nil)
-	// 		block.Do(ctx)
-	// 		vr := ctx.GetVar(tt.vname)
-	// 		// t.Log("tt#vr", vr)
-	// 		if vr == nil {
-	// 			// fmt.Printf(" TT#0: %T %v\n", vr, vr)
-	// 			return
-	// 		}
-	// 		val := vr.Val
-	// 		// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vr.Val, vr.Val)
-	// 		switch vobj := val.(type) {
-	// 		case *obb.ListVal:
-	// 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Elems))
-	// 			assert.Equal(t2, tt.res, vobj.Elems)
-	// 		case *obb.DictVal:
-	// 			// fmt.Printf("tt#DictVal#1  (%T, %v)  (%T, %v) len: %d \n", tt.res, tt.res, vobj, vobj, len(vobj.Vmap))
-	// 			tm, tok := tt.res.(map[any]any)
-	// 			assert.True(t2, tok)
-	// 			res := pres(vobj)
-	// 			// assert.Equal(t2, tm, res)
-	// 			assert.True(t2, reflect.DeepEqual(tm, res))
-	// 		case int64:
-	// 			// fmt.Printf("tt#Var#1  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 			assert.Equal(t2, tt.res, vobj)
-	// 		default:
-	// 			// fmt.Printf("tt#default:  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-	// 		}
-	// 		// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-	// 	})
-	// }
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
@@ -586,27 +430,6 @@ func TestForCountCase(t *testing.T) {
 		// {``, int64(1)},
 		// {``, int64(1)},
 	}
-	// for _, tt := range tdata {
-	// 	t.Run(fmt.Sprintf("Test, %s >>", tt.src), func(t2 *testing.T) {
-	// 		clines := par.SplitCode(tt.src[1:])
-	// 		block, err := TreeBlock(clines)
-	// 		assert.Nil(t, err)
-	// 		// t.Log("--- --- --- Do ...")
-	// 		ctx := obb.NewContext(nil)
-	// 		block.Do(ctx)
-	// 		vr := ctx.GetVar("a")
-	// 		// t.Log("tt#vr", vr)
-
-	// 		switch rr := vr.Val.(type) {
-	// 		case *obb.ListVal:
-	// 			// fmt.Printf("tt#ListVal#1  (%T, %v)  (%T, %v) len: %d \n", vr, vr, col, col, len(col.Elems))
-	// 			assert.Equal(t2, tt.res, rr.Elems)
-	// 		default:
-	// 			assert.Equal(t2, tt.res, vr.Val)
-	// 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
-	// 		}
-	// 	})
-	// }
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}

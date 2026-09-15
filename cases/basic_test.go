@@ -2,6 +2,7 @@ package cases
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -33,6 +34,13 @@ func valEls(src string, expT any) []*lang.Elem {
 	}
 	res := []*lang.Elem{&lang.Elem{Text: src, Type: t}}
 	return res
+}
+
+func _TestInterfaceNil(t *testing.T) {
+	var ee base.Expression
+	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
+	ee = nil
+	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
 }
 
 func TestCaseVal(t *testing.T) {

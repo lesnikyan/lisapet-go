@@ -87,6 +87,7 @@ next - by dates...
     Added method filter for types: `list`, `tuple`, `dict`
     Fixed string.lines: trim endline `\n`
 - --14 Added multisource loop-assign `for a, b, c <- aa, bb, cc`  
+- --15 Added List comprehension expression: `[elem(x) ; x <- src; n=expr; condition; ... ]`
 
 
 #### next TODO:  
