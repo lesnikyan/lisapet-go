@@ -113,8 +113,8 @@ func (op *OperBin) Do(cx base.Context) error {
 
 	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
 	if !ok {
-		errm := fmt.Errorf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
 		// fmt.Printf("Error in bin oper: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
+		errm := fmt.Errorf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
 		return errm // TODO: add more informative error
 	}
 	op.res = res
