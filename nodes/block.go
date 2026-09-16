@@ -54,6 +54,7 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 		// fmt.Printf("Bl.Do#0: %T, %v\n", exp, exp)
 		err := exp.Do(cx)
 		if err != nil {
+			// fmt.Printf("Bl.Do#err1: %T, %v, %v\n", exp, exp, err)
 			return err
 		}
 		last = exp

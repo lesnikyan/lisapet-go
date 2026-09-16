@@ -222,25 +222,6 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 	return nil
 }
 
-// func (nd *ForSourceNode) LoopWithPost(cx base.Context, post base.Expression) error {
-// 	nd.pup = nil
-// 	for {
-// 		if nd.assign.Finished() {
-// 			break // correct finich
-// 		}
-// 		err := nd.assign.Next()
-// 		if err != nil {
-// 			return err
-// 		}
-// 		err = nd.Block.Do(cx)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		err = post.Do(cx)
-// 	}
-// 	return nil
-// }
-
 func (nd *ForSourceNode) Do(cx base.Context) error {
 	// fmt.Println("# FOR")
 

@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -114,9 +113,9 @@ func (op *OperBin) Do(cx base.Context) error {
 
 	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
 	if !ok {
-		errm := fmt.Sprintf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
-		// errm := fmt.Sprintf("Error in bin oper: L(%v) <%s> R(%v) ", lvv, op.Oper.Sign, rvv)
-		return errors.New(errm) // TODO: add more informative error
+		errm := fmt.Errorf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
+		// fmt.Printf("Error in bin oper: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
+		return errm // TODO: add more informative error
 	}
 	op.res = res
 	return nil

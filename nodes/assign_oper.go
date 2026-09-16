@@ -57,6 +57,7 @@ func (op *OperAssign) Do(cx base.Context) error {
 	}
 	err1 := op.Left.Do(cx)
 	if err1 != nil {
+		fmt.Println("OpAssign.L error", err1)
 		return err1
 	}
 	return AssignVal(cx, op.Left, rval)
@@ -95,6 +96,9 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 			targets[i] = vr
 		}
 		leftObj = targets
+	default:
+		// fmt.Printf("!! oper assign err: incorrect expression in left: %T \n", lexp)
+		return fmt.Errorf("oper assign err: incorrect expression in left: %T", lexp)
 	}
 	return SetValTo(leftObj, rval)
 }
