@@ -5,7 +5,7 @@ import "testing"
 /*
 
 ok 1. list comprehension
-2. dict comprehension
+ok 2. dict comprehension
 3. generator (: r; iter)
 4. generator as an arg of constructor:
 	4.1 list,
@@ -14,6 +14,92 @@ ok 1. list comprehension
 	4.4 string(int|byte),
 	4.5 bytes(int|byte|bytes)
 */
+
+func TestGenDict(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		ss = "aa bb cc dd".split(' ')
+		r = {k: n ; k, n <- ss, [3 .. 5]}
+		`, "r", adk(dk{"aa": 3, "bb": 4, "cc": 5})},
+		{`
+		ss = "aa/11 bb/22 cc/33 dd/44".split(' ')
+		r = {k: v ; n <- ss; k, v = n.split('/')}
+		`, "r", adk(dk{"aa": "11", "bb": "22", "cc": "33", "dd": "44"})},
+		{`
+		ss = "aa bb cc dd".split(' ')
+		r = {'%s%s>' << (k, c): n ; k, n <- ss, [3 .. 5]; c <- '~ ='.split(' ')}
+		`, "r", adk(dk{"aa=>": 3, "aa~>": 3, "bb=>": 4, "bb~>": 4, "cc=>": 5, "cc~>": 5})},
+		{`
+		k1 = 'a b c'.split(' ')
+		k2 = 'd e f'.split(' ')
+		k3 = 'x y z'.split(' ')
+		nn = [1,2,3]
+		r = { k: n ; a, b, c, n <- k1, k2, k3, nn; k = '%s:%s:%s' << (a, b, c)}
+		`, "r", adk(dk{"a:d:x": 1, "b:e:y": 2, "c:f:z": 3})},
+		{`
+		k1 = 'a b c'.split(' ')
+		k2 = 'd e f'.split(' ')
+		k3 = 'x y z'.split(' ')
+		nn = [1,2,3]
+		base = 0
+		func foo()
+			t = base
+			base += 1
+			return t
+		r = { k: n + foo() ; a <- k1; b <- k2; c, n <- k3, nn; k = '%s:%s:%s' << (a, b, c)}
+		`, "r", adk(dk{
+			"a:d:x": 1, "a:d:y": 3, "a:d:z": 5, "a:e:x": 4, "a:e:y": 6, "a:e:z": 8, "a:f:x": 7, "a:f:y": 9, "a:f:z": 11,
+			"b:d:x": 10, "b:d:y": 12, "b:d:z": 14, "b:e:x": 13, "b:e:y": 15, "b:e:z": 17, "b:f:x": 16, "b:f:y": 18, "b:f:z": 20,
+			"c:d:x": 19, "c:d:y": 21, "c:d:z": 23, "c:e:x": 22, "c:e:y": 24, "c:e:z": 26, "c:f:x": 25, "c:f:y": 27, "c:f:z": 29})},
+
+		// {``, "r", adk(dk{})},
+		// {``, "r", adk(dk{})},
+		// {``, "r", adk(dk{})},
+		// {``, "r", adk(dk{})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestComprInCompr(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = [k ;
+			x <- [y;
+				y <- [1..10]; y % 2  != 0
+			];
+			p <- [11, 12, 13]; k = x + p; k %2 == 1]
+		`, "r", Anis(13, 15, 17, 19, 21)},
+		{`
+		r = [ x;
+			x <- [1 .. 10]; x % 3 == 1]
+		`, "r", Anis(1, 4, 7, 10)},
+		{`
+		t = [[y; y <- [x, x + 1, -x]]; x <- [5 .. 7]]
+		r = t.flat()
+		`, "r", Anis(5, 6, -5, 6, 7, -6, 7, 8, -7)},
+		{`
+		r = {k: v; _, 
+			n <- [(a, b); 
+				a, b <- ['aa','bb','cc'], [11, 12, 13]]; 
+			k, v = n}
+		`, "r", adk(dk{"aa": 11, "bb": 12, "cc": 13})},
+		// {``, "r",  Anis()},
+		// {``, "r",  Anis()},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestGenListComprNested(t *testing.T) {
 	tdata := []struct {

@@ -311,6 +311,7 @@ func (cp *ColonPair) Get() *base.Val {
 func (cp *ColonPair) GetPair() base.Pair {
 	return cp.res
 }
+
 func (cp *ColonPair) Do(ctx base.Context) error {
 	err1 := cp.Left.Do(ctx)
 	if err1 != nil {
@@ -320,6 +321,7 @@ func (cp *ColonPair) Do(ctx base.Context) error {
 	if err1 != nil {
 		return err2
 	}
+	// fmt.Printf("ColonPair.Do r = %T, %T\n", GetExprVal(cp.Left, ctx), GetExprVal(cp.Right, ctx))
 	cp.res = base.Pair{GetExprVal(cp.Left, ctx), GetExprVal(cp.Right, ctx)}
 	return nil
 }
