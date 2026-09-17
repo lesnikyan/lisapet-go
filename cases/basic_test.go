@@ -2,6 +2,7 @@ package cases
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -33,6 +34,13 @@ func valEls(src string, expT any) []*lang.Elem {
 	}
 	res := []*lang.Elem{&lang.Elem{Text: src, Type: t}}
 	return res
+}
+
+func _TestInterfaceNil(t *testing.T) {
+	var ee base.Expression
+	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
+	ee = nil
+	log.Printf("IfcNil#1 (%T, %v) ==%v !=%v \n", ee, ee, ee == nil, ee != nil)
 }
 
 func TestCaseVal(t *testing.T) {
@@ -261,7 +269,9 @@ func TestVarInMathDo(t *testing.T) {
 		c = 4
 		a = (2 + 3) * (b - c) * -2
 		`, int64(-30)},
-		{` a = -2 * (-3) * -(3 - - 1)`, int64(-24)},
+		{`
+		a = -2 * (-3) * -(3 - - 1)
+		`, int64(-24)},
 		{`
 		n = "Hello "
 		m = 'example'
@@ -277,6 +287,7 @@ func TestVarInMathDo(t *testing.T) {
 			assert.Nil(t, err)
 			block.Do(ctx)
 			vr := ctx.GetVar("a")
+			// fmt.Println("tt3>", vr)
 			assert.Equal(t2, tt.res, vr.Val)
 			// fmt.Println("tt3>", vr, vr.Name, vr.Val)
 		})

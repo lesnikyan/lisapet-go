@@ -264,7 +264,9 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	case *StructConstr:
 		return vv.Get().V
 	case *Brackets:
-		return GetExprVal(vv.Sub, cx)
+		return vv.Get().V
+	case *OperColon:
+		return vv.GetPair()
 	case *EmptyExpr:
 		return &objects.EmptyVal{}
 	case *OperDot:

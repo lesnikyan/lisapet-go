@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -104,7 +103,7 @@ func (op *OperBin) Do(cx base.Context) error {
 	if op.TODO {
 		return nil
 	}
-	// fmt.Printf("OperBin.Do#0: oper:%v (%T:%v) (%T:%v)", op.Oper, op.left, op.left, op.right, op.right)
+	// fmt.Printf("OperBin.Do#0: oper:%v (%T:%v) (%T:%v) \n	", op.Oper, op.left, op.left, op.right, op.right)
 	op.left.Do(cx)
 	op.right.Do(cx)
 	// lop := op.left.Get()
@@ -114,9 +113,9 @@ func (op *OperBin) Do(cx base.Context) error {
 
 	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
 	if !ok {
-		errm := fmt.Sprintf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
-		// errm := fmt.Sprintf("Error in bin oper: L(%v) <%s> R(%v) ", lvv, op.Oper.Sign, rvv)
-		return errors.New(errm) // TODO: add more informative error
+		// fmt.Printf("Error in bin oper: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
+		errm := fmt.Errorf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
+		return errm // TODO: add more informative error
 	}
 	op.res = res
 	return nil

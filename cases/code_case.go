@@ -166,7 +166,70 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	return expr, expr != nil
 }
 
+func Comprehension(openBr string, subs *nodes.SequenceSemicolon) (base.Expression, bool) {
+	if len(subs.Subs) < 2 {
+		panic("Incorrect list comprehension with less than 2 sub expr")
+	}
+	var subx []base.Expression = []base.Expression{}
+	var nIter *nodes.LeftArrow
+	var gloop *nodes.GenLoop
+	var prev *nodes.GenLoop
+	var guard base.Expression
+	var rootGL *nodes.GenLoop
+
+	resEx := subs.Subs[0] // should be a value expression, not assign, not type def or control
+	nIter, ok := subs.Subs[1].(*nodes.LeftArrow)
+	if !ok {
+		panic(fmt.Sprintf("comprehensions case needs left-arrow in 2nd position, but %T given", subs.Subs[1]))
+	}
+
+	for _, ex := range subs.Subs[2:] {
+		// fmt.Printf("#--Cprh1  (%T, %v)\n", ex, ex)
+		switch nxt := ex.(type) {
+		case *nodes.LeftArrow:
+			// // start next loop
+			gloop = nodes.NewGenLoop(nIter, subx, guard) // 2-nd iter-loop and next
+			if rootGL == nil {
+				rootGL = gloop
+			}
+			if prev != nil {
+				prev.SubLoop = gloop
+			}
+			prev = gloop
+			nIter = nxt
+			subx = []base.Expression{}
+			guard = nil
+		case *nodes.OperAssign:
+			subx = append(subx, nxt)
+			// loop.Add(ex)
+		default:
+			guard = nxt
+		}
+	}
+	gloop = nodes.NewGenLoop(nIter, subx, guard)
+	if rootGL == nil {
+		rootGL = gloop
+	}
+	if prev != nil {
+		prev.SubLoop = gloop
+	}
+	// fmt.Printf("#--Cprh5  (%T, %v)\n", rootGL, rootGL)
+
+	switch openBr {
+	case "[":
+		// list comprehension
+		// fstLoop := fstArw.GetIterAssign()
+		return nodes.NewListComprh(resEx, rootGL), true
+	case "{":
+		// dict compr
+		return nodes.NewDictComprh(resEx, rootGL), true
+	case "(:":
+	}
+	return nil, false
+}
+
 func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
+	// fmt.Printf("#--SubSeq << %s >> (%T, %v)\n", parent, node, node)
 	switch exx := node.(type) {
 	case *nodes.SequenceComma:
 		//collexrions
@@ -186,10 +249,11 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 		switch parent {
 		case "[":
 			// list comprehension
-			return &nodes.MockExpr{}, false
+			// return &nodes.MockExpr{}, false
+			return Comprehension(parent, exx)
 		case "{":
 			// dict compr
-			return &nodes.MockExpr{}, false
+			return Comprehension(parent, exx)
 		case "(:":
 			// THINK: do we need tuple-comprehension? tuple([ ; ; ]) looks enough
 			// generator
@@ -350,6 +414,13 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 			case *nodes.NumField:
 				// println("NumField case#1")
 				return CaseBytes(rNode, subex)
+			case *nodes.SequenceSemicolon:
+				return SubSeq(oper, subex)
+			}
+		case "{":
+			switch subex := subs.(type) {
+			case *nodes.SequenceSemicolon:
+				return SubSeq(oper, subex)
 			}
 		}
 
@@ -362,7 +433,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 		sub1 := &nodes.SequenceComma{Subs: subEx}
 		seq = sub1
 	}
-	// collection | comprehension case
+	// collection
 	return SubSeq(oper, seq)
 }
 

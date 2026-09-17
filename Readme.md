@@ -80,16 +80,18 @@ next - by dates...
 - -.-.10 Implemented regular expressions as a builtin type **regexp**: `re'.+'ui`, ```re`expression`flags ```  
     Added builtin methods of regexp: match, find, findSubs, replace, split.  
 - -.-.11 Add regexp as an argument to `string.split`, `string.replace`  
-    Add regexp operators `=~` match, `?~` - find (works like findSubs)  
+    Added regexp operators `=~` match, `?~` - find (works like findSubs)  
 - -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
     Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
     Added named args in builin methods. Tested with special type `mur` :)
     Added method filter for types: `list`, `tuple`, `dict`
     Fixed string.lines: trim endline `\n`
+- --14 Added multisource loop-assign `for a, b, c <- aa, bb, cc`  
+- --15 Added List comprehension expression: `[elem(x) ; x <- src; n=expr; condition; ... ]`
+- --16 Adde dict comprehension: `{key, val ; key, val <- keys, vals; n=expr; condition}`
 
 
 #### next TODO:  
-- multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - type check operator `::`   
 - multitype: var, arg, `::`  
 - opers `?>` `!?>`  

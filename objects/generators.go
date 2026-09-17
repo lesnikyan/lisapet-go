@@ -2,8 +2,6 @@ package objects
 
 import (
 	"errors"
-
-	"github.com/lesnikyan/lisapet-go/base"
 )
 
 // simple number generator [a .. b]
@@ -34,16 +32,16 @@ func (ng *NumSeqGen) Init() {
 	ng.index = 0
 }
 
-func (ng *NumSeqGen) Next() (base.Pair, error) {
+func (ng *NumSeqGen) Next() ([]any, error) {
 	// fmt.Printf("NGen#09, index: %v, cur: %v, step:%v\n", ng.index, ng.cur, ng.Step)
 	if ng.Finished() {
-		return base.Pair{}, errors.New("trying to Next of Finished iterator")
+		return nil, errors.New("trying to Next of Finished iterator")
 	}
 	res := ng.cur
 	i := ng.index
 	ng.cur += ng.Step
 	ng.index += 1
-	return base.Pair{i, res}, nil
+	return []any{i, res}, nil
 }
 
 func (ng *NumSeqGen) GetList() *ListVal {
