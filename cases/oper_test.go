@@ -20,15 +20,50 @@ import "testing"
 // }
 
 /*
-1. ?>
-2. !?>
-3. a ? b : c
+ok 1. ?>
+ok 2. !?>
+ok 3. a ? b : c
 4. a ?: b
 5. @!
 6. a :: type
 7. v : int|float
 8. a :: int|float
 */
+
+func TestOperTernary(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = a ? "yes" : "no"
+		`, "r", "yes"},
+		{`
+		a = false
+		r = a ? "yes" : "no"
+		`, "r", "no"},
+		{`
+		a = 1
+		b = 2
+		r = a < b ? "yes 1" : "no 2"
+		`, "r", "yes 1"},
+		{`
+		a = 3
+		b = 2
+		r = a < b ? "yes 1" : "no 2"
+		`, "r", "no 2"},
+		{`
+		a = 3
+		b = 2
+		r = [a < b ? "yes 1" : "no 2", a > b ? "yes 1" : "no 2", 55]
+		`, "r", Anis("no 2", "yes 1", 55)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestOperIn(t *testing.T) {
 	tdata := []struct {

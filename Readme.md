@@ -86,15 +86,16 @@ next - by dates...
     Added named args in builin methods. Tested with special type `mur` :)
     Added method filter for types: `list`, `tuple`, `dict`
     Fixed `string.lines`: trim endline `\n`
-- --14 Added multisource loop-assign `for a, b, c <- aa, bb, cc`  
+- --14 Added **multisource** loop-assign `for a, b, c <- aa, bb, cc`  
 - --15 Added List **comprehension** expression: `[x ; x <- src; n=expr; condition; ... ]`
 - --16 Added dict comprehension: `{key, val ; key, val <- keys, vals; n=expr; condition}`
 - --18 Added **generator** experession wit sub-loops, sub-assign, condition: `(: elem; iter<-; assign=; condition?)`
     Added opers 'in' `?>`, 'not in' `!?>` for `list`, `tuple`, `dict`, `maybe` types: `5 ?> [1,2,3] => false`  
+    Added classic **ternary operator**: `condition ? trueVal : falseVal`
 
 
 #### next TODO:  
-- opers `a ? b : c` `a ?: b`  
+- oper `a ?: b`  
 - type check operator `::`   
 - multitype: var, arg, `::`  
 - delete `@!`  

@@ -137,8 +137,10 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
 		expr = &nodes.OperBin{} // func-apply
-	case "?:":
-		expr = &nodes.OperBin{} // short-triple
+	case "?":
+		expr = &nodes.OperTern{} // short-triple
+	// case "?:":
+	// 	expr = &nodes.OperTern{} // short-triple
 	default:
 		switch {
 		case slices.Contains(binOpers, oper):
