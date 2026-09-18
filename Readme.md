@@ -78,32 +78,34 @@ next - by dates...
 - -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
     Implemented ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
 - -.-.10 Implemented regular expressions as a builtin type **regexp**: `re'.+'ui`, ```re`expression`flags ```  
-    Added builtin methods of regexp: match, find, findSubs, replace, split.  
-- -.-.11 Add regexp as an argument to `string.split`, `string.replace`  
-    Added regexp operators `=~` match, `?~` - find (works like findSubs)  
+    Added builtin methods of `regexp`: `match`, `find`, `findSubs`, `replace`, `split`.  
+- -.-.11 Add `regexp` as an argument to `string.split`, `string.replace`  
+    Added `regexp` operators `=~` match, `?~` - find (works like findSubs)  
 - -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
     Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
     Added named args in builin methods. Tested with special type `mur` :)
     Added method filter for types: `list`, `tuple`, `dict`
-    Fixed string.lines: trim endline `\n`
+    Fixed `string.lines`: trim endline `\n`
 - --14 Added multisource loop-assign `for a, b, c <- aa, bb, cc`  
-- --15 Added List comprehension expression: `[elem(x) ; x <- src; n=expr; condition; ... ]`
+- --15 Added List **comprehension** expression: `[x ; x <- src; n=expr; condition; ... ]`
 - --16 Added dict comprehension: `{key, val ; key, val <- keys, vals; n=expr; condition}`
-- --18 Added gnerator experession wit sub-loops, sub-assign, condition: `(: elem; iter; assign; condition)`
+- --18 Added **generator** experession wit sub-loops, sub-assign, condition: `(: elem; iter<-; assign=; condition?)`
+    Added opers 'in' `?>`, 'not in' `!?>` for `list`, `tuple`, `dict`, `maybe` types: `5 ?> [1,2,3] => false`  
 
 
 #### next TODO:  
+- opers `a ? b : c` `a ?: b`  
 - type check operator `::`   
 - multitype: var, arg, `::`  
-- opers `?>` `!?>`  
-- opers `a ? b : c` `a ?: b`  
+- delete `@!`  
+- inline block: ` ; ; `
+- inline control: `if`, `for`, `while` `/:`
 - formatting by expression include: "Hello {name}!"
 - /postpone after lambdas/ builtin methods for: 
     maybe.isNone   
     string: upper, lower, lcut(length):#cut left indents in multiline string:  
     regexp operators [ split: `/~`-  thinking]
 - CLI: lp file.et  
-- delete `!@`  
 - `const`  
 
 

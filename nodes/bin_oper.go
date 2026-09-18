@@ -1,7 +1,9 @@
 package nodes
 
 import (
+	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -156,7 +158,69 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 }
 
 // ===============
-var n = LeftArrow{}
 
-// type LeftArrow struct {
-// }
+type OperIn struct {
+	left  base.Expression
+	right base.Expression
+	Oper  *Oper
+	res   any
+	TODO  bool
+}
+
+func (op *OperIn) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *OperIn) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
+func (op *OperIn) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *OperIn) Do(cx base.Context) error {
+	if op.TODO {
+		return nil
+	}
+	// fmt.Printf("OperIn.Do#0: oper:%v (%T:%v) (%T:%v) \n	", op.Oper, op.left, op.left, op.right, op.right)
+	op.left.Do(cx)
+	op.right.Do(cx)
+	// lop := op.left.Get()
+	lvv := GetExprVal(op.left, cx)
+	// rop := op.right.Get()
+	rvv := GetExprVal(op.right, cx)
+
+	res, err := CheckIn(lvv, rvv, op.Oper)
+	if err != nil {
+		// fmt.Printf("Error in OperIn: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
+		errm := fmt.Errorf("Error in OperIn: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
+		return errors.Join(errm, err)
+	}
+	op.res = res
+	return nil
+}
+
+func CheckIn(left any, right any, oper *Oper) (bool, error) {
+	var res bool
+	switch container := right.(type) {
+	case *ob.ListVal:
+		res = slices.Contains(container.Elems, left)
+	case *ob.TupleVal:
+		res = slices.Contains(container.Elems, left)
+	case *ob.DictVal:
+		_, ok := container.Vmap[left]
+		res = ok
+	case *ob.Maybe:
+		res = !container.IsNone() && container.Val == left
+	default:
+		return false, fmt.Errorf("Error in CheckIn: bad right arg: `%T` ", right)
+	}
+
+	switch oper.Id {
+	case OpIn:
+		return res, nil
+	case OpNotIn:
+		return !res, nil
+	}
+	return false, fmt.Errorf("Error in CheckIn: bad oper: `%s` ", oper.Sign)
+}

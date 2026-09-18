@@ -20,13 +20,121 @@ import "testing"
 // }
 
 /*
-ok 1. math expr: (...\n...)
-ok 2. tuple, list, dict constructor
-ok 4. func def,
-ok 5. func call
-3. control expr sum-expression: if, for, while,
-6. generator and comprehension
+1. ?>
+2. !?>
+3. a ? b : c
+4. a ?: b
+5. @!
+6. a :: type
+7. v : int|float
+8. a :: int|float
 */
+
+func TestOperIn(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// in list
+		{`
+		a = 2
+		nn = [1,2,3]
+		r = a ?> nn
+		`, "r", true},
+		{`
+		a = 5
+		nn = [1,2,3]
+		r = a ?> nn
+		`, "r", false},
+		{`
+		nn = [1,2,3]
+		r = 2 !?> nn
+		`, "r", false},
+		{`
+		nn = [1,2,3]
+		r = 5 !?> nn
+		`, "r", true},
+		// in tuple
+		{`
+		a = 2
+		nn = (1,2,3)
+		r = a ?> nn
+		`, "r", true},
+		{`
+		a = 5
+		nn = (1,2,3)
+		r = a ?> nn
+		`, "r", false},
+		{`
+		nn = (1,2,3)
+		r = 2 !?> nn
+		`, "r", false},
+		{`
+		nn = (1,2,3)
+		r = 5 !?> nn
+		`, "r", true},
+		// in dict
+		{`
+		a = 'a'
+		dd = {'a':1, 'b':2}
+		r = a ?> dd
+		`, "r", true},
+		{`
+		a = 'X'
+		r = a ?> {'a':1, 'b':2}
+		`, "r", false},
+		{`
+		dd = {'a':1, 'b':2}
+		r = 'Y' !?> dd
+		`, "r", true},
+		{`
+		r = 5 !?> {'a':1, 'b':2}
+		`, "r", true},
+		// in maybe
+		{`
+		a = 2
+		mm = some(2)
+		r = a ?> mm
+		`, "r", true},
+		{`
+		a = 5
+		mm = some(2)
+		r = a ?> mm
+		`, "r", false},
+		{`
+		a = 5
+		mm = none
+		r = a ?> mm
+		`, "r", false},
+		{`
+		mm = some(2)
+		r = 2 !?> mm
+		`, "r", false},
+		{`
+		mm = some(2)
+		r = 5 !?> mm
+		`, "r", true},
+		{`
+		mm = none
+		r = 5 !?> mm
+		`, "r", true},
+		{`
+		nn = [1,2,3]
+		nums = [1, 5, 10, 3] 
+		r = []
+		for n <- nums
+			if n ?> nn
+				r <- n
+			else if n !?> nn
+				r <- n * 100
+		`, "r", Anis(1, 500, 1000, 3)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestOperUnclosedBrackets(t *testing.T) {
 	tdata := []struct {
 		src   string
