@@ -21,6 +21,8 @@ func MakeIter(src any) SourceIter {
 		iter = NewBytesIter(ss)
 	case *ob.NumSeqGen:
 		iter = ss // &NumGenIter{Src: ss}
+	case *SeqGenerator:
+		iter = ss
 	case []any: // DEBUG
 		// fmt.Printf("Multisource %T \n", ss)
 		// for i, srcv := range ss {

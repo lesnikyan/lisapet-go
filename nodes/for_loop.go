@@ -202,6 +202,11 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 		}
 		err := nd.assign.Next()
 		if err != nil {
+			switch err.(type) {
+			case *GenFinish:
+				// found end of generator
+				break
+			}
 			return err
 		}
 		err = nd.Block.Do(cx)

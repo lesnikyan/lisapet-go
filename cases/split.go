@@ -42,6 +42,12 @@ var brmap = map[string]string{
 	"]": "[",
 	"}": "{",
 }
+var brOpens = map[string]string{
+	"(":  ")",
+	"[":  "]",
+	"{":  "}",
+	"(:": ")",
+}
 
 // var _operPriorStr = `( ) [ ] { } 1 . 1 ~> 1 ... 1 -x ! ~ 1 ** ^/ 1 * / % 1 + - 1` +
 // 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
@@ -352,7 +358,8 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		//
 		// Open brackets,
 		// TODO: \ arg -> lambda, `\\` as a open sub-node with child commas
-		if id := strings.Index(obrs, tx); id > -1 {
+		// if id := strings.Index(obrs, tx); id > -1 {
+		if _, ok := brOpens[tx]; ok {
 			// if brC == 0 {
 			// 	brpos = append(brpos, ints2{i, -1}) // opened br
 			// }
@@ -412,10 +419,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			// log.Println("$o2:add:", len(brSt), brSt[len(brSt)-1].oper)
 			continue
 		}
-
 		// log.Println("$102", tx, "isBr:", cNode.IsBrackets, fmt.Sprintf("cNode:(%T, %v)", cNode, cNode.oper))
-		// opris = priors2
-		// isFuBr := cNode.IsBrackets && cNode.oper == "(" && notEmptyLeft(cNode)
 		txex := tx // changing oper var for special context
 		isFuBr := false
 		opcx := 2
@@ -423,25 +427,10 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			isFuBr = brCx.IsBrackets && brCx.oper == "(" && notEmptyLeft(brCx)
 			if isFuBr { // cur parent should be a function def or call
 				// log.Println("Change oper priors by func brackets")
-				// opris = priorsFuBr
 				opcx = 3
 			}
 		}
-		// if cNode.IsBrackets {
-		// 	opcx = 2
-		// 	// debug
-		// 	fmt.Printf(" -- nodeOper: %s, is fuBr: %v \n", cNode.oper, isFuBr)
-		// 	if isFuBr {
-		// 		// cur parent should be a function def or call
-		// 		log.Println("Change oper priors by func brackets")
-		// 		// opris = priorsFuBr
-		// 		opcx = 3
-		// 	} else {
-		// 		// opris = priors2
-		// 		log.Println("Change priors brackets back by ", tx, "; in node:", cNode.oper)
-		// 		opcx = 4
-		// 	}
-		// }
+
 		if opcx == 3 {
 			// log.Printf("Change oper to spec context by `%s`", tx)
 			switch tx {
