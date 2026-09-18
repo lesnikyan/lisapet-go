@@ -119,7 +119,7 @@ func JoinElems(src any, sep string) (any, error) {
 		case objects.Glif:
 			ss[i] = string([]rune{n})
 		default:
-			return nil, fmt.Errorf(".join: element should be a string or glif, %T given", v)
+			return nil, fmt.Errorf(".join: element should be a string or glif, %T received", v)
 		}
 	}
 	return strings.Join(ss, sep), nil
@@ -430,7 +430,7 @@ func SeqFilter(cx base.Context, src []any, farg any) ([]any, error) {
 		}
 		nr, ok := fr.V.(bool)
 		if !ok {
-			return nil, errors.Join(errors.New("error: result of func in .filter mast be bool, %T given "), err)
+			return nil, errors.Join(errors.New("error: result of func in .filter mast be bool, %T received "), err)
 		}
 		if nr {
 			rr[oknum] = n
@@ -567,7 +567,7 @@ func dictFilter(cx base.Context, inst any, args []any) (any, error) {
 		}
 		nr, ok := fr.V.(bool)
 		if !ok {
-			return nil, errors.Join(errors.New("error: result of func in dict.filter mast be bool, %T given "), err)
+			return nil, errors.Join(errors.New("error: result of func in dict.filter mast be bool, %T received "), err)
 		}
 		if nr {
 			rr[k] = v
@@ -707,7 +707,7 @@ func bytesBlocks(cx base.Context, inst any, args []any) (any, error) {
 	case byte:
 		bsize = int(sz)
 	default:
-		return nil, fmt.Errorf("Bad argument in bytes.blocks: needs int, given: %T", sz)
+		return nil, fmt.Errorf("Bad argument in bytes.blocks: needs int, received: %T", sz)
 	}
 	slen := len(src)
 	// fmt.Printf("bytes.blocks: slen=%d\n", slen)
@@ -778,7 +778,7 @@ func bytesMap(cx base.Context, inst any, args []any) (any, error) {
 		}
 		rb, ok := nr.(byte)
 		if !ok {
-			return nil, fmt.Errorf("Bad result of func in in bytes.map: must be a byte, %T given", nr)
+			return nil, fmt.Errorf("Bad result of func in in bytes.map: must be a byte, %T received", nr)
 		}
 		rr[i] = rb
 	}
@@ -856,11 +856,11 @@ func bytesNums(cx base.Context, inst any, args []any) (any, error) {
 	}
 	ns, ok := args[0].(int64)
 	if !ok {
-		return nil, fmt.Errorf("bytes.nums needs int arg, but %T given", ns)
+		return nil, fmt.Errorf("bytes.nums needs int arg, but %T received", ns)
 	}
 	nsize := int(ns)
 	if !slices.Contains(validNumSizes, nsize) {
-		return nil, fmt.Errorf("bytes.nums needs size: 1 | 2 | 4 | 8 bytes, but %d given", ns)
+		return nil, fmt.Errorf("bytes.nums needs size: 1 | 2 | 4 | 8 bytes, but %d received", ns)
 	}
 	slen := len(src)
 	ncount := slen / nsize
@@ -869,7 +869,7 @@ func bytesNums(cx base.Context, inst any, args []any) (any, error) {
 	if rem > 0 {
 		// fix size
 		// shift = rem
-		return nil, fmt.Errorf("bytes.nums bytes length multiple size of num block, given bytes len=%d num size=%d", slen, nsize)
+		return nil, fmt.Errorf("bytes.nums bytes length multiple size of num block, received bytes len=%d num size=%d", slen, nsize)
 	}
 	rr := make([]any, ncount)
 	if rem > 0 {
@@ -912,11 +912,11 @@ func regexpMatch(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
 	}
 	if len(args) < 1 {
-		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d received", len(args))
 	}
 	s, ok := args[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T received", s)
 	}
 
 	// fmt.Printf("#куі  %s : %v, \n", s, src.Match(s))
@@ -930,11 +930,11 @@ func regexpFind(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
 	}
 	if len(args) < 1 {
-		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d received", len(args))
 	}
 	s, ok := args[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T received", s)
 	}
 	ss := src.Find(s)
 
@@ -948,11 +948,11 @@ func regexpFindSubs(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
 	}
 	if len(args) < 1 {
-		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d received", len(args))
 	}
 	s, ok := args[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T received", s)
 	}
 	sss := src.FindSubs(s)
 	res := make([]any, len(sss))
@@ -969,15 +969,15 @@ func regexpReplace(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
 	}
 	if len(args) < 2 {
-		return nil, fmt.Errorf("regexp.match needs 2 arg, but %d given", len(args))
+		return nil, fmt.Errorf("regexp.match needs 2 arg, but %d received", len(args))
 	}
 	s, ok := args[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T received", s)
 	}
 	repl, ok := args[1].(string)
 	if !ok {
-		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T received", s)
 	}
 	return src.Replace(s, repl), nil
 }
@@ -989,11 +989,11 @@ func regexpSplit(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("Bad instance in regexp.match: %T", inst)
 	}
 	if len(args) < 1 {
-		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d given", len(args))
+		return nil, fmt.Errorf("regexp.match needs 1 arg, but %d received", len(args))
 	}
 	s, ok := args[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("regexp.match needs string arg, but %T given", s)
+		return nil, fmt.Errorf("regexp.match needs string arg, but %T received", s)
 	}
 	ss := src.Split(s)
 	return objects.NewListVal(vals2anis(ss)), nil

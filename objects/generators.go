@@ -4,6 +4,13 @@ import (
 	"errors"
 )
 
+type Generator interface {
+	Finished() bool
+	Init()
+	Next() ([]any, error)
+	GetList() *ListVal
+}
+
 // simple number generator [a .. b]
 type NumSeqGen struct {
 	Start  int64

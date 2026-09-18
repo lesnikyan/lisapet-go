@@ -88,7 +88,8 @@ next - by dates...
     Fixed string.lines: trim endline `\n`
 - --14 Added multisource loop-assign `for a, b, c <- aa, bb, cc`  
 - --15 Added List comprehension expression: `[elem(x) ; x <- src; n=expr; condition; ... ]`
-- --16 Adde dict comprehension: `{key, val ; key, val <- keys, vals; n=expr; condition}`
+- --16 Added dict comprehension: `{key, val ; key, val <- keys, vals; n=expr; condition}`
+- --18 Added gnerator experession wit sub-loops, sub-assign, condition: `(: elem; iter; assign; condition)`
 
 
 #### next TODO:  

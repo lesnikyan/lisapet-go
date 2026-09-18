@@ -172,15 +172,15 @@ func Comprehension(openBr string, subs *nodes.SequenceSemicolon) (base.Expressio
 	}
 	var subx []base.Expression = []base.Expression{}
 	var nIter *nodes.LeftArrow
+	var rootGL *nodes.GenLoop
 	var gloop *nodes.GenLoop
 	var prev *nodes.GenLoop
 	var guard base.Expression
-	var rootGL *nodes.GenLoop
 
 	resEx := subs.Subs[0] // should be a value expression, not assign, not type def or control
 	nIter, ok := subs.Subs[1].(*nodes.LeftArrow)
 	if !ok {
-		panic(fmt.Sprintf("comprehensions case needs left-arrow in 2nd position, but %T given", subs.Subs[1]))
+		panic(fmt.Sprintf("comprehensions case needs left-arrow in 2nd position, but %T received", subs.Subs[1]))
 	}
 
 	for _, ex := range subs.Subs[2:] {
@@ -228,6 +228,57 @@ func Comprehension(openBr string, subs *nodes.SequenceSemicolon) (base.Expressio
 	return nil, false
 }
 
+func GeneratorExpr(subs *nodes.SequenceSemicolon) (base.Expression, bool) {
+	if len(subs.Subs) < 2 {
+		panic("Incorrect list comprehension with less than 2 sub expr")
+	}
+	var subx []base.Expression = []base.Expression{}
+	var nIter *nodes.LeftArrow
+	var rootGL *nodes.YieldLoop
+	var gloop *nodes.YieldLoop
+	var prev *nodes.YieldLoop
+	var guard base.Expression
+
+	resEx := subs.Subs[0] // should be a value expression, not assign, not type def or control
+	nIter, ok := subs.Subs[1].(*nodes.LeftArrow)
+	if !ok {
+		panic(fmt.Sprintf("comprehensions case needs left-arrow in 2nd position, but %T received", subs.Subs[1]))
+	}
+
+	for _, ex := range subs.Subs[2:] {
+		// fmt.Printf("#--Cprh1  (%T, %v)\n", ex, ex)
+		switch nxt := ex.(type) {
+		case *nodes.LeftArrow:
+			// // start next loop
+			gloop = nodes.NewYieldLoop(nIter, subx, guard) // 2-nd iter-loop and next
+			if rootGL == nil {
+				rootGL = gloop
+			}
+			if prev != nil {
+				prev.SubLoop = gloop
+			}
+			prev = gloop
+			nIter = nxt
+			subx = []base.Expression{}
+			guard = nil
+		case *nodes.OperAssign:
+			subx = append(subx, nxt)
+			// loop.Add(ex)
+		default:
+			guard = nxt
+		}
+	}
+	gloop = nodes.NewYieldLoop(nIter, subx, guard)
+	if rootGL == nil {
+		rootGL = gloop
+	}
+	if prev != nil {
+		prev.SubLoop = gloop
+	}
+	// fmt.Printf("#--Cprh5  (%T, %v)\n", rootGL, rootGL)
+	return nodes.NewSeqGenExpr(resEx, rootGL), true
+}
+
 func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 	// fmt.Printf("#--SubSeq << %s >> (%T, %v)\n", parent, node, node)
 	switch exx := node.(type) {
@@ -257,7 +308,7 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 		case "(:":
 			// THINK: do we need tuple-comprehension? tuple([ ; ; ]) looks enough
 			// generator
-			return &nodes.MockExpr{}, false
+			return GeneratorExpr(exx)
 		}
 	default:
 		// single elem in sequence?
@@ -422,6 +473,8 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 			case *nodes.SequenceSemicolon:
 				return SubSeq(oper, subex)
 			}
+		case "(:":
+			return SubSeq(oper, subs)
 		}
 
 		// other non-comma-separated cases
@@ -440,7 +493,7 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 	// fmt.Printf("PET#0 %v\n", rNode.oper)
 	switch rNode.oper {
-	case "(", "[", "{":
+	case "(", "[", "{", "(:":
 		return BracketsExpr(rNode)
 	case ",", ";":
 		return ProcSequence(rNode)
