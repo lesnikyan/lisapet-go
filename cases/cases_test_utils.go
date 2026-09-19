@@ -188,6 +188,12 @@ func Tmay(v any) *obb.Maybe {
 	return obb.Some(pres(v))
 }
 
+type TTst2 = struct {
+	Src   string // code
+	Vname string // var
+	Res   any    // exp
+}
+
 type TTst = struct {
 	src   string // code
 	vname string // var
