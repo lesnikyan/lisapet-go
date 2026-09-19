@@ -139,7 +139,14 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 	}
 	last = bk.subs[len(bk.subs)-1]
 	switch rlast := last.(type) {
-	case *IfNode, *ElseNode, *FuncDef, ForExpr:
+	case *FuncDef:
+		// fmt.Printf("Bl.Do# last func def: %T, %v\n", rlast, rlast)
+		r := GetExprVal(rlast, nil)
+		if r != nil {
+			bk.res = r
+		}
+	case *IfNode, *ElseNode, ForExpr:
+		// fmt.Printf("Bl.Do# last: %T, %v\n", rlast, rlast)
 		return nil
 	default:
 		// fmt.Printf("Bl.Do# last: %T, %v\n", rlast, rlast)
