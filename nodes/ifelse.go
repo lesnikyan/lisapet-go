@@ -44,11 +44,12 @@ func (nd *IfNode) Do(cx base.Context) error {
 	if err := nd.condition.Do(cx); err != nil {
 		return err
 	}
-	condRes := nd.condition.Get()
-	if condRes == nil {
-		return errors.New("nil res from if-condition")
-	}
-	switch condV := condRes.V.(type) {
+	// condRes := nd.condition.Get()
+	// if condRes == nil {
+	// 	return errors.New("nil res from if-condition")
+	// }
+	condRes := GetExprVal(nd.condition, nil)
+	switch condV := condRes.(type) {
 	case bool:
 		if !condV {
 			if nd.BlockElse != nil {
