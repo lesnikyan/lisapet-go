@@ -30,6 +30,63 @@ ok 3. a ? b : c
 8. a :: int|float
 */
 
+func TestOperElvis(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = a ?: "no"
+		`, "r", true},
+		{`
+		a = false
+		r = a ?: "no2"
+		`, "r", "no2"},
+		{`
+		a = ''
+		r = a ?: "no3"
+		`, "r", "no3"},
+		{`
+		a = 'yes4'
+		r = a ?: "no3"
+		`, "r", "yes4"},
+		{`
+		a = 10
+		r = a ?: "no"
+		`, "r", int64(10)},
+		{`
+		a = 0
+		r = a ?: 111
+		`, "r", int64(111)},
+		{`
+		a = []
+		r = a ?: ['no5']
+		`, "r", Anis("no5")},
+		{`
+		a = (,)
+		r = a ?: ('no6',)
+		`, "r", Tanis("no6")},
+		{`
+		a = (12,)
+		r = a ?: ('no6',)
+		`, "r", Tanis(12)},
+		{`
+		struct A a: int
+		#
+		a = null
+		b = A{a:5}
+		r = []
+		r <- a ?: 'no7'
+		r <- b ?: 113
+		`, "r", Anis("no7", Stf("A", dk{"a": 5}))},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestOperTernary(t *testing.T) {
 	tdata := []struct {
 		src   string

@@ -131,16 +131,16 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = nodes.NewDots2(nil, nil)
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)}
+	case "?":
+		expr = &nodes.OperTern{} // ternary
+	case "?:":
+		expr = &nodes.OperBin{Oper: OperByStr(oper)} // Elvis: short-ternary
 	case "->":
 		expr = &nodes.LambdaExpr{} // lambda
 	case "<-":
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
 		expr = &nodes.OperBin{} // func-apply
-	case "?":
-		expr = &nodes.OperTern{} // short-triple
-	// case "?:":
-	// 	expr = &nodes.OperTern{} // short-triple
 	default:
 		switch {
 		case slices.Contains(binOpers, oper):

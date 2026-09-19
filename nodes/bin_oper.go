@@ -113,6 +113,14 @@ func (op *OperBin) Do(cx base.Context) error {
 	// rop := op.right.Get()
 	rvv := GetExprVal(op.right, cx)
 
+	// Elvis operator
+	if op.Oper.Id == OpElvis {
+		res := ElvisRes(lvv, rvv)
+		op.res = res
+		return nil
+	}
+
+	// Other bin operators
 	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
 	if !ok {
 		// fmt.Printf("Error in bin oper: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
@@ -127,6 +135,7 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 	if oper == OpEqual || oper == OpNotEqual {
 		return EqCompare(left, right, oper), true
 	}
+
 	var res any
 	var ok bool
 	// fmt.Printf("ApplyOper#0: <%v> (%T, %v) (%T, %v) \n", oper, left, left, right, right)
@@ -157,6 +166,39 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 	return res, ok
 }
 
+func ElvisRes(left any, right any) any {
+	var con bool
+	switch a := left.(type) {
+	case bool:
+		con = a
+	case int64:
+		con = a != 0
+	case float64:
+		con = a != 0.0
+	case *ob.Null:
+		con = false
+	case *ob.StructInst:
+		con = true
+	case *ob.ListVal:
+		con = a.Len() > 0
+	case *ob.TupleVal:
+		con = a.Len() > 0
+	case *ob.DictVal:
+		con = a.Len() > 0
+	case string:
+		con = a != ""
+	case byte:
+		con = a != byte(0x0)
+	case *ob.Maybe:
+		con = !a.IsNone()
+
+	}
+	if con {
+		return left
+	}
+	return right
+}
+
 // ===============
 
 type OperIn struct {
@@ -179,9 +221,6 @@ func (op *OperIn) Get() *base.Val {
 }
 
 func (op *OperIn) Do(cx base.Context) error {
-	if op.TODO {
-		return nil
-	}
 	// fmt.Printf("OperIn.Do#0: oper:%v (%T:%v) (%T:%v) \n	", op.Oper, op.left, op.left, op.right, op.right)
 	op.left.Do(cx)
 	op.right.Do(cx)

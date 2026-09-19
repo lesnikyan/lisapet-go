@@ -44,7 +44,7 @@ const (
 	OpAt
 	OpDollar
 	OpQMark
-	OpQmAndColon
+	OpElvis
 	OpTildLArrow
 	OpSlashColon
 	OpColonQm
@@ -112,9 +112,10 @@ var _operStrMap = map[Opid]string{
 	OpAt:            "@",
 	OpDollar:        "$",
 	OpQMark:         "?",
-	OpQmAndColon:    "?:",
+	OpElvis:         "?:",
 	OpTildLArrow:    "~>",
 	OpSlashColon:    "/:",
+	OpColonQm:       ":?",
 	OpRxMatch:       "=~",
 	OpRxFind:        "?~",
 	OpRxSplit:       "/~",

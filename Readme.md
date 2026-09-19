@@ -92,10 +92,10 @@ next - by dates...
 - --18 Added **generator** experession wit sub-loops, sub-assign, condition: `(: elem; iter<-; assign=; condition?)`
     Added opers 'in' `?>`, 'not in' `!?>` for `list`, `tuple`, `dict`, `maybe` types: `5 ?> [1,2,3] => false`  
     Added classic **ternary operator**: `condition ? trueVal : falseVal`
+    Added Elvis-operator `a ?: b`: returns left if left not a: false null, none, 0, 0.0, 0xx0, '', [], (,), {}; otherwize returns right  
 
 
-#### next TODO:  
-- oper `a ?: b`  
+#### next TODO:   
 - type check operator `::`   
 - multitype: var, arg, `::`  
 - delete `@!`  
