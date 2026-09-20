@@ -7,13 +7,59 @@ ok 1. ?>
 ok 2. !?>
 ok 3. a ? b : c
 ok 4. a ?: b
-5. @!
-5.1 @defined(varname)
+ok 5. @!
+ok 5.1 @defined(varname)
 6. a :: type
 7. v : int|float
 8. a :: int|float
 */
 
+func TestAtDelete(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = [] 
+		r <- @defined(a)
+		@! a
+		r <- @defined(a)
+		`, "r", Anis(true, false)},
+		{`
+		a = [1,2,3]
+		@! a[1]
+		r = a
+		`, "r", Anis(1, 3)},
+		{`
+		a = [1, 2, 3, 4, 5, 6, 7]
+		for i <- [5, 3, 2]
+			@! a[i]
+		r = a
+		`, "r", Anis(1, 2, 5, 7)},
+		{`
+		a = {1:11, 2:22, 3:33, 4:44}
+		@! a[2]
+		r = a
+		`, "r", adk(dk{1: 11, 3: 33, 4: 44})},
+		{`
+		a = {'aa':1, 'bb':2, 'cc':3}
+		@! a['aa']
+		r = a
+		`, "r", adk(dk{"bb": 2, "cc": 3})},
+		{`
+		a = {'aa':1, 'bb':2, 'cc':3, 'dd': 4, 'ee': 5, 'ff': 6}
+		#
+		for k <- ['bb', 'cc', 'ee']
+			@! a[k]
+		r = a
+		`, "r", adk(dk{"aa": 1, "dd": 4, "ff": 6})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestOperElvis(t *testing.T) {
 	tdata := []struct {
 		src   string

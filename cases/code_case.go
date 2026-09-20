@@ -157,7 +157,12 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr.SetLeft(lArg)
 	} else {
 		if slices.Contains(unary, oper) {
-			expr = &nodes.UnaryLeft{Oper: OperByStr(oper)}
+			switch oper {
+			case "@!":
+				expr = &nodes.AtDel{}
+			default:
+				expr = &nodes.UnaryLeft{Oper: OperByStr(oper)}
+			}
 		}
 	}
 	rArg, rok := OperSub(rNode.rightNode, rNode.rightElems)

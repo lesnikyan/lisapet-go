@@ -25,6 +25,7 @@ type Context interface {
 	AddType(tp *Type)
 	GetType(name string) *Type
 	GetElem(name string) *ContextElem
+	DeleteElem(name string) error
 	SubContext() Context
 }
 

@@ -104,6 +104,7 @@ next - by dates...
 		the same on python console: -------  0.063960 sec
 ```
 - --19 Added `@defined(var)` - check if var, func, type, etc was defined.  
+- --20 Added delete operator `@!`. It deletes variables, element of list, dict.  
 
 
 
