@@ -2,29 +2,13 @@ package cases
 
 import "testing"
 
-// func TestDev1(t *testing.T) {
-// 	tdata := []struct {
-// 		src   string
-// 		vname string
-// 		res   any
-// 	}{
-// 		{`
-// 		a = 1
-// 		b = 2
-// 		r = a + b
-// 		`, "r", int64(1234)},
-// 	}
-// 	for i, tt := range tdata {
-// 		RunTCodeVarExp(t, i, tt)
-// 	}
-// }
-
 /*
 ok 1. ?>
 ok 2. !?>
 ok 3. a ? b : c
-4. a ?: b
+ok 4. a ?: b
 5. @!
+5.1 @defined(varname)
 6. a :: type
 7. v : int|float
 8. a :: int|float
@@ -517,3 +501,20 @@ func TestOperMath(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
+// func TestDev1(t *testing.T) {
+// 	tdata := []struct {
+// 		src   string
+// 		vname string
+// 		res   any
+// 	}{
+// 		{`
+// 		a = 1
+// 		b = 2
+// 		r = a + b
+// 		`, "r", int64(1234)},
+// 	}
+// 	for i, tt := range tdata {
+// 		RunTCodeVarExp(t, i, tt)
+// 	}
+// }

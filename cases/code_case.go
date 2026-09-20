@@ -494,9 +494,65 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 	return SubSeq(oper, seq)
 }
 
+func ProcAtPrefix(rNode *OperNode) (base.Expression, bool) {
+	// fmt.Printf("PAt#0 %v\n", rNode.oper)
+	// PrintONode(rNode, 0)
+	if len(rNode.leftElems) != 0 && rNode.leftNode != nil {
+		// TODO
+		return nil, false
+	}
+	// fmt.Println(" -- @ -- prefix1", len(rNode.rightElems))
+	if rNode.rightNode == nil && len(rNode.rightElems) > 0 {
+		// words after @
+		// fmt.Println(" -- @ -- prefix-r", rNode.rightElems[0])
+		return nil, false
+	}
+
+	if rNode.rightNode == nil {
+		// nothing after @
+		return nil, false
+	}
+	aNode := rNode.rightNode // after @ node
+	// fmt.Printf(" -- @ -- prefix2: %s \n", aNode.oper)
+	switch aNode.oper {
+	case "(":
+		// predefined service function
+		oper := "("
+		subs, rok := OperSub(aNode.rightNode, aNode.rightElems)
+		if !rok {
+			subs = nil
+		}
+		// aNode.leftElems[0].Text = "@" + aNode.leftElems[0].Text
+		lexp, lok := OperSub(aNode.leftNode, aNode.leftElems)
+		// fmt.Printf("@ -- lexp: %T\n", lexp)
+		fnamex, ok := lexp.(*nodes.VarExpr)
+		if !ok || !lok {
+			panic(fmt.Sprintf("Strange @-lead expression(): %T", lexp))
+		}
+		fnamex.SetName("@" + fnamex.GetName())
+		fexp, exok := BracketsWithLeft(oper, lexp, subs)
+		if !exok {
+			return nil, false
+		}
+		// fmt.Printf("@-lead expr %T, %v \n", fexp, fexp)
+		// fnCall, fok := fexp.(*nodes.FuncCall)
+		// if !fok {
+
+		// }
+		// fnCall.
+		return fexp, true
+	}
+	panic("No valid case for @-expr")
+}
+
 func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 	// fmt.Printf("PET#0 %v\n", rNode.oper)
+	// PrintONode(rNode, 0)
 	switch rNode.oper {
+	case "@":
+		// fmt.Println("%% @ prefix")
+		return ProcAtPrefix(rNode)
+		// panic("19")
 	case "(", "[", "{", "(:":
 		return BracketsExpr(rNode)
 	case ",", ";":

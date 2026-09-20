@@ -23,6 +23,7 @@ type NFunc struct {
 	args   []any                                  // passed args
 	nmargs map[string]any                         // passed named args
 	fun    func(base.Context, []any) (any, error) // func-apapter called in Do()
+	serv   bool
 
 	resV *base.Val
 }
@@ -36,7 +37,12 @@ func (fn *NFunc) Do(cx base.Context) error {
 		return err
 	}
 	fn.resV = base.NewVal(res)
+	// fmt.Printf(" - NFunc.Do# f: %s  br(%T : %v) fr(%T : %v) || err: %v \n", fn.Name, fn.resV, fn.resV, res, res, err)
 	return nil
+}
+
+func (fn *NFunc) IsServ() bool {
+	return fn.serv
 }
 
 func (fn *NFunc) Get() *base.Val {
@@ -56,6 +62,7 @@ func (fn *NFunc) SetArgVals(vals []any, nmvals map[string]any) {
 		nm := NewNamedArgs(nmvals)
 		vals = append(vals, nm)
 	}
+	// println("NFunc.SetArgVals", len(vals))
 	fn.args = vals
 }
 
@@ -88,6 +95,11 @@ func mock_adapter(cx base.Context, args []any) (any, error) {
 
 func BuiltFunc(cx base.Context, name string, adapter func(base.Context, []any) (any, error), resType *base.Type) {
 	nf := &NFunc{Name: name, fun: adapter}
+	cx.AddFunc(nf)
+}
+
+func BuiltServeFunc(cx base.Context, name string, adapter func(base.Context, []any) (any, error), resType *base.Type) {
+	nf := &NFunc{Name: name, fun: adapter, serv: true}
 	cx.AddFunc(nf)
 }
 

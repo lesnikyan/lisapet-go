@@ -95,13 +95,15 @@ next - by dates...
     Added Elvis-operator `a ?: b`: returns left if left not a: false null, none, 0, 0.0, 0xx0, '', [], (,), {}; otherwize returns right  
 
 - --19 Added speed test. Sad sight )
+```
 		this test:
 		Speed0 LP-code       parse and load: 0.000000 sec
 		Speed1 by 1000000-iters loop,LP run: 0.185662 sec
 		Speed2 by 1000000-iters go-loop run: 0.006323 sec
 		Speed3 by 1000000-iters go-make run: 0.001123 sec
 		the same on python console: -------  0.063960 sec
-
+```
+- --19 Added `@defined(var)` - check if var, func, type, etc was defined.  
 
 
 

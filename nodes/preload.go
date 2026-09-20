@@ -17,6 +17,10 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "devDefOrd", devDefOrds, nil)
 }
 
+func PreloadServFuncs(cx base.Context) {
+	BuiltServeFunc(cx, "@defined", servDefined, nil)
+}
+
 func PreloadConstr(cx base.Context) {
 	BuiltConstr(cx, "string", constr_string, nil)
 	BuiltConstr(cx, "byte", constr_byte, nil)

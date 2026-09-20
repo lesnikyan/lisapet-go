@@ -49,9 +49,11 @@ func (nd *IfNode) Do(cx base.Context) error {
 	// 	return errors.New("nil res from if-condition")
 	// }
 	condRes := GetExprVal(nd.condition, nil)
+	// fmt.Printf("if cond: %T, %v \n", condRes, condRes)
 	switch condV := condRes.(type) {
 	case bool:
 		if !condV {
+			// fmt.Printf("if cond !cond: %T, %v \n", condV, condV)
 			if nd.BlockElse != nil {
 				evalBlock = nd.BlockElse.Block
 			} else {
@@ -62,7 +64,7 @@ func (nd *IfNode) Do(cx base.Context) error {
 	default:
 		return errors.New("if-cond returns not bool")
 	}
-
+	// fmt.Printf("if cond eval: %T, %v \n", evalBlock, evalBlock)
 	// eval
 	evalBlock.Do(cx)
 	pup := evalBlock.GetPopUp()

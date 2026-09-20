@@ -153,7 +153,7 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	}
 	fv := GetExprVal(fc.Src, cx)
 	// fmt.Printf("FunCall#1: expr: %T elem: (%T, %v) \n", fc.Src, fv, fv)
-	// fmt.Printf("FunCall#2: non func: (%T, %v) \n", fv, fv)
+	// fmt.Printf("FunCall#2: func: (%T, %v) \n", fv, fv)
 	if fv == nil {
 		return errors.New("trying to call nil instead of func")
 	}
@@ -186,8 +186,16 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 	vals := make([]any, len(fc.args))
 	i := 0
 	for _, vex := range fc.args {
+		// fmt.Printf("FunCall <func:%s> (Args1): exp:(%T, %v) \n", fc.fun.GetName(), vex, vex)
+		if nfun, ok := fc.fun.(*NFunc); ok {
+			// special service functions
+			if nfun.IsServ() {
+				vals[i] = vex
+				i += 1
+				continue
+			}
+		}
 		nmExp, ok := vex.(*OperAssign)
-		// fmt.Printf("FunCall <func:%s> (Args1): exp:(%T, %v) isAssign: %v \n", fc.fun.GetName(), vex, vex, ok)
 		if !ok {
 			// ordered arg
 			err := vex.Do(cx)
@@ -221,6 +229,7 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 		argName := lvar.name
 		mvals[argName] = lval.V
 	}
+	// fmt.Printf("FunCall args## count: %d, ::%d\n", len(vals), len(vals[:i]))
 	// put args to func
 	fc.fun.SetArgVals(vals[:i], mvals)
 	return nil
