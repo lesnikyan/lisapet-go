@@ -1,32 +1,423 @@
 package cases
 
-import "testing"
+import (
+	"testing"
 
-// func TestDev1(t *testing.T) {
-// 	tdata := []struct {
-// 		src   string
-// 		vname string
-// 		res   any
-// 	}{
-// 		{`
-// 		a = 1
-// 		b = 2
-// 		r = a + b
-// 		`, "r", int64(1234)},
-// 	}
-// 	for i, tt := range tdata {
-// 		RunTCodeVarExp(t, i, tt)
-// 	}
-// }
+	"github.com/lesnikyan/lisapet-go/objects"
+)
 
 /*
-ok 1. math expr: (...\n...)
-ok 2. tuple, list, dict constructor
-ok 4. func def,
-ok 5. func call
-3. control expr sum-expression: if, for, while,
-6. generator and comprehension
+ok 1. ?>
+ok 2. !?>
+ok 3. a ? b : c
+ok 4. a ?: b
+ok 5. @!
+ok 5.1 @defined(varname)
+6. a :: type
+7. v : int|float
+8. a :: int|float
 */
+
+/*
+r <- x :: int
+r <- x :: A
+r <- x :: B
+r <- x :: C
+r <- x :: null
+*/
+func TestCheckTypeStruct(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a:int
+		struct B b: string
+		struct C (A) c: int
+		#
+		#ss = [A{}]
+		ss = [A{}, B{}, C{}, null]
+		r = []
+		for i, x <- ss
+			r <- i
+			r <- x
+			r <- x :: int
+			r <- x :: A
+			r <- x :: B
+			r <- x :: C
+		#
+		r <- null :: null
+		`, "r",
+			// Anis(Stf("A", dk{"a": 0}), false, Stf("B", dk{"b": ""}), false, Stf("C", dk{"a": 0, "c": 0}), false, Tnull(), false)},
+			Anis(0, Stf("A", dk{"a": 0}), false, true, false, false,
+				1, Stf("B", dk{"b": ""}), false, false, true, false,
+				2, Stf("C", dk{"a": 0, "c": 0}), false, true, false, true,
+				3, Tnull(), false, false, false, false, true)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestCheckType(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 1
+		r = [x]
+		r <- x :: int
+		r <- x :: float
+		r <- x :: string
+		`, "r", Anis(1, true, false, false)},
+		{`
+		x = 1.2
+		r = [x]
+		r <- x :: int
+		r <- x :: float
+		`, "r", Anis(1.2, false, true)},
+		{`
+		x = 1.2
+		r = [x]
+		r <- x :: int
+		r <- x :: float
+		`, "r", Anis(1.2, false, true)},
+		{`
+		x = 'abc'
+		r = [x]
+		r <- x :: string
+		r <- x :: glif
+		`, "r", Anis("abc", true, false)},
+		{`
+		x = g'a'
+		r = [x]
+		r <- x :: string
+		r <- x :: glif
+		`, "r", Anis('a', false, false)},
+		{`
+		x = 00xa
+		r = [x]
+		r <- x :: byte
+		r <- x :: int
+		r <- x :: glif
+		r <- x :: bytes
+		`, "r", Anis(byte(0xa), true, false, false, false)},
+		{`
+		x = 0x[a]
+		r = [x]
+		r <- x :: bytes
+		r <- x :: byte
+		r <- x :: string
+		`, "r", Anis(objects.Bytes{0xa}, true, false, false)},
+		{`
+		x = [1,2]
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Anis(1, 2), true, false, false, false)},
+		{`
+		x = (1,2)
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Tanis(1, 2), false, true, false, false)},
+		{`
+		x = {1: 2}
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(adk(dk{1: 2}), false, false, true, false)},
+		{`
+		x = some(5)
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Tmay(5), false, false, false, true)},
+		{`
+		x = none
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Tmay(nil), false, false, false, true)},
+		{`
+		r = [11]
+		r <- 11 :: int
+		r <- 1 :: float
+		r <- 1 :: maybe
+		r <- 1 :: bool
+		`, "r", Anis(11, true, false, false, false)},
+		{`
+		func f1()
+			1
+		r = ['func']
+		r <- f1 :: function
+		r <- f1 :: null
+		r <- f1 :: maybe
+		r <- f1 :: bool
+		`, "r", Anis("func", true, false, false, false)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestAtDelete(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = [] 
+		r <- @defined(a)
+		@! a
+		r <- @defined(a)
+		`, "r", Anis(true, false)},
+		{`
+		a = [1,2,3]
+		@! a[1]
+		r = a
+		`, "r", Anis(1, 3)},
+		{`
+		a = [1, 2, 3, 4, 5, 6, 7]
+		for i <- [5, 3, 2]
+			@! a[i]
+		r = a
+		`, "r", Anis(1, 2, 5, 7)},
+		{`
+		a = {1:11, 2:22, 3:33, 4:44}
+		@! a[2]
+		r = a
+		`, "r", adk(dk{1: 11, 3: 33, 4: 44})},
+		{`
+		a = {'aa':1, 'bb':2, 'cc':3}
+		@! a['aa']
+		r = a
+		`, "r", adk(dk{"bb": 2, "cc": 3})},
+		{`
+		a = {'aa':1, 'bb':2, 'cc':3, 'dd': 4, 'ee': 5, 'ff': 6}
+		#
+		for k <- ['bb', 'cc', 'ee']
+			@! a[k]
+		r = a
+		`, "r", adk(dk{"aa": 1, "dd": 4, "ff": 6})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestOperElvis(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = a ?: "no"
+		`, "r", true},
+		{`
+		a = false
+		r = a ?: "no2"
+		`, "r", "no2"},
+		{`
+		a = ''
+		r = a ?: "no3"
+		`, "r", "no3"},
+		{`
+		a = 'yes4'
+		r = a ?: "no3"
+		`, "r", "yes4"},
+		{`
+		a = 10
+		r = a ?: "no"
+		`, "r", int64(10)},
+		{`
+		a = 0
+		r = a ?: 111
+		`, "r", int64(111)},
+		{`
+		a = []
+		r = a ?: ['no5']
+		`, "r", Anis("no5")},
+		{`
+		a = (,)
+		r = a ?: ('no6',)
+		`, "r", Tanis("no6")},
+		{`
+		a = (12,)
+		r = a ?: ('no6',)
+		`, "r", Tanis(12)},
+		{`
+		struct A a: int
+		#
+		a = null
+		b = A{a:5}
+		r = []
+		r <- a ?: 'no7'
+		r <- b ?: 113
+		`, "r", Anis("no7", Stf("A", dk{"a": 5}))},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestOperTernary(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = a ? "yes" : "no"
+		`, "r", "yes"},
+		{`
+		a = false
+		r = a ? "yes" : "no"
+		`, "r", "no"},
+		{`
+		a = 1
+		b = 2
+		r = a < b ? "yes 1" : "no 2"
+		`, "r", "yes 1"},
+		{`
+		a = 3
+		b = 2
+		r = a < b ? "yes 1" : "no 2"
+		`, "r", "no 2"},
+		{`
+		a = 3
+		b = 2
+		r = [a < b ? "yes 1" : "no 2", a > b ? "yes 1" : "no 2", 55]
+		`, "r", Anis("no 2", "yes 1", 55)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestOperIn(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// in list
+		{`
+		a = 2
+		nn = [1,2,3]
+		r = a ?> nn
+		`, "r", true},
+		{`
+		a = 5
+		nn = [1,2,3]
+		r = a ?> nn
+		`, "r", false},
+		{`
+		nn = [1,2,3]
+		r = 2 !?> nn
+		`, "r", false},
+		{`
+		nn = [1,2,3]
+		r = 5 !?> nn
+		`, "r", true},
+		// in tuple
+		{`
+		a = 2
+		nn = (1,2,3)
+		r = a ?> nn
+		`, "r", true},
+		{`
+		a = 5
+		nn = (1,2,3)
+		r = a ?> nn
+		`, "r", false},
+		{`
+		nn = (1,2,3)
+		r = 2 !?> nn
+		`, "r", false},
+		{`
+		nn = (1,2,3)
+		r = 5 !?> nn
+		`, "r", true},
+		// in dict
+		{`
+		a = 'a'
+		dd = {'a':1, 'b':2}
+		r = a ?> dd
+		`, "r", true},
+		{`
+		a = 'X'
+		r = a ?> {'a':1, 'b':2}
+		`, "r", false},
+		{`
+		dd = {'a':1, 'b':2}
+		r = 'Y' !?> dd
+		`, "r", true},
+		{`
+		r = 5 !?> {'a':1, 'b':2}
+		`, "r", true},
+		// in maybe
+		{`
+		a = 2
+		mm = some(2)
+		r = a ?> mm
+		`, "r", true},
+		{`
+		a = 5
+		mm = some(2)
+		r = a ?> mm
+		`, "r", false},
+		{`
+		a = 5
+		mm = none
+		r = a ?> mm
+		`, "r", false},
+		{`
+		mm = some(2)
+		r = 2 !?> mm
+		`, "r", false},
+		{`
+		mm = some(2)
+		r = 5 !?> mm
+		`, "r", true},
+		{`
+		mm = none
+		r = 5 !?> mm
+		`, "r", true},
+		{`
+		nn = [1,2,3]
+		nums = [1, 5, 10, 3] 
+		r = []
+		for n <- nums
+			if n ?> nn
+				r <- n
+			else if n !?> nn
+				r <- n * 100
+		`, "r", Anis(1, 500, 1000, 3)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestOperUnclosedBrackets(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -317,3 +708,20 @@ func TestOperMath(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
+// func TestDev1(t *testing.T) {
+// 	tdata := []struct {
+// 		src   string
+// 		vname string
+// 		res   any
+// 	}{
+// 		{`
+// 		a = 1
+// 		b = 2
+// 		r = a + b
+// 		`, "r", int64(1234)},
+// 	}
+// 	for i, tt := range tdata {
+// 		RunTCodeVarExp(t, i, tt)
+// 	}
+// }

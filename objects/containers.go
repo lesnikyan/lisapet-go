@@ -24,7 +24,7 @@ func (v *ListVal) Set(key int64, elem any) error {
 }
 func (v *ListVal) GetElem(key int64) (*base.Val, error) {
 	if key >= int64(len(v.Elems)) {
-		panic("list: get elem: index out of range")
+		return nil, errors.New("list: get elem: index out of range")
 		// return nil, ErrorBadKey
 	}
 	return &base.Val{V: v.Elems[key]}, nil
@@ -32,6 +32,15 @@ func (v *ListVal) GetElem(key int64) (*base.Val, error) {
 
 func (v *ListVal) Add(elem any) {
 	v.Elems = append(v.Elems, elem)
+}
+
+func (v *ListVal) Delete(index int64) (*base.Val, error) {
+	elem, err := v.GetElem(index)
+	if err != nil {
+		return nil, err
+	}
+	v.Elems = append(v.Elems[:index], v.Elems[index+1:]...)
+	return elem, nil
 }
 
 func (v *ListVal) Len() int64 {
@@ -99,6 +108,14 @@ func (v *DictVal) GetElem(key any) (*base.Val, error) {
 	}
 	return &base.Val{V: val}, nil
 }
+func (v *DictVal) Delete(key any) (*base.Val, error) {
+	elem, err := v.GetElem(key)
+	if err != nil {
+		return nil, err
+	}
+	delete(v.Vmap, key)
+	return elem, nil
+}
 
 func (v *DictVal) Set(key any, val any) {
 	v.Vmap[key] = val
@@ -126,16 +143,15 @@ func (mb *Maybe) IsNone() bool {
 	return mb.None
 }
 
-// type Some struct {
-// 	Val any
-// }
-
-// type None struct {
-// }
-
 func Some(v any) *Maybe {
 	return &Maybe{Val: v}
 }
 func None() *Maybe {
 	return &Maybe{}
+}
+
+// ****************************************
+
+type Enum struct {
+	Elems []any
 }

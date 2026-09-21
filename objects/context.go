@@ -1,6 +1,8 @@
 package objects
 
 import (
+	"fmt"
+
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -117,6 +119,36 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 		curCx = curCx.parent
 	}
 	return nil
+}
+
+func (cx *Context) DeleteElem(name string) error {
+	curCx := cx
+	for curCx != nil {
+		// fmt.Printf("cx.GetEl#1 vars(%T, %v ) funcs(%T, %v )\n", cx.vars, len(cx.vars), cx.funcs, len(cx.funcs))
+		// aa, ak := curCx.vars[name]
+		// tt, tk := curCx.types[name]
+		// bb, bk := curCx.funcs[name]
+
+		// fmt.Printf("cx.GetEl#2 <%s> vars(%v, %v ) typs(%v, %v )  funcs(%v, %v )\n", name, aa, ak, tt, tk, bb, bk)
+
+		if _, ok := curCx.vars[name]; ok {
+			delete(curCx.vars, name)
+			return nil
+		}
+
+		if _, ok := curCx.types[name]; ok {
+
+			delete(curCx.types, name)
+			return nil
+		}
+
+		if _, ok := curCx.funcs[name]; ok {
+			delete(curCx.funcs, name)
+			return nil
+		}
+		curCx = curCx.parent
+	}
+	return fmt.Errorf("Name `%s` not found in context", name)
 }
 
 func NewContext(parent base.Context) *Context {

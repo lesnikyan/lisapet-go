@@ -2,8 +2,10 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 // ===========
@@ -72,4 +74,70 @@ func LeftOper(opid Opid, arg any) (any, bool) {
 		}
 	}
 	return nil, false
+}
+
+type AtDel struct {
+	right base.Expression
+	Oper  *Oper
+	res   any
+}
+
+func (op *AtDel) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
+func (op *AtDel) SetLeft(xp base.Expression) {
+
+}
+
+func (op *AtDel) Get() *base.Val {
+	return objects.NullVal
+}
+
+func (op *AtDel) Do(cx base.Context) error {
+	// fmt.Println("AtDel @!.Do")
+	err := DelElem(cx, op.right)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DelElem(cx base.Context, arg base.Expression) error {
+	switch a := any(arg).(type) {
+	case *VarExpr:
+		name := a.GetName()
+		return cx.DeleteElem(name)
+	case *ColElemExpr:
+		cc := a
+		err := cc.Col.Do(cx)
+		if err != nil {
+			return err
+		}
+		err = cc.Key.Do(cx)
+		if err != nil {
+			return err
+		}
+		kval := GetExprVal(cc.Key, cx)
+		// cc.KVal = kval
+		sval := GetExprVal(cc.Col, cx)
+		switch cont := sval.(type) {
+		case *objects.ListVal:
+			index, ok := kval.(int64)
+			if !ok {
+				return err
+			}
+			_, err := cont.Delete(index)
+			if err != nil {
+				return err
+			}
+			return nil
+		case *objects.TupleVal:
+			panic("operator @!: tuple is immutable type")
+		case *objects.DictVal:
+			_, err := cont.Delete(kval)
+			return err
+		}
+	}
+	return fmt.Errorf("operator @!: trying to delete incorrect type: %T", arg)
 }

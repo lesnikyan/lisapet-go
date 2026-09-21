@@ -12,6 +12,8 @@ import (
 type Null struct {
 }
 
+var NullVal = &base.Val{V: &Null{}}
+
 // internal value, can be produced from EmptyExpr
 type EmptyVal struct {
 }

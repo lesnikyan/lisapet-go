@@ -50,6 +50,18 @@ func (sd *StructDef) HasMethod(name string) bool {
 	return false
 }
 
+func (sd *StructDef) HasParent(ptype base.TypeId) bool {
+	for _, p := range sd.Parents {
+		if p.Type.Id == ptype {
+			return true
+		}
+		if p.HasParent(ptype) {
+			return true
+		}
+	}
+	return false
+}
+
 // func (sd *StructDef) GetMethod(name string) *Method {
 
 func (sd *StructDef) GetMethod(name string) (base.FuncVal, bool) {

@@ -28,6 +28,77 @@ ok 15. builtin methods: 'a b c'.split(' ')
 
 */
 
+func TestDefined(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		a = true
+		r = @defined(a)
+		`, "r", true},
+		{`
+		a = null
+		r = @defined(a)
+		`, "r", true},
+		{`
+		func foo()
+			1
+		r = @defined(foo)
+		`, "r", true},
+		{`
+		r = @defined(a)
+		`, "r", false},
+		{`
+		a = 5
+		r = 11
+		if @defined(a)
+			r = 12
+		`, "r", int64(12)},
+		{`
+		r = 111
+		if @defined(a)
+			r = 12
+		`, "r", int64(111)},
+		{`
+		# deeper call
+		a = 1
+		r = 10
+		func f1()
+			if @defined(a)
+				r = 14
+		#
+		func f2()
+			f1()
+		f2()
+		`, "r", int64(14)},
+		{`
+		# deeper call
+		a = 1
+		r = 10
+		func f1()
+			func f2()
+				if @defined(a)
+					r = 15
+		#
+		f1()()
+		`, "r", int64(15)},
+		{`
+		r = [1]
+		if ! @defined(a)
+			r <- 16
+			a = 100
+			if @defined(a)
+				r <- 1000
+		#
+		`, "r", Anis(1, 16, 1000)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestBuiltMethodNamedArg(t *testing.T) {
 	tdata := []struct {
 		src   string

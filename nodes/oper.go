@@ -44,10 +44,13 @@ const (
 	OpAt
 	OpDollar
 	OpQMark
-	OpQmAndColon
+	OpElvis
 	OpTildLArrow
 	OpSlashColon
 	OpColonQm
+	OpIn
+	OpNotIn
+	OpDel
 	// Regexp
 	OpRxMatch
 	OpRxFind
@@ -109,12 +112,16 @@ var _operStrMap = map[Opid]string{
 	OpAt:            "@",
 	OpDollar:        "$",
 	OpQMark:         "?",
-	OpQmAndColon:    "?:",
+	OpElvis:         "?:",
 	OpTildLArrow:    "~>",
 	OpSlashColon:    "/:",
+	OpColonQm:       ":?",
 	OpRxMatch:       "=~",
 	OpRxFind:        "?~",
 	OpRxSplit:       "/~",
+	OpIn:            "?>",
+	OpNotIn:         "!?>",
+	OpDel:           "@!",
 }
 
 var _operMap = func() map[string]Opid {

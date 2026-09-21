@@ -42,18 +42,26 @@ var opers = strings.Split(
 		` < > = + - * / | \\ { } [ ] . , : ? ~ ! % ^ & * $ ( ) @`,
 	` `)
 
+// Not a real opers, but mix of opers and their sub-parts (from left)
+var opers2 = strings.Split(
+	`; , ... $$ .. ** ++ -- += -= *= /= %=  && || == != <= >= << >>`+
+		` => ?> !? !?> -> <- !- := ?: /: !: :? :> :: =~ ?~ /~ ~> ^/ @! (:`+
+		` < > = + - * / | \\ { } [ ] . , : ? ~ ! % ^ & * $ ( ) @`,
+	` `)
+
 // # if i > 0 and el.text in ['-', '+', '!', '~'] and elems[i-1].type == Lt.oper and elems[i-1].text != ')'
 var unarOpers = `- + ! ~`
 
 //
 
+// TODO: think about optimization
 func validOper(cur []rune, c rune) bool {
 	// simplest finding, need optimization
 	// define if new sequence is out of correct operators
 	oper := make([]rune, len(cur)+1)
 	copy(oper, cur)
 	oper[len(cur)] = c
-	return slices.Contains(opers, string(oper))
+	return slices.Contains(opers2, string(oper))
 }
 
 func has[K comparable, V any](m map[K]V, v K) bool {
@@ -175,6 +183,7 @@ func nPart(cc []rune) string {
 // if time to finalize cur set and start new
 // like whitespace after number or word, or end of "string"
 func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
+	// log.Printf("parse.?fin-- [%s]: %s, `%s`: %s  ", string(cur), Lt.TName(prevType), string(next), Lt.TName(curType))
 	if len(cur) == 0 {
 		return false
 	}
@@ -215,6 +224,7 @@ func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
 			return true
 		}
 		// check if `next` breaks valid oper
+		// log.Printf("parse.Oper-- [%s], `%s` = %v ", string(cur), string(next), validOper(cur, next))
 		return !validOper(cur, next)
 	}
 	// log.Printf("f1--'%s'", string(next))

@@ -17,6 +17,10 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "devDefOrd", devDefOrds, nil)
 }
 
+func PreloadServFuncs(cx base.Context) {
+	BuiltServeFunc(cx, "@defined", servDefined, nil)
+}
+
 func PreloadConstr(cx base.Context) {
 	BuiltConstr(cx, "string", constr_string, nil)
 	BuiltConstr(cx, "byte", constr_byte, nil)
@@ -51,6 +55,7 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "maybe", base.TypeMaybe)
 	AddType(cx, "regexp", base.TypeRegexp)
+	AddType(cx, "function", base.TypeFunction)
 	AddType(cx, "mur", base.TypeMur)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )

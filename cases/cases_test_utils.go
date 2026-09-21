@@ -17,6 +17,7 @@ func PreloadContext(cx base.Context) {
 	nodes.PreloadConstr(cx)
 	nodes.PreloadFuncs(cx)
 	nodes.BuiltMethods(cx)
+	nodes.PreloadServFuncs(cx)
 }
 
 // convert []T to []any
@@ -185,7 +186,16 @@ func Stf(name string, vals dk) *TStruct {
 }
 
 func Tmay(v any) *obb.Maybe {
+	if v == nil {
+		return obb.None()
+	}
 	return obb.Some(pres(v))
+}
+
+type TTst2 = struct {
+	Src   string // code
+	Vname string // var
+	Res   any    // exp
 }
 
 type TTst = struct {

@@ -96,6 +96,11 @@ type VarExpr struct {
 func (ex *VarExpr) GetName() string {
 	return ex.name
 }
+
+func (ex *VarExpr) SetName(name string) {
+	ex.name = name
+}
+
 func (ex *VarExpr) Do(cx base.Context) error {
 	ex.IsVar = false
 	ex.vr = nil

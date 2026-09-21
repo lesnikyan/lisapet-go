@@ -63,7 +63,7 @@ var _operPriorFBr = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
 	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 = += -= *= /= %= 1 , 1 .. 1 <- 1 @! 1 ; 1 !: :? => 1 /: `
 
-var unary = strings.Split("- ! ~ +", " ")
+var unary = strings.Split("- ! ~ + @ @!", " ")
 var unaryR = strings.Split("... ~>", " ")
 var seqSeprs = strings.Split(", ;", " ")
 var kwPrior = 100000
@@ -447,7 +447,10 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		// fmt.Printf(" - oper: <%s : %s> ; prior: %v \n", tx, txex, curpri)
 
 		// L-unary section
-		if prev != nil && (prev.Type == Lt.Oper && !prevCloseBr) {
+		afterOper := prev != nil && (prev.Type == Lt.Oper && !prevCloseBr)
+		beginExpr := prev == nil
+		if afterOper || beginExpr {
+			// log.Println("try unary", tx)
 			if len(tx) == 1 && slices.Contains(unary, tx) {
 				// unary oper after another oper
 				tNode := &OperNode{oper: tx, prior: unaryPrior}

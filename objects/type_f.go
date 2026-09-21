@@ -83,6 +83,8 @@ func TypeIdByVal(val any) base.TypeId {
 		return base.TypeFunction
 	case *Maybe:
 		return base.TypeMaybe
+	case *Enum:
+		return base.TypeEnum
 	case *Regexp:
 		return base.TypeRegexp
 	case base.Mur:
