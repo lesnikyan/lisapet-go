@@ -135,6 +135,8 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.OperTern{} // ternary
 	case "?:":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)} // Elvis: short-ternary
+	case "::":
+		expr = &nodes.OperType{} // lambda
 	case "->":
 		expr = &nodes.LambdaExpr{} // lambda
 	case "<-":

@@ -8,6 +8,7 @@ import (
 
 	"github.com/lesnikyan/lisapet-go/base"
 	ob "github.com/lesnikyan/lisapet-go/objects"
+	obb "github.com/lesnikyan/lisapet-go/objects"
 )
 
 type MockExpr struct {
@@ -262,4 +263,83 @@ func CheckIn(left any, right any, oper *Oper) (bool, error) {
 		return !res, nil
 	}
 	return false, fmt.Errorf("Error in CheckIn: bad oper: `%s` ", oper.Sign)
+}
+
+// ====
+
+type OperType struct {
+	left  base.Expression
+	right base.Expression
+	res   any
+	TODO  bool
+}
+
+func (op *OperType) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *OperType) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
+func (op *OperType) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *OperType) Do(cx base.Context) error {
+	// fmt.Printf("OperType.Do#0: oper :: (%T:%v) (%T:%v) \n", op.left, op.left, op.right, op.right)
+	op.left.Do(cx)
+	op.right.Do(cx)
+	// lop := op.left.Get()
+	lvv := GetExprVal(op.left, cx)
+	var rtype *base.Type
+	switch rvar := op.right.(type) {
+	case *VarExpr:
+		tname := rvar.GetName()
+		rtype = cx.GetType(tname)
+		if rtype == nil {
+			return fmt.Errorf("Error in OperType: type `%s` not found ", tname)
+		}
+	case *ValExpr:
+		// fmt.Printf(" -- # -- %T, %v\n", rvar, rvar.Val)
+		v := rvar.Get()
+		if v == nil {
+			return fmt.Errorf("Error in OperType: bad type val: %T ", rvar)
+		}
+		switch v.V.(type) {
+		case *obb.Null:
+			rtype = cx.GetType("null")
+		}
+	default:
+		return fmt.Errorf("Error in OperType: bad type expression: %T ", op.right)
+	}
+
+	// fmt.Printf("OperType.Do#5: L(%T, %v) <::> R(%T, %v) \n", lvv, lvv, rtype, rtype)
+	res, err := CheckTypeEqual(lvv, rtype)
+	// fmt.Printf("-- OperType.Do#6: val(%T, %v) :: exp: %v >> %v \n", lvv, obb.TypeIdByVal(lvv), rtype.Id, res)
+	if err != nil {
+		// fmt.Printf("Error in OperType: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
+		errm := fmt.Errorf("Error in OperType: L(%T: %v) <::> R(%T: %v) ", op.left, op.left, op.right, op.right)
+		return errors.Join(errm, err)
+	}
+	op.res = res
+	return nil
+}
+
+func CheckTypeEqual(val any, expType *base.Type) (bool, error) {
+	switch tval := val.(type) {
+	case *ob.StructInst:
+		stype := tval.Type
+		if stype == nil {
+			return false, fmt.Errorf("Error in type check: struct type: not defined ")
+		}
+		if stype.Id == expType.Id {
+			// simple case - the same type
+			return true, nil
+		}
+		// check parent
+		return tval.Def.HasParent(expType.Id), nil
+	default:
+		vtype := obb.TypeIdByVal(val)
+		return vtype == expType.Id, nil
+	}
 }

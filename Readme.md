@@ -105,13 +105,12 @@ next - by dates...
 ```
 - --19 Added `@defined(var)` - check if var, func, type, etc was defined.  
 - --20 Added delete operator `@!`. It deletes variables, element of list, dict.  
+- --21 Added type check operator `::`, `null :: null` is `true`, parent struct type is `true`   
 
 
 
 #### next TODO:   
-- type check operator `::`   
 - multitype: var, arg, `::`  
-- delete `@!`  
 - inline block: ` ; ; `
 - inline control: `if`, `for`, `while` `/:`
 - formatting by expression include: "Hello {name}!"

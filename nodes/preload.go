@@ -55,6 +55,7 @@ func PreloadTypes(cx base.Context) {
 	AddType(cx, "bytes", base.TypeBytes)
 	AddType(cx, "maybe", base.TypeMaybe)
 	AddType(cx, "regexp", base.TypeRegexp)
+	AddType(cx, "function", base.TypeFunction)
 	AddType(cx, "mur", base.TypeMur)
 	// AddType(cx, "enum", )
 	// AddType(cx, "grup", )

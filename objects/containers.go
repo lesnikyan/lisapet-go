@@ -143,16 +143,15 @@ func (mb *Maybe) IsNone() bool {
 	return mb.None
 }
 
-// type Some struct {
-// 	Val any
-// }
-
-// type None struct {
-// }
-
 func Some(v any) *Maybe {
 	return &Maybe{Val: v}
 }
 func None() *Maybe {
 	return &Maybe{}
+}
+
+// ****************************************
+
+type Enum struct {
+	Elems []any
 }

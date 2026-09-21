@@ -186,6 +186,9 @@ func Stf(name string, vals dk) *TStruct {
 }
 
 func Tmay(v any) *obb.Maybe {
+	if v == nil {
+		return obb.None()
+	}
 	return obb.Some(pres(v))
 }
 

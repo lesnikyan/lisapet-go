@@ -1,6 +1,10 @@
 package cases
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/lesnikyan/lisapet-go/objects"
+)
 
 /*
 ok 1. ?>
@@ -13,6 +17,162 @@ ok 5.1 @defined(varname)
 7. v : int|float
 8. a :: int|float
 */
+
+/*
+r <- x :: int
+r <- x :: A
+r <- x :: B
+r <- x :: C
+r <- x :: null
+*/
+func TestCheckTypeStruct(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a:int
+		struct B b: string
+		struct C (A) c: int
+		#
+		#ss = [A{}]
+		ss = [A{}, B{}, C{}, null]
+		r = []
+		for i, x <- ss
+			r <- i
+			r <- x
+			r <- x :: int
+			r <- x :: A
+			r <- x :: B
+			r <- x :: C
+		#
+		r <- null :: null
+		`, "r",
+			// Anis(Stf("A", dk{"a": 0}), false, Stf("B", dk{"b": ""}), false, Stf("C", dk{"a": 0, "c": 0}), false, Tnull(), false)},
+			Anis(0, Stf("A", dk{"a": 0}), false, true, false, false,
+				1, Stf("B", dk{"b": ""}), false, false, true, false,
+				2, Stf("C", dk{"a": 0, "c": 0}), false, true, false, true,
+				3, Tnull(), false, false, false, false, true)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestCheckType(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 1
+		r = [x]
+		r <- x :: int
+		r <- x :: float
+		r <- x :: string
+		`, "r", Anis(1, true, false, false)},
+		{`
+		x = 1.2
+		r = [x]
+		r <- x :: int
+		r <- x :: float
+		`, "r", Anis(1.2, false, true)},
+		{`
+		x = 1.2
+		r = [x]
+		r <- x :: int
+		r <- x :: float
+		`, "r", Anis(1.2, false, true)},
+		{`
+		x = 'abc'
+		r = [x]
+		r <- x :: string
+		r <- x :: glif
+		`, "r", Anis("abc", true, false)},
+		{`
+		x = g'a'
+		r = [x]
+		r <- x :: string
+		r <- x :: glif
+		`, "r", Anis('a', false, false)},
+		{`
+		x = 00xa
+		r = [x]
+		r <- x :: byte
+		r <- x :: int
+		r <- x :: glif
+		r <- x :: bytes
+		`, "r", Anis(byte(0xa), true, false, false, false)},
+		{`
+		x = 0x[a]
+		r = [x]
+		r <- x :: bytes
+		r <- x :: byte
+		r <- x :: string
+		`, "r", Anis(objects.Bytes{0xa}, true, false, false)},
+		{`
+		x = [1,2]
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Anis(1, 2), true, false, false, false)},
+		{`
+		x = (1,2)
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Tanis(1, 2), false, true, false, false)},
+		{`
+		x = {1: 2}
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(adk(dk{1: 2}), false, false, true, false)},
+		{`
+		x = some(5)
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Tmay(5), false, false, false, true)},
+		{`
+		x = none
+		r = [x]
+		r <- x :: list
+		r <- x :: tuple
+		r <- x :: dict
+		r <- x :: maybe
+		`, "r", Anis(Tmay(nil), false, false, false, true)},
+		{`
+		r = [11]
+		r <- 11 :: int
+		r <- 1 :: float
+		r <- 1 :: maybe
+		r <- 1 :: bool
+		`, "r", Anis(11, true, false, false, false)},
+		{`
+		func f1()
+			1
+		r = ['func']
+		r <- f1 :: function
+		r <- f1 :: null
+		r <- f1 :: maybe
+		r <- f1 :: bool
+		`, "r", Anis("func", true, false, false, false)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestAtDelete(t *testing.T) {
 	tdata := []struct {
@@ -60,6 +220,7 @@ func TestAtDelete(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestOperElvis(t *testing.T) {
 	tdata := []struct {
 		src   string

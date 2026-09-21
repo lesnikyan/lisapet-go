@@ -205,12 +205,15 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 			switch err.(type) {
 			case *GenFinish:
 				// found end of generator
-				break
+				// println("Err1 GenFin")
+				return nil
 			}
 			return err
 		}
 		err = nd.Block.Do(cx)
+
 		if err != nil {
+			// println("Err2 ", err.Error())
 			return err
 		}
 		stop, popUp := ForStop(nd.Block)
@@ -235,7 +238,10 @@ func (nd *ForSourceNode) Do(cx base.Context) error {
 	nd.Init(inCx)
 
 	// Loop
-	nd.Loop((inCx))
+	err := nd.Loop((inCx))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
