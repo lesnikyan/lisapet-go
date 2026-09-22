@@ -15,8 +15,100 @@ ok 5. @!
 ok 5.1 @defined(varname)
 ok 6. a :: type
 ok 7. v : int|float
-8. a :: int|float
+ok 8. a :: int|float
 */
+
+func TestCheckTypeMultitype(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo()
+			1
+		struct A
+		struct B
+		struct C(A)
+		a = 10
+		nn = [1, 1.2, a, g'a', 00xe, 'GG', true, 
+			0x[1 2 3], [5], (3,4), {44:441, 55:551}, 
+			foo, A{}, B{}, C{}]
+		#nn = [1, 1.2]
+		r = []
+		for i, x <- nn
+			if x :: int|float
+				r <- i
+		`, "r", Anis(0, 1, 2)},
+		{`
+		func foo()
+			1
+		struct A
+		struct B
+		struct C(A)
+		a = 10
+		nn = [1, 1.2, a, g'a', 00xe, 'GG', true, 
+			0x[1 2 3], (3,4), [5], {44:441, 55:551}, 
+			foo, A{}, B{}, C{}]
+		#nn = [1, 1.2]
+		r = []
+		for i, x <- nn
+			if x :: string|glif|bytes
+				r <- i
+		`, "r", Anis(3, 5, 7)},
+		{`
+		func foo()
+			1
+		struct A
+		struct B
+		struct C(A)
+		a = 10
+		nn = [1, 1.2, a, g'a', 00xe, 'GG', true, 
+			0x[1 2 3], (3,4), [5], {44:441, 55:551}, 
+			foo, A{}, B{}, C{}]
+		#nn = [1, 1.2]
+		r = []
+		for i, x <- nn
+			if x :: byte|bool|function
+				r <- i
+		`, "r", Anis(4, 6, 11)},
+		{`
+		func foo()
+			1
+		struct A
+		struct B
+		struct C(A)
+		a = 10
+		nn = [1, 1.2, a, g'a', 00xe, 'GG', true, 
+			0x[1 2 3], (3,4), [5], {44:441, 55:551}, 
+			foo, A{}, B{}, C{}]
+		#nn = [1, 1.2]
+		r = []
+		for i, x <- nn
+			if x :: A|bytes|dict
+				r <- i
+		`, "r", Anis(7, 10, 12, 14)},
+		{`
+		func foo()
+			1
+		struct A
+		struct B
+		struct C(A)
+		a = 10
+		nn = [1, 1.2, a, g'a', 00xe, 'GG', true, 
+			0x[1 2 3], (3,4), [5], {44:441, 55:551}, 
+			foo, A{}, B{}, C{}]
+		#nn = [1, 1.2]
+		r = []
+		for i, x <- nn
+			if x :: B|list|tuple
+				r <- i
+		`, "r", Anis(8, 9, 13)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestCheckTypeStruct(t *testing.T) {
 	tdata := []struct {
@@ -89,7 +181,7 @@ func TestCheckType(t *testing.T) {
 		r = [x]
 		r <- x :: string
 		r <- x :: glif
-		`, "r", Anis('a', false, false)},
+		`, "r", Anis('a', false, true)},
 		{`
 		x = 00xa
 		r = [x]

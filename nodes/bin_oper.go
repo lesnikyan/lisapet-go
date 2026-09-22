@@ -309,12 +309,20 @@ func (op *OperType) Do(cx base.Context) error {
 		case *obb.Null:
 			rtype = cx.GetType("null")
 		}
-	case *MixedTypeExpr:
-		err := rvar.Do(cx)
+	// case *MixedTypeExpr:
+	case *OperBin:
+		mt, err := MixedSubs(rvar, cx)
 		if err != nil {
+			// fmt.Println("OperColon.R mixwed error", err, mt)
 			return err
 		}
-		res, err := CheckTypeEqual(lvv, rtype)
+		// fmt.Printf(" -- # -- %T, %v\n", mt, mt)
+		// rtype = &base.Type{Id: base.TypeMixed, Mix: mt}
+		// err := rvar.Do(cx)
+		// if err != nil {
+		// 	return err
+		// }
+		res, err := CheckTypeEqual(lvv, mt)
 		if err != nil {
 			return err
 		}
@@ -350,6 +358,9 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 		}
 		return false, nil
 	case *base.Type:
+		// if mt.Id == base.TypeMixed {
+		// 	return CheckTypeEqual(val, mt.Mix)
+		// }
 		switch tval := val.(type) {
 		case *ob.StructInst:
 			stype := tval.Type
