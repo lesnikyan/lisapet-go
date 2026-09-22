@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -72,26 +71,36 @@ func (op *OperColon) DoVar(cx base.Context) error {
 	if !ok {
 		return errors.New("colon: Not var in Left")
 	}
-	tupx, ok := op.Right.(*VarExpr)
-	if !ok {
-		return errors.New("colon: Not var in Left")
-	}
 	varx.NewVar(cx)
 
-	err2 := tupx.Do(cx)
-	if err2 != nil {
-		fmt.Println("OperColon.R error", err2)
-		return err2
+	// fmt.Printf("OperColon.R  %T \n", op.Right)
+	var rtype *base.Type
+	switch tupx := op.Right.(type) {
+	case *VarExpr:
+		err2 := tupx.Do(cx)
+		if err2 != nil {
+			// fmt.Println("OperColon.R error", err2)
+			return err2
+		}
+		rtype = cx.GetType(tupx.name)
+		if rtype == nil {
+			return errors.New("colon: can't find type")
+		}
+	case *OperBin:
+		mt, err := MixedSubs(tupx, cx)
+		if err != nil {
+			// fmt.Println("OperColon.R mixwed error", err, mt)
+			return err
+		}
+		rtype = &base.Type{Id: base.TypeMixed, Mix: mt}
+		// tupx.Subs
+		// base.Var
+		// println("oper = mixed type")
+	default:
+		return errors.New("colon: Not name in right")
 	}
-	// tname := tupx.name
-	rtype := cx.GetType(tupx.name)
-	// rval := tupx.Get()
 	// fmt.Printf(" ' : ' DoVar2 (%T, %v) \n", tupx, tupx)
 	// fmt.Printf(" ' : ' DoVar3 (%T, %v) \n", rtype, rtype)
-	if rtype == nil {
-		return errors.New("colon: can't find type")
-	}
-	// fmt.Printf(" ' : ' DoVar4 \n")
 
 	if !ok {
 		return errors.New("colon: Right part is not type")

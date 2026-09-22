@@ -58,7 +58,7 @@ func TypeByVal(val any) *TypeInfo {
 
 func TypeIdByVal(val any) base.TypeId {
 	// TODO: if StructInstance - return ID of struct definition
-	switch val.(type) {
+	switch inst := val.(type) {
 	case int64:
 		return base.TypeInt
 	case float64:
@@ -89,6 +89,8 @@ func TypeIdByVal(val any) base.TypeId {
 		return base.TypeRegexp
 	case base.Mur:
 		return base.TypeMur
+	case *StructInst:
+		return inst.Def.Type.Id
 	}
 
 	return base.TypeUndefined
@@ -164,11 +166,8 @@ func IsParent(a *StructDef, b *StructDef) bool {
 	return slices.Contains(b.Parents, a)
 }
 
-// actual for variable, argument, struct method in left of assign
-// prepare and convert val
-// result: isTypeOk, convertedVal
-func PrepareVal(expType *base.Type, val any) (bool, any) {
-	if expType.Id > base.TypeStructBase {
+func PrepareByType(expType *base.Type, val any) (bool, any) {
+	if expType.Id >= base.TypeStructBase {
 		if null, ok := val.(*Null); ok {
 			return true, null
 		}
@@ -191,10 +190,43 @@ func PrepareVal(expType *base.Type, val any) (bool, any) {
 	if tv.Id == expType.Id {
 		return true, val
 	}
-	if !base.TypeCompat(expType.Id, tv.Id) {
-		// fmt.Printf("PrepV=#2 Vla Not compatible Eq: %v == %v %v\n", tv.Id, expType, tv.Id == expType)
+	return false, nil
+	// if !base.TypeCompat(expType.Id, tv.Id) {
+	// 	// fmt.Printf("PrepV=#2 Vla Not compatible Eq: %v == %v %v\n", tv.Id, expType, tv.Id == expType)
+	// 	return false, nil
+	// }
+	// cval := ConvertByType(expType.Id, val)
+	// return true, cval
+}
+
+// actual for variable, argument, struct method in left of assign
+// prepare and convert val
+// result: isTypeOk, convertedVal
+func PrepareVal[MT *base.Type | *base.MixedType](expType MT, val any) (bool, any) {
+	switch mt := any(expType).(type) {
+	case *base.Type:
+		if mt.Id == base.TypeMixed {
+			return PrepareVal(mt.Mix, val)
+		}
+		ok, pval := PrepareByType(mt, val)
+		if ok {
+			return true, pval
+		}
+		tv := TypeByVal(val)
+		if !base.TypeCompat(mt.Id, tv.Id) {
+			return false, nil
+		}
+		cval := ConvertByType(mt.Id, val)
+		return true, cval
+	case *base.MixedType:
+		for _, sub := range mt.Types {
+			ok, pval := PrepareByType(sub, val)
+			if ok {
+				return true, pval
+			}
+			// no conversion if multitype
+		}
 		return false, nil
 	}
-	cval := ConvertByType(expType.Id, val)
-	return true, cval
+	return false, nil
 }

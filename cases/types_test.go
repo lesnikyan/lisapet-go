@@ -6,6 +6,38 @@ import (
 	oob "github.com/lesnikyan/lisapet-go/objects"
 )
 
+func TestTypeMulti(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x: int|float|list = 102
+		r = x
+		`, "r", int64(102)},
+		{`
+		x: int|float|list = 10.2
+		r = x
+		`, "r", float64(10.2)},
+		{`
+		x: int|float|list = [10, 3]
+		r = x
+		`, "r", Anis(10, 3)},
+		{`
+		nnn = [[1,2], (3,4), [5,6]]
+		r = []
+		for n <- nnn
+			nn: tuple|list = n
+			for x <- nn
+				r <- x
+		`, "r", Anis(1, 2, 3, 4, 5, 6)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestConstructDict(t *testing.T) {
 	tdata := []struct {
 		src   string

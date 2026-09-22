@@ -27,8 +27,9 @@ type Type struct {
 	Methods   MethMap
 	Construct FuncVal
 
-	IsUserDef bool    // mostly for users struct
-	Def       TypeDef // pointer to type definition
+	IsUserDef bool       // mostly for users struct
+	Def       TypeDef    // pointer to type definition
+	Mix       *MixedType // contains mixed types
 }
 
 func (tp *Type) GetMethods() []FuncVal {
@@ -61,6 +62,12 @@ func (tp *Type) AddMethod(funcv FuncVal) {
 	}
 	// fmt.Printf(" T.AddMethod %s (%T) \n", funcv.GetName(), funcv)
 	tp.Methods[funcv.GetName()] = funcv
+}
+
+// ------------------------
+
+type MixedType struct {
+	Types []*Type
 }
 
 // ------------------------
@@ -99,6 +106,7 @@ const (
 	TypeMaybe
 	TypeRegexp
 	TypeMur
+	TypeMixed
 	// Last defined type:
 	TypeUndefined  TypeId = 2001
 	TypeStructBase TypeId = 5000

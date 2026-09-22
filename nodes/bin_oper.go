@@ -309,6 +309,17 @@ func (op *OperType) Do(cx base.Context) error {
 		case *obb.Null:
 			rtype = cx.GetType("null")
 		}
+	case *MixedTypeExpr:
+		err := rvar.Do(cx)
+		if err != nil {
+			return err
+		}
+		res, err := CheckTypeEqual(lvv, rtype)
+		if err != nil {
+			return err
+		}
+		op.res = res
+		return nil
 	default:
 		return fmt.Errorf("Error in OperType: bad type expression: %T ", op.right)
 	}
@@ -325,21 +336,36 @@ func (op *OperType) Do(cx base.Context) error {
 	return nil
 }
 
-func CheckTypeEqual(val any, expType *base.Type) (bool, error) {
-	switch tval := val.(type) {
-	case *ob.StructInst:
-		stype := tval.Type
-		if stype == nil {
-			return false, fmt.Errorf("Error in type check: struct type: not defined ")
+func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool, error) {
+	switch mt := any(expType).(type) {
+	case *base.MixedType:
+		for _, sub := range mt.Types {
+			res, err := CheckTypeEqual(val, sub)
+			if err != nil {
+				return false, err
+			}
+			if res {
+				return true, nil
+			}
 		}
-		if stype.Id == expType.Id {
-			// simple case - the same type
-			return true, nil
+		return false, nil
+	case *base.Type:
+		switch tval := val.(type) {
+		case *ob.StructInst:
+			stype := tval.Type
+			if stype == nil {
+				return false, fmt.Errorf("Error in type check: struct type: not defined ")
+			}
+			if stype.Id == mt.Id {
+				// simple case - the same type
+				return true, nil
+			}
+			// check parent
+			return tval.Def.HasParent(mt.Id), nil
+		default:
+			vtype := obb.TypeIdByVal(val)
+			return vtype == mt.Id, nil
 		}
-		// check parent
-		return tval.Def.HasParent(expType.Id), nil
-	default:
-		vtype := obb.TypeIdByVal(val)
-		return vtype == expType.Id, nil
 	}
+	return false, fmt.Errorf("Error in type check: sttrange case ")
 }
