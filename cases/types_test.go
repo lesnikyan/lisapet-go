@@ -10,10 +10,52 @@ import (
 multitype:
 ok 1. var
 ok 2. funcs arg
-3. struct field
+ok 3. struct field
 4. operator ::
 
 */
+
+func TestMultitypeFields(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a:int|float
+		r = []
+		r <- A{a: 11}
+		r <- A{a:2.25}
+		`, "r", Anis(Stf("A", dk{"a": 11}), Stf("A", dk{"a": 2.25}))},
+		{`
+		struct A a:list|tuple|dict
+		#
+		func inst:A vals()
+			s = inst.a
+			if inst.a :: dict
+				s = inst.a.vals().sort()
+			[x; x <- s]
+		#
+		r = []
+		r <- A{a: [1,2,3]}.vals()
+		r <- A{a: (11,12,13)}.vals()
+		r <- A{a: {'a': 'Ant', 'b':'Bin', 'c':'Cell'}}.vals()
+		`, "r", Anis(Anis(1, 2, 3), Anis(11, 12, 13), Anis("Ant", "Bin", "Cell"))},
+
+		{`
+		struct A a:int|float, b: string|bytes, c:byte|glif
+		r = []
+		r <- A{a: 10, b: 'Dub', c: 00xd}
+		r <- A{a: 2.05, b: 0x[e f a], c: g'Q'}
+		`, "r", Anis(
+			Stf("A", dk{"a": 10, "b": "Dub", "c": byte(0xd)}),
+			Stf("A", dk{"a": 2.05, "b": Bytes{0xe, 0xf, 0xa}, "c": 'Q'}),
+		)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestMultitypeArgs(t *testing.T) {
 	tdata := []struct {

@@ -13,18 +13,11 @@ ok 3. a ? b : c
 ok 4. a ?: b
 ok 5. @!
 ok 5.1 @defined(varname)
-6. a :: type
-7. v : int|float
+ok 6. a :: type
+ok 7. v : int|float
 8. a :: int|float
 */
 
-/*
-r <- x :: int
-r <- x :: A
-r <- x :: B
-r <- x :: C
-r <- x :: null
-*/
 func TestCheckTypeStruct(t *testing.T) {
 	tdata := []struct {
 		src   string

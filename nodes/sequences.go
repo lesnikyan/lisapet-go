@@ -77,19 +77,21 @@ func (op *OperColon) DoVar(cx base.Context) error {
 	var rtype *base.Type
 	switch tupx := op.Right.(type) {
 	case *VarExpr:
-		err2 := tupx.Do(cx)
-		if err2 != nil {
-			// fmt.Println("OperColon.R error", err2)
-			return err2
+		// err2 := tupx.Do(cx)
+		// if err2 != nil {
+		// 	// fmt.Println("OperColon.R error", err2)
+		// 	return err2
+		// }
+		// rtype = cx.GetType(tupx.name)
+		// if rtype == nil {
+		// 	return errors.New("colon: can't find type")
+		// }
+		ft, err := tupx.AsType(cx)
+		if err != nil {
+			return err
 		}
-		rtype = cx.GetType(tupx.name)
-		if rtype == nil {
-			return errors.New("colon: can't find type")
-		}
+		rtype = ft
 	case *OperBin:
-		if tupx.Oper.Id != OpBitOr {
-			return errors.New("colon: type expr: must be name or bit-Or`|` ")
-		}
 		mt, err := MixedSubs(tupx, cx)
 		if err != nil {
 			// fmt.Println("OperColon.R mixwed error", err, mt)

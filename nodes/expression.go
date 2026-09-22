@@ -101,6 +101,19 @@ func (ex *VarExpr) SetName(name string) {
 	ex.name = name
 }
 
+func (ex *VarExpr) AsType(cx base.Context) (*base.Type, error) {
+	et := cx.GetElem(ex.name)
+	if et == nil {
+		// type not found
+	}
+	ft, ok := et.V.(*base.Type)
+	if !ok {
+		// not type
+		return nil, errors.New("struct def: bad type name in `field:type`")
+	}
+	return ft, nil
+}
+
 func (ex *VarExpr) Do(cx base.Context) error {
 	ex.IsVar = false
 	ex.vr = nil

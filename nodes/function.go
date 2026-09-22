@@ -106,21 +106,23 @@ func (fn *FuncBlock) InitArg(cx base.Context, ex base.Expression) (*obj.ArgExp, 
 		var tt *base.Type
 		switch rexp := cvar.Right.(type) {
 		case *VarExpr:
-			err := rexp.Do(cx)
+			// err := rexp.Do(cx)
+			// if err != nil {
+			// 	// fmt.Printf(" Fu.InitArg.err110  n=%s err: %v \n", lvar.name, err)
+			// 	return nil, err
+			// }
+			// tt = cx.GetType(rexp.name)
+			// if tt == nil {
+			// 	// no type
+			// 	// fmt.Printf(" Fu.InitArg.err23  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+			// 	return nil, errors.New("arg init: type not found ")
+			// }
+			ft, err := rexp.AsType(cx)
 			if err != nil {
-				// fmt.Printf(" Fu.InitArg.err110  n=%s err: %v \n", lvar.name, err)
 				return nil, err
 			}
-			tt = cx.GetType(rexp.name)
-			if tt == nil {
-				// no type
-				// fmt.Printf(" Fu.InitArg.err23  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
-				return nil, errors.New("arg init: type not found ")
-			}
+			tt = ft
 		case *OperBin:
-			if rexp.Oper.Id != OpBitOr {
-				return nil, errors.New("arg init: type exp must be name or bit-Or`|` ")
-			}
 			mt, err := MixedSubs(rexp, cx)
 			if err != nil {
 				// fmt.Println("OperColon.R mixwed error", err, mt)

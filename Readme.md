@@ -107,11 +107,13 @@ next - by dates...
 - --20 Added **delete operator** `@!`. It deletes variables, element of list, dict.  
 - --21 Added type check operator `::`, `null :: null` is `true`, parent struct type is `true`   
 - ---22 implemented **multitype** vars: `x : int|float|byte = 1`  
+    Implemented mulityped args: `foo(x: int|float)`  
+    Implemented multityped fields of struct: `struct Abc a: int|float, b: list|dict`  
 
 
 
 #### next TODO:   
-- multitype: arg, `::`  
+- multitype: `::`  
 - inline block: ` ; ; `
 - inline control: `if`, `for`, `while` `/:`
 - formatting by expression include: "Hello {name}!"

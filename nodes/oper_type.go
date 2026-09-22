@@ -119,6 +119,9 @@ func ExprFromMixed(expr *OperBin) []base.Expression {
 }
 
 func MixedSubs(expr *OperBin, cx base.Context) (*base.MixedType, error) {
+	if expr.Oper.Id != OpBitOr {
+		return nil, errors.New("arg init: type exp must be name or bit-Or`|` ")
+	}
 	xx := ExprFromMixed(expr)
 	res := make([]*base.Type, len(xx))
 	for i, ex := range xx {
