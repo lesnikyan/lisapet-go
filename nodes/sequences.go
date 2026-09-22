@@ -87,6 +87,9 @@ func (op *OperColon) DoVar(cx base.Context) error {
 			return errors.New("colon: can't find type")
 		}
 	case *OperBin:
+		if tupx.Oper.Id != OpBitOr {
+			return errors.New("colon: type expr: must be name or bit-Or`|` ")
+		}
 		mt, err := MixedSubs(tupx, cx)
 		if err != nil {
 			// fmt.Println("OperColon.R mixwed error", err, mt)
