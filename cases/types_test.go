@@ -6,6 +6,133 @@ import (
 	oob "github.com/lesnikyan/lisapet-go/objects"
 )
 
+/*
+multitype:
+ok 1. var
+ok 2. funcs arg
+ok 3. struct field
+4. operator ::
+
+*/
+
+func TestMultitypeFields(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a:int|float
+		r = []
+		r <- A{a: 11}
+		r <- A{a:2.25}
+		`, "r", Anis(Stf("A", dk{"a": 11}), Stf("A", dk{"a": 2.25}))},
+		{`
+		struct A a:list|tuple|dict
+		#
+		func inst:A vals()
+			s = inst.a
+			if inst.a :: dict
+				s = inst.a.vals().sort()
+			[x; x <- s]
+		#
+		r = []
+		r <- A{a: [1,2,3]}.vals()
+		r <- A{a: (11,12,13)}.vals()
+		r <- A{a: {'a': 'Ant', 'b':'Bin', 'c':'Cell'}}.vals()
+		`, "r", Anis(Anis(1, 2, 3), Anis(11, 12, 13), Anis("Ant", "Bin", "Cell"))},
+
+		{`
+		struct A a:int|float, b: string|bytes, c:byte|glif
+		r = []
+		r <- A{a: 10, b: 'Dub', c: 00xd}
+		r <- A{a: 2.05, b: 0x[e f a], c: g'Q'}
+		`, "r", Anis(
+			Stf("A", dk{"a": 10, "b": "Dub", "c": byte(0xd)}),
+			Stf("A", dk{"a": 2.05, "b": Bytes{0xe, 0xf, 0xa}, "c": 'Q'}),
+		)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestMultitypeArgs(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x: int|float)
+			x + 100
+		r = []
+		nn = [0, 1, 2.2, 3, 4.5]
+		for n <- nn
+			r <- foo(n)
+		`, "r", Anis(100, 101, 102.2, 103, 104.5)},
+		{`
+		func elem1(x: dict|list|tuple)
+			if x :: dict && 1 !?> x
+				return -14
+			else if len(x)  == 0
+				return -17
+			x[1]
+		r = []
+		nn = [[22,33, 44], {1:111, 2:222}, (101, 102, 103), {}, []]
+		for n <- nn
+			r <- elem1(n)
+		`, "r", Anis(33, 111, 102, -14, -17)},
+		{`
+		# struct method
+		struct A a: int
+		#
+		func a:A foo(x: int|float)
+			a.a + x
+		r = []
+		nn = [A{a:11}, A{a:22}]
+		xx = [100, 200.01]
+		for i, n <- nn
+			r <- n.foo(xx[i])
+		`, "r", Anis(111, 222.01)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestTypeMulti(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x: int|float|list = 102
+		r = x
+		`, "r", int64(102)},
+		{`
+		x: int|float|list = 10.2
+		r = x
+		`, "r", float64(10.2)},
+		{`
+		x: int|float|list = [10, 3]
+		r = x
+		`, "r", Anis(10, 3)},
+		{`
+		nnn = [[1,2], (3,4), [5,6]]
+		r = []
+		for n <- nnn
+			nn: tuple|list = n
+			for x <- nn
+				r <- x
+		`, "r", Anis(1, 2, 3, 4, 5, 6)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestConstructDict(t *testing.T) {
 	tdata := []struct {
 		src   string

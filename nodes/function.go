@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	obj "github.com/lesnikyan/lisapet-go/objects"
@@ -101,21 +102,35 @@ func (fn *FuncBlock) InitArg(cx base.Context, ex base.Expression) (*obj.ArgExp, 
 		if !ok {
 			return nil, errors.New("arg init: err22")
 		}
-		err := cvar.Right.Do(cx)
-		if err != nil {
-			return nil, err
-		}
-		rvar, ok := cvar.Right.(*VarExpr)
-		if !ok {
-			// no type
-			// fmt.Printf(" Fu.InitArg.err221  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
-			return nil, errors.New("arg init: err221, not a word in right of types arg ")
-		}
-		tt := cx.GetType(rvar.name)
-		if tt == nil {
-			// no type
-			// fmt.Printf(" Fu.InitArg.err23  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
-			return nil, errors.New("arg init: err23 ")
+
+		var tt *base.Type
+		switch rexp := cvar.Right.(type) {
+		case *VarExpr:
+			// err := rexp.Do(cx)
+			// if err != nil {
+			// 	// fmt.Printf(" Fu.InitArg.err110  n=%s err: %v \n", lvar.name, err)
+			// 	return nil, err
+			// }
+			// tt = cx.GetType(rexp.name)
+			// if tt == nil {
+			// 	// no type
+			// 	// fmt.Printf(" Fu.InitArg.err23  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
+			// 	return nil, errors.New("arg init: type not found ")
+			// }
+			ft, err := rexp.AsType(cx)
+			if err != nil {
+				return nil, err
+			}
+			tt = ft
+		case *OperBin:
+			mt, err := MixedSubs(rexp, cx)
+			if err != nil {
+				// fmt.Println("OperColon.R mixwed error", err, mt)
+				return nil, err
+			}
+			tt = &base.Type{Id: base.TypeMixed, Mix: mt}
+		default:
+			return nil, fmt.Errorf("arg init colo: bad type expr: %T ", rexp)
 		}
 
 		vtype := tt

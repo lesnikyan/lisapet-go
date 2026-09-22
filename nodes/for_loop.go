@@ -210,7 +210,8 @@ func (nd *ForSourceNode) Loop(cx base.Context) error {
 			}
 			return err
 		}
-		err = nd.Block.Do(cx)
+		subCx := cx.SubContext()
+		err = nd.Block.Do(subCx)
 
 		if err != nil {
 			// println("Err2 ", err.Error())

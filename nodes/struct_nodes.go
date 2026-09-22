@@ -64,21 +64,36 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 				return nil, errors.New("struct def: bad syntax of field name in `field:type`")
 			}
 			name = lexp.name
-			rexp, ok := fex.Right.(*VarExpr) // type
-			if !ok {
+			// rexp, ok := fex.Right.(*VarExpr) // type
+			switch rexp := fex.Right.(type) {
+			case *VarExpr:
+				// et := cx.GetElem(rexp.name)
+				// if et == nil {
+				// 	// type not found
+				// }
+				// ft, ok := et.V.(*base.Type)
+				// if !ok {
+				// 	// not type
+				// 	return nil, errors.New("struct def: bad type name in `field:type`")
+				// }
+				ft, err := rexp.AsType(cx)
+				if err != nil {
+					return nil, err
+				}
+				ftype = ft
+			case *OperBin:
+				mt, err := MixedSubs(rexp, cx)
+				if err != nil {
+					// fmt.Println("OperColon.R mixwed error", err, mt)
+					return nil, err
+				}
+				ftype = &base.Type{Id: base.TypeMixed, Mix: mt}
+			default:
 				// strange case
 				return nil, errors.New("struct def: bad syntax of type name in `field:type`")
 			}
-			et := cx.GetElem(rexp.name)
-			if et == nil {
-				// type not found
-			}
-			ft, ok := et.V.(*base.Type)
-			if !ok {
-				// not type
-				return nil, errors.New("struct def: bad type name in `field:type`")
-			}
-			ftype = ft
+			// if !ok {
+			// }
 		default:
 			return nil, fmt.Errorf("struct def: incorrect expression (%T) instead of field", fex)
 		}
