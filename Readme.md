@@ -107,16 +107,18 @@ next - by dates...
 ```
 - --19 Added `@defined(var)` - check if var, func, type, etc was defined.  
 - --20 Added **delete operator** `@!`. It deletes variables, element of list, dict.  
-- --21 Added type check operator `::`, `null :: null` is `true`, parent struct type is `true`   
+- --21 Added check **type operator** `::`, `null :: null` is `true`, parent struct type is `true`   
 - --22 implemented **multitype** vars: `x : int|float|byte = 1`  
     Implemented mulityped args: `foo(x: int|float)`  
     Implemented multityped fields of struct: `struct Abc a: int|float, b: list|dict`  
-- --23 Fix oper `::` for mixed types: `val :: int|byte|bool`
+- --23 Fix oper `::` for mixed types: `val :: int|byte|bool`  
+    Implement **triple-dots** `[]...` as list|tuple arg for native constructor: `[1, 2, nn... , 10]`  
+    triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []   
 
 
 
 #### next TODO:   
-- triple-dots `[]...` for list/tuple native constructor: `[1, 2, nn... , 10]`  
+- triple dots with dict ?  {a:val, dd...}; func: foo(dd...) => foo(key=val)
 - inline block: ` ; ; `  
 - inline control: `if`, `for`, `while` `/:`  
 - user-defined type constructor  

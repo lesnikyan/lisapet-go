@@ -28,25 +28,113 @@ func (cs *ListExpr) Get() *base.Val {
 	return base.NewVal(cs.res)
 }
 
-// func (op *ListExpr) IsParent() bool {
-// 	// don't used as Block by default
-// 	return false
-// }
+func CollExprValues(src []base.Expression, num int) []any {
+	elems := make([]any, num)
+	// fmt.Printf("CLExVals... %d \n", num)
+	i := 0
+	for _, ex := range src {
+		switch exv := ex.(type) {
+		case *TripleDots:
+			var subs []any
+			// for j, sub := range el.
+			val := GetExprVal(exv, nil)
+			switch coll := val.(type) {
+			case *objects.Maybe:
+				if !coll.IsNone() {
+					elems[i] = coll.Val
+					i++
+				}
+				continue
+			case *objects.ListVal:
+				subs = coll.Elems
+			case *objects.TupleVal:
+				subs = coll.Elems
+			default:
+				panic(fmt.Errorf("only list, tuple or maybe type can be expanded in sequence, but have %T", coll))
+			}
+			for _, sub := range subs {
+				elems[i] = sub
+				i++
+			}
+		default:
+			elems[i] = GetExprVal(exv, nil)
+			i++
+		}
+	}
+	return elems
+}
 
-func (cs *ListExpr) Do(ctx base.Context) error {
-	src := make([]base.Expression, len(cs.Seq.Subs))
-	copy(src, cs.Seq.Subs)
-	src = append(src, cs.Subs...)
-	res := make([]any, len(src))
+func DoSeq[T *ListExpr | *TupleExpr](ctx base.Context, col T) (int, []base.Expression, error) {
+	var seq *SequenceComma
+	var subs []base.Expression
+	switch cs := any(col).(type) {
+	case *ListExpr:
+		seq = cs.Seq
+		subs = cs.Subs
+	case *TupleExpr:
+		seq = cs.Seq
+		subs = cs.Subs
+	default:
+		return 0, nil, fmt.Errorf("Do sequence: bad collection expr: %T", cs)
+	}
+	src := make([]base.Expression, len(seq.Subs))
+	copy(src, seq.Subs)
+	src = append(src, subs...)
+	// res := make([]any, len(src))
 	// fmt.Println("[] List Do:", len(src))
-	for i, ex := range src {
+	num := 0
+	for _, ex := range src {
+		ds := 1
 		err := ex.Do(ctx)
 		if err != nil {
-			return err
+			return 0, nil, err
 		}
-		res[i] = GetExprVal(ex, ctx)
+		triple, ok := ex.(*TripleDots)
+		if ok {
+			ds = triple.Len()
+		}
+		num += ds
+		// res[i] = GetExprVal(ex, ctx)
 	}
-	cs.res = objects.NewListVal(res)
+	return num, src, nil
+}
+
+func (cs *ListExpr) Do(ctx base.Context) error {
+	num, src, err := DoSeq(ctx, cs)
+	if err != nil {
+		return err
+	}
+	elems := CollExprValues(src, num)
+	cs.res = objects.NewListVal(elems)
+	return nil
+}
+
+//===== Tuple
+
+type TupleExpr struct {
+	Seq  *SequenceComma
+	Subs []base.Expression
+	res  *objects.TupleVal
+}
+
+func (cs *TupleExpr) Add(sub base.Expression) {
+	if cs.Subs == nil {
+		cs.Subs = []base.Expression{}
+	}
+	cs.Subs = append(cs.Subs, sub)
+}
+
+func (cs *TupleExpr) Get() *base.Val {
+	return base.NewVal(cs.res)
+}
+
+func (cs *TupleExpr) Do(ctx base.Context) error {
+	num, src, err := DoSeq(ctx, cs)
+	if err != nil {
+		return err
+	}
+	elems := CollExprValues(src, num)
+	cs.res = objects.NewTupleVal(elems)
 	return nil
 }
 
@@ -253,47 +341,6 @@ func (cs *ColSlice) Do(cx base.Context) error {
 func NewSlice(col base.Expression, sub *OperColon) *ColSlice {
 	inds := sub.GetPair()
 	return &ColSlice{Col: col, Inds: inds}
-}
-
-//===== Tuple
-
-type TupleExpr struct {
-	Seq  *SequenceComma
-	Subs []base.Expression
-	res  *objects.TupleVal
-}
-
-// func (op *TupleExpr) IsParent() bool {
-// 	// don't used as Block by default
-// 	return false
-// }
-
-func (cs *TupleExpr) Add(sub base.Expression) {
-	if cs.Subs == nil {
-		cs.Subs = []base.Expression{}
-	}
-	cs.Subs = append(cs.Subs, sub)
-}
-
-func (cs *TupleExpr) Get() *base.Val {
-	return base.NewVal(cs.res)
-}
-
-func (cs *TupleExpr) Do(ctx base.Context) error {
-	src := make([]base.Expression, len(cs.Seq.Subs))
-	copy(src, cs.Seq.Subs)
-	src = append(src, cs.Subs...)
-	res := make([]any, len(src))
-	// fmt.Println("(,) Tuple Do:", len(src))
-	for i, ex := range src {
-		err := ex.Do(ctx)
-		if err != nil {
-			return err
-		}
-		res[i] = GetExprVal(ex, ctx)
-	}
-	cs.res = objects.NewTupleVal(res)
-	return nil
 }
 
 //==== ColonPair
