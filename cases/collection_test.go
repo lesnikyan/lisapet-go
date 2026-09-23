@@ -19,8 +19,9 @@ ok list
 ok tuple
 ok dict
 ok bytes
-5. triple dots in colelction [nn...]
-5.1 triple dots maybe: [some(1)...] >> [1]; [none...] >> []
+ok 5. triple dots in colelction [nn...]
+ok 5.1 triple dots maybe: [some(1)...] >> [1]; [none...] >> []
+ok 5.2 triple dots for dicts {dd...}
 
 BUG: (1 2 3)
 
@@ -29,6 +30,34 @@ BUG: (1 2 3)
 
 type Bytes = obb.Bytes
 
+func TestTripleDotsDict(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		dd = {'cc':'33', 'dd':'44'}
+		r = {'a':'11', 'b':'22', dd...}
+		`, "r", adk(dk{"a": "11", "b": "22", "cc": "33", "dd": "44"})},
+		{`
+		dd = {'cc':'33', 'dd':'44'}
+		r = {dd...}
+		`, "r", adk(dk{"cc": "33", "dd": "44"})},
+		{`
+		dd = {'cc':'33', 'dd':'44'}
+		r = {'a':'11', dd..., 'ff':55}
+		`, "r", adk(dk{"a": "11", "cc": "33", "dd": "44", "ff": 55})},
+		// // dict callable constr
+		// {`
+		// dd = {'cc':'33', 'dd':'44'}
+		// r = dict(dd...)
+		// `, "r", adk(dk{"cc": "33", "dd": "44"})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 func TestTripleDotsSeq(t *testing.T) {
 	tdata := []struct {
 		src   string

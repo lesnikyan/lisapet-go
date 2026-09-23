@@ -113,12 +113,14 @@ next - by dates...
     Implemented multityped fields of struct: `struct Abc a: int|float, b: list|dict`  
 - --23 Fix oper `::` for mixed types: `val :: int|byte|bool`  
     Implement **triple-dots** `[]...` as list|tuple arg for native constructor: `[1, 2, nn... , 10]`  
-    triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []   
+    triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []  
+    triple dots with `dict`:  `{k:val, dd...}`  
 
 
 
 #### next TODO:   
-- triple dots with dict ?  {a:val, dd...}; func: foo(dd...) => foo(key=val)
+- variadic args `foo(nn...)`  
+- variadic args with `dict`:   func: `foo(dd...)` => `foo(key=val)`  
 - inline block: ` ; ; `  
 - inline control: `if`, `for`, `while` `/:`  
 - user-defined type constructor  
@@ -133,7 +135,6 @@ next - by dates...
 - `const`  
 - match statement: simple vals  
 - match pattern   
-- variadic args `foo(nn...)`  
 - func overload  
 - func high-order features  
 - enum  

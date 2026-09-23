@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"strconv"
 
 	"github.com/lesnikyan/lisapet-go/base"
@@ -404,18 +405,36 @@ func (cs *DictExpr) Do(ctx base.Context) error {
 	src = append(src, cs.Subs...)
 	res := make(map[any]any, len(src))
 	for _, ex := range src {
-		opcol, ok := ex.(*OperColon)
-		if !ok {
+		switch sx := ex.(type) {
+		case *OperColon:
+			cpair := sx.GetPair()
+			// fmt.Printf("DictDo1 (%T, %v) \n", cpair, cpair)
+			err := cpair.Do(ctx)
+			if err != nil {
+				return err
+			}
+			pairVal := cpair.GetPair()
+			res[pairVal[0]] = pairVal[1]
+		case *TripleDots:
+			err := sx.Do(ctx)
+			if err != nil {
+				return err
+			}
+			xres := GetExprVal(sx, nil)
+			switch val := xres.(type) {
+			case *objects.DictVal:
+				maps.Copy(res, val.Vmap)
+				// for k, v := range val.Vmap {
+				// 	res[k] = v
+				// }
+			default:
+				return fmt.Errorf("bad value in triple oper for dict expression: %T", val)
+			}
+		default:
 			return errors.New("Incorest subelement of dict expression")
 		}
-		cpair := opcol.GetPair()
-		// fmt.Printf("DictDo1 (%T, %v) \n", cpair, cpair)
-		err := cpair.Do(ctx)
-		if err != nil {
-			return err
-		}
-		pairVal := cpair.GetPair()
-		res[pairVal[0]] = pairVal[1]
+		// if !ok {
+		// }
 	}
 	cs.res = objects.NewDictVal(res)
 	return nil
