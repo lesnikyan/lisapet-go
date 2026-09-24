@@ -232,6 +232,7 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 			case *objects.Maybe:
 				if !vv.IsNone() {
 					vals[i] = vv.Val
+					i++
 				}
 				continue
 			}

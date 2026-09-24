@@ -116,8 +116,9 @@ next - by dates...
     triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []  
     triple dots with `dict`:  `{k:val, dd...}`  
 - --24 Implemented variadic args `foo(nn...)`  
-    Implemened triple-dots in function call: Expanding list|tuple into arg set: 
+    Implemened triple-dots in function call: Expanding `list`|`tuple`|`maybe` into arg set: 
         `foo(1,2, nums...) => foo(1, 2, nums[0], nums[1], ... )`
+        `foo(1,2, some(14)...) => foo(1, 2, 14 )`
 
 
 #### next TODO:   

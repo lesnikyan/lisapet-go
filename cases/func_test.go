@@ -53,6 +53,21 @@ func TestFuncCallTripleDot(t *testing.T) {
 		func foo(nn...)
 			[x * 10; x <- nn]
 		#
+		r = foo([4,5,6]...)
+		`, "r", Anis(40, 50, 60)},
+		{`
+		func nums()
+			[7,8,9]
+		#
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		r = foo(nums()...)
+		`, "r", Anis(70, 80, 90)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
 		ss = [1 .. 5]
 		r = foo(ss...)
 		`, "r", Anis(10, 20, 30, 40, 50)},
@@ -91,6 +106,44 @@ func TestFuncCallTripleDot(t *testing.T) {
 		ss = [1, 1000, 5, 1,2,3]
 		r = foo(ss...)
 		`, "r", Anis(1005, 1010, 1015)},
+		{`
+		# expand tuple
+		func foo(a, b, m=1, nn...)
+			[x * a * m + b; x <- nn]
+		#
+		ss = (2, 1000, 5, 1,2,3)
+		r = foo(ss...)
+		`, "r", Anis(1010, 1020, 1030)},
+		{`
+		# expand empty or 1-elem list
+		func foo(a, m=1)
+			a * m
+		#
+		r = []
+		ss = [[2], [5]]
+		for m <- ss
+			r <- foo(7, m...)
+		`, "r", Anis(14, 35)},
+		{`
+		# expand empty or 1-elem tuple
+		func foo(a, m=1)
+			a * m
+		#
+		r = []
+		ss = [(2,), (5,), (,)]
+		for m <- ss
+			r <- foo(2, m...)
+		`, "r", Anis(4, 10, 2)},
+		{`
+		# expand maybe
+		func foo(a, m=1)
+			a * m
+		#
+		r = []
+		ss = [some(2), some(5), none]
+		for m <- ss
+			r <- foo(3, m...)
+		`, "r", Anis(6, 15, 3)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
