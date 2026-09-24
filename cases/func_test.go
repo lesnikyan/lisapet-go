@@ -19,14 +19,71 @@ ok 7. multi assign
 ok 8. multi result: return a, b, 10
 ok 12. constructors of builtin types: int(), list(), tuple(), etc
 ok 15. builtin methods: 'a b c'.split(' ')
+11. nn... variative count of args, triple-dot operator
 
 9. return from: match-case
-11. variative count of args, triple-dot operator
 13. func overaload: by arg count, by arg types
 14.1 multitype for var
 14.2 multitype for args
 
 */
+
+// call: foo(nn...)
+func _TestFuncTripleDotArg(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		ss = [1.2.3]
+		r = foo(ss...)
+		`, "r", true},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+// define: func foo(args...)
+func TestFuncVariadicArgs(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(nn...)
+			nn
+		#
+		r = foo(1,2,3)
+		`, "r", Anis(1, 2, 3)},
+		{`
+		func foo(a, b, nn...)
+			nn + [a, b]
+		#
+		r = foo(1,2,3, 4, 5)
+		`, "r", Anis(3, 4, 5, 1, 2)},
+		{`
+		func foo(nn..., c=0)
+			nn + [c * 10]
+		#
+		r = foo(1,2,3, c = 4)
+		`, "r", Anis(1, 2, 3, 40)},
+		{`
+		func foo(a, b, nn..., c=0)
+			nn + [c * 10, a, b]
+		#
+		r = foo(1,2,3, 4, 5, c = 4)
+		`, "r", Anis(3, 4, 5, 40, 1, 2)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestDefined(t *testing.T) {
 	tdata := []struct {
