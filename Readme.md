@@ -115,12 +115,13 @@ next - by dates...
     Implement **triple-dots** `[]...` as list|tuple arg for native constructor: `[1, 2, nn... , 10]`  
     triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []  
     triple dots with `dict`:  `{k:val, dd...}`  
-
+- --24 Implemented variadic args `foo(nn...)`  
+    Implemened triple-dots in function call: Expanding list|tuple into arg set: 
+        `foo(1,2, nums...) => foo(1, 2, nums[0], nums[1], ... )`
 
 
 #### next TODO:   
-- variadic args `foo(nn...)`  
-- variadic args with `dict`:   func: `foo(dd...)` => `foo(key=val)`  
+- function call with `dictVal...`, dict expands as set of named args:   func: `foo(dd...)` => `foo(key=val, ...)`  
 - inline block: ` ; ; `  
 - inline control: `if`, `for`, `while` `/:`  
 - user-defined type constructor  

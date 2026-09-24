@@ -29,19 +29,68 @@ ok 15. builtin methods: 'a b c'.split(' ')
 */
 
 // call: foo(nn...)
-func _TestFuncTripleDotArg(t *testing.T) {
+func TestFuncCallTripleDot(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
 		{`
+		func foo(a, b, c)
+			[a, b, c]
+		#
+		ss = [1, 2, 3]
+		r = foo(ss...)
+		`, "r", Anis(1, 2, 3)},
+		{`
 		func foo(nn...)
 			[x * 10; x <- nn]
 		#
-		ss = [1.2.3]
+		ss = [1, 2, 3]
 		r = foo(ss...)
-		`, "r", true},
+		`, "r", Anis(10, 20, 30)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		ss = [1 .. 5]
+		r = foo(ss...)
+		`, "r", Anis(10, 20, 30, 40, 50)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		ss = [x ; x <- iter(4)]
+		r = foo(ss...)
+		`, "r", Anis(0, 10, 20, 30, 40)},
+		{`
+		func foo(a, b, nn...)
+			[x * a + b; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(2, 100, ss...)
+		`, "r", Anis(102, 104, 106)},
+		{`
+		func foo(a, b, nn...)
+			[x * a + b; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(2, 100, 5, 6, 7,  ss...)
+		`, "r", Anis(110, 112, 114, 102, 104, 106)},
+		{`
+		func foo(a, b, nn..., m=1, k=1)
+			[x * a * m + b*k; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(3, 100, 5, 6, 7,  ss..., m=5, k=20)
+		`, "r", Anis(2075, 2090, 2105, 2015, 2030, 2045)},
+		{`
+		func foo(a, b, m=1, nn...)
+			[x * a * m + b; x <- nn]
+		#
+		ss = [1, 1000, 5, 1,2,3]
+		r = foo(ss...)
+		`, "r", Anis(1005, 1010, 1015)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

@@ -139,7 +139,7 @@ func (fn *FuncBlock) InitArg(cx base.Context, ex base.Expression) (*obj.ArgExp, 
 		default:
 			return nil, fmt.Errorf("arg init triple-dots: bad left expr: %T ", lexp)
 		}
-		vtype := cx.GetType("list")
+		vtype := cx.GetRoot().GetType("list")
 		if vtype == nil {
 			return nil, fmt.Errorf("arg init triple-dots: type list undefined!")
 		}
