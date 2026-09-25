@@ -227,7 +227,14 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 			case *objects.TupleVal:
 				src = vv.Elems
 			case *objects.DictVal:
-				// TODO: expand dict to named args
+				// expand dict to named args
+				for k, v := range vv.Vmap {
+					sk, ok := k.(string)
+					if !ok {
+						return fmt.Errorf("fun arg: expand dict: key must be a string, got %T", k)
+					}
+					mvals[sk] = v
+				}
 				continue
 			case *objects.Maybe:
 				if !vv.IsNone() {

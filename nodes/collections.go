@@ -424,17 +424,12 @@ func (cs *DictExpr) Do(ctx base.Context) error {
 			switch val := xres.(type) {
 			case *objects.DictVal:
 				maps.Copy(res, val.Vmap)
-				// for k, v := range val.Vmap {
-				// 	res[k] = v
-				// }
 			default:
 				return fmt.Errorf("bad value in triple oper for dict expression: %T", val)
 			}
 		default:
 			return errors.New("Incorest subelement of dict expression")
 		}
-		// if !ok {
-		// }
 	}
 	cs.res = objects.NewDictVal(res)
 	return nil

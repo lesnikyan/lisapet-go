@@ -116,13 +116,13 @@ next - by dates...
     triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []  
     triple dots with `dict`:  `{k:val, dd...}`  
 - --24 Implemented variadic args `foo(nn...)`  
-    Implemened triple-dots in function call: Expanding `list`|`tuple`|`maybe` into arg set: 
-        `foo(1,2, nums...) => foo(1, 2, nums[0], nums[1], ... )`
-        `foo(1,2, some(14)...) => foo(1, 2, 14 )`
+    Implemened arg with triple-dots in function call: Expanding `list`|`tuple`|`maybe` into arg set:  
+        `foo(1,2, nums...) => foo(1, 2, nums[0], nums[1], ... )`  if list, tuple  
+        `foo(1,2, some(14)...) => foo(1, 2, 14 )` val from `some`, no effect if `none`  
+    Added `dict` expanding in function call, `dict` expands as set of named args:   func: `foo({key:val}...)` => `foo(key=val, ...)`  
 
 
 #### next TODO:   
-- function call with `dictVal...`, dict expands as set of named args:   func: `foo(dd...)` => `foo(key=val, ...)`  
 - inline block: ` ; ; `  
 - inline control: `if`, `for`, `while` `/:`  
 - user-defined type constructor  

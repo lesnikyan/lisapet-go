@@ -28,6 +28,54 @@ ok 15. builtin methods: 'a b c'.split(' ')
 
 */
 
+// call: foo({k:v}...)
+func TestFCallTriDotsDict(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(a, b=1, c=1)
+			a * b + c
+		#
+		dd = {'b':2, 'c':3}
+		r = foo(5, dd...)
+		`, "r", int64(13)},
+		{`
+		func foo(a, b=1, c=1)
+			a * b + c
+		#
+		dd = {'c':3}
+		r = []
+		r <- foo(5, dd...)
+		dd = {}
+		r <- foo(20, dd...)
+		`, "r", Anis(8, 21)},
+		{`
+		func foo(a, b=1, c=1)
+			a * b + c
+		#
+		dd = {'b':7}
+		r = foo(5, dd...)
+		`, "r", int64(36)},
+		{`
+		func foo(nn..., a=1, b=1)
+			[a * b + n ; n <- nn]
+		#
+		dd = {'b': 100}
+		r = foo([11,22,33]..., a=5, dd...)
+		`, "r", Anis(511, 522, 533)},
+		{`
+		dd = {'aa':1, 'rr':2}
+		r = dict(x=101,  dd...)
+		`, "r", adk(dk{"aa": 1, "rr": 2, "x": 101})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 // call: foo(nn...)
 func TestFuncCallTripleDot(t *testing.T) {
 	tdata := []struct {
