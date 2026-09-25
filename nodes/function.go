@@ -106,17 +106,6 @@ func (fn *FuncBlock) InitArg(cx base.Context, ex base.Expression) (*obj.ArgExp, 
 		var tt *base.Type
 		switch rexp := cvar.Right.(type) {
 		case *VarExpr:
-			// err := rexp.Do(cx)
-			// if err != nil {
-			// 	// fmt.Printf(" Fu.InitArg.err110  n=%s err: %v \n", lvar.name, err)
-			// 	return nil, err
-			// }
-			// tt = cx.GetType(rexp.name)
-			// if tt == nil {
-			// 	// no type
-			// 	// fmt.Printf(" Fu.InitArg.err23  n=%s tp=(%T, %v) \n", lvar.name, cvar.right, cvar.right)
-			// 	return nil, errors.New("arg init: type not found ")
-			// }
 			ft, err := rexp.AsType(cx)
 			if err != nil {
 				return nil, err
@@ -141,6 +130,21 @@ func (fn *FuncBlock) InitArg(cx base.Context, ex base.Expression) (*obj.ArgExp, 
 
 	case *TripleDots:
 		// triple-dots arg - nn...
+		var name string
+		// fmt.Printf(" Fu.InitArg#6 TripleDots...  n=%s tp=(%T, %v) \n", name, arx, arx)
+		valsEx := arx.Left
+		switch lexp := valsEx.(type) {
+		case *VarExpr:
+			name = lexp.GetName()
+		default:
+			return nil, fmt.Errorf("arg init triple-dots: bad left expr: %T ", lexp)
+		}
+		vtype := cx.GetRoot().GetType("list")
+		if vtype == nil {
+			return nil, fmt.Errorf("arg init triple-dots: type list undefined!")
+		}
+		rex := &obj.ArgExp{Name: name, Type: vtype, Variadic: true}
+		return rex, nil
 	}
 	return nil, errors.New("arg init: incorrect end of init")
 }
@@ -192,9 +196,12 @@ func (fn *FuncBlock) getVal(i int, name string) (any, error) {
 	// return nil, errors.New("fun: val not found")
 }
 
-// foo(<positional>, <variadic...>, <named=val>)
+// definition, arguments order:
+// foo(<positional>, <variadic...>, <named=default_val>)
 func (fn *FuncBlock) PrepareArgs(cx base.Context) error {
 	// fmt.Printf(" Fu.PArg#0  %d  \n", len(fn.Args))
+	finord := false // ordered val was finished
+	overId := len(fn.argVals)
 	for i, arg := range fn.Args {
 		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg.Name)
 		// take var
@@ -219,8 +226,31 @@ func (fn *FuncBlock) PrepareArgs(cx base.Context) error {
 			return errors.New("func prepare: no arg var")
 		}
 
+		// Lart variadic arg
+		if arg.Variadic && len(fn.argVals) > i {
+			// lastId := len(fn.argVals) - 1
+			velems := make([]any, len(fn.argVals)-i)
+			// for j, vv := range fn.argVals[i:] {
+			// 	velems[j] = vv
+			// }
+			copy(velems, fn.argVals[i:])
+			val := obj.NewListVal(velems)
+			aerr := obj.SetVarVal(vr, val)
+			if aerr != nil {
+				return errors.Join(errors.New("func prep arg: assign arg error"), aerr)
+			}
+			finord = true
+			continue
+		}
+
+		id := i
+		if finord {
+			// no ordered vals after variadic arg
+			id = overId
+		}
+
 		// get value
-		val, err := fn.getVal(i, arg.Name)
+		val, err := fn.getVal(id, arg.Name)
 		if err != nil {
 			return err
 		}

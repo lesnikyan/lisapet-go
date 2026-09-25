@@ -1,6 +1,7 @@
 
 ## Overview.
 Go-lang implementation of `Lisapet` programming language.  
+[Syntax overview in repo of python implementation](https://github.com/lesnikyan/lisapet/blob/dev/readme.md).  
   
   
 raw dev log:  
@@ -67,13 +68,13 @@ next - by dates...
     `bool`, `int`, `byte`, `float`, `glif`, `string`,  `list`, `tuple`, `dict`, `bytes`,  
     **maybe**: `some(val)`, `none`.  
 - -.-31 Implemented **builtin methods**. Added method `string.split`  
-- -.09.01 Added builtin methods of `string` type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`  
+- 2026.09.01 Added builtin methods of `string` type: `replace`, `join`, `trim`, `has`, `lines`, `bytes`, `glifs`  
 - -.-.02 Added methods for `list`: `map`, `join`, `fold`, `flat`  
     Added methods for `tuple`: `map`, `join`  
-- -.-.03 Added methods for dict: `map`, `keys`, `vals`, `kmap` (map for keys), `vmap`(map for values)  
+- -.-.03 Added methods for `dict`: `map`, `keys`, `vals`, `kmap` (map for keys), `vmap`(map for values)  
 - -.-.04 Added method `list.sort`: order compare of types: `bool`, numeric, `rune`, `string`  
     Added method `list.reverse`
-    Added short syntax of **byte** with two leading zeros: 00xff  
+    Added short syntax of **byte** with two leading zeros: `00xff`  
 - -.-.06 Added methods for bytes type: `map`, `fold`, `nums`, `blocks`, `bits`, `reverse`  
 - -.-.08 multiline strings: `''' '''`, `""" """`, ```` ``` ``` ````  
     Implemented ecscape sequences: ` ''' \n \t \' \" \` \\ ''' ` // except backticts strings  
@@ -82,17 +83,18 @@ next - by dates...
 - -.-.11 Add `regexp` as an argument to `string.split`, `string.replace`  
     Added `regexp` operators `=~` match, `?~` - find (works like findSubs)  
 - -.-..13 Implement named arg in builtin func (tested with dev builtin funcs)  
-    Added named args to: `dict` constructor as keys; to `int` constructor: optional `base` arg for parsing string.  
-    Added named args in builin methods. Tested with special type `mur` :)
+    Added named args to: `dict` constructor as keys;   
+    to `int` constructor: optional `base` arg for parsing string.  
+    Added named args in builin methods. Tested with special type `mur`(int) :)  
     Added method filter for types: `list`, `tuple`, `dict`
     Fixed `string.lines`: trim endline `\n`
 - --14 Added **multisource** loop-assign `for a, b, c <- aa, bb, cc`  
-- --15 Added List **comprehension** expression: `[x ; x <- src; n=expr; condition; ... ]`
-- --16 Added dict comprehension: `{key, val ; key, val <- keys, vals; n=expr; condition}`
+- --15 Added **List comprehension** expression: `[x ; x <- src; n=expr; condition; ... ]`
+- --16 Added **dict comprehension**: `{key, val ; key, val <- keys, vals; n=expr; condition}`
 - --18 Added **generator** experession wit sub-loops, sub-assign, condition: `(: elem; iter<-; assign=; condition?)`
     Added opers 'in' `?>`, 'not in' `!?>` for `list`, `tuple`, `dict`, `maybe` types: `5 ?> [1,2,3] => false`  
-    Added classic **ternary operator**: `condition ? trueVal : falseVal`
-    Added Elvis-operator `a ?: b`: returns left if left not a: false null, none, 0, 0.0, 0xx0, '', [], (,), {}; otherwize returns right  
+    Added classic **ternary operator**: `condition ? trueVal : falseVal`  
+    Added Elvis-operator `a ?: b`: returns left if left not a: `false`, `null`, `none`, `0`, `0.0`, `0xx0`, `""`, `[]`, `(,)`, `{}`; otherwize returns right  
 
 - --19 Added speed test. Sad sight )
 ```
@@ -105,24 +107,41 @@ next - by dates...
 ```
 - --19 Added `@defined(var)` - check if var, func, type, etc was defined.  
 - --20 Added **delete operator** `@!`. It deletes variables, element of list, dict.  
-- --21 Added type check operator `::`, `null :: null` is `true`, parent struct type is `true`   
+- --21 Added check **type operator** `::`, `null :: null` is `true`, parent struct type is `true`   
 - --22 implemented **multitype** vars: `x : int|float|byte = 1`  
     Implemented mulityped args: `foo(x: int|float)`  
     Implemented multityped fields of struct: `struct Abc a: int|float, b: list|dict`  
-- --23 Fix oper `::` for mixed types: `val :: int|byte|bool`
-
+- --23 Fix oper `::` for mixed types: `val :: int|byte|bool`  
+    Implement **triple-dots** `[]...` as list|tuple arg for native constructor: `[1, 2, nn... , 10]`  
+    triple dots of `maybe`: [some(1)...] >> [1]; [none...] >> []  
+    triple dots with `dict`:  `{k:val, dd...}`  
+- --24 Implemented variadic args `foo(nn...)`  
+    Implemened arg with triple-dots in function call: Expanding `list`|`tuple`|`maybe` into arg set:  
+        `foo(1,2, nums...) => foo(1, 2, nums[0], nums[1], ... )`  if list, tuple  
+        `foo(1,2, some(14)...) => foo(1, 2, 14 )` val from `some`, no effect if `none`  
+    Added `dict` expanding in function call, `dict` expands as set of named args:   func: `foo({key:val}...)` => `foo(key=val, ...)`  
 
 
 #### next TODO:   
-- inline block: ` ; ; `
-- inline control: `if`, `for`, `while` `/:`
-- formatting by expression include: "Hello {name}!"
-- /postpone after lambdas/ builtin methods for: 
+- inline block: ` ; ; `  
+- inline control: `if`, `for`, `while` `/:`  
+- user-defined type constructor  
+- string-comprehension: `~[string|glif ; iter ; cond]` 
+- byte comprehension: `0x[byte|iint ; iter ; cond ]`  
+- formatting by expression include: "Hello {name}!"  
+- /postpone after lambdas/ builtin methods for:   
     maybe.isNone   
     string: upper, lower, lcut(length):#cut left indents in multiline string:  
-    regexp operators [ split: `/~`-  thinking]
+    regexp operators [ split: `/~`-  thinking]  
 - CLI: lp file.et  
 - `const`  
+- match statement: simple vals  
+- match pattern   
+- func overload  
+- func high-order features  
+- enum  
+- grup  
+
 
 
 dev names:  

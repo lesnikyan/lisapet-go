@@ -129,6 +129,8 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.OperIn{Oper: OperByStr(oper)} // Rx opers
 	case "..":
 		expr = nodes.NewDots2(nil, nil)
+	case "...":
+		expr = &nodes.TripleDots{}
 	case ":":
 		expr = &nodes.OperColon{Oper: OperByStr(oper)}
 	case "?":
@@ -349,11 +351,6 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 		return nodes.NewFuncCall(fEx, fArgs), true
 
 	case "[":
-		// fmt.Printf("BWL#3 %s  %T %v\n", oper, lexp, lexp)
-		// if pref, ok := lexp.(*nodes.ValExpr); ok {
-		// 	// pp := pref.Val
-		// 	fmt.Println(">> Pref", pref.Val, pref)
-		// }
 
 		switch subex := subs.(type) {
 		case *nodes.OperColon:
@@ -542,11 +539,6 @@ func ProcAtPrefix(rNode *OperNode) (base.Expression, bool) {
 			return nil, false
 		}
 		// fmt.Printf("@-lead expr %T, %v \n", fexp, fexp)
-		// fnCall, fok := fexp.(*nodes.FuncCall)
-		// if !fok {
-
-		// }
-		// fnCall.
 		return fexp, true
 	}
 	panic("No valid case for @-expr")

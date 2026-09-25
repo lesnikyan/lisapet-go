@@ -10,6 +10,7 @@ type ArgExp struct {
 	Varp       *base.Var
 	Type       *base.Type
 	StrictType bool
+	Variadic   bool
 
 	res any
 }

@@ -34,6 +34,15 @@ type Context struct {
 	typeIds   map[base.TypeId]*base.Type
 }
 
+func (cx *Context) GetRoot() base.Context {
+	xx := cx
+	for {
+		if xx.parent == nil {
+			return xx
+		}
+	}
+}
+
 func (cx *Context) SubContext() base.Context {
 	return NewContext(cx)
 }

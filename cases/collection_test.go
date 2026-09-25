@@ -19,12 +19,89 @@ ok list
 ok tuple
 ok dict
 ok bytes
+ok 5. triple dots in colelction [nn...]
+ok 5.1 triple dots maybe: [some(1)...] >> [1]; [none...] >> []
+ok 5.2 triple dots for dicts {dd...}
 
 BUG: (1 2 3)
+
 
 */
 
 type Bytes = obb.Bytes
+
+func TestTripleDotsDict(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		dd = {'cc':'33', 'dd':'44'}
+		r = {'a':'11', 'b':'22', dd...}
+		`, "r", adk(dk{"a": "11", "b": "22", "cc": "33", "dd": "44"})},
+		{`
+		dd = {'cc':'33', 'dd':'44'}
+		r = {dd...}
+		`, "r", adk(dk{"cc": "33", "dd": "44"})},
+		{`
+		dd = {'cc':'33', 'dd':'44'}
+		r = {'a':'11', dd..., 'ff':55}
+		`, "r", adk(dk{"a": "11", "cc": "33", "dd": "44", "ff": 55})},
+		// // dict callable constr
+		// {`
+		// dd = {'cc':'33', 'dd':'44'}
+		// r = dict(dd...)
+		// `, "r", adk(dk{"cc": "33", "dd": "44"})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+func TestTripleDotsSeq(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [1,2,3]
+		r = [10, nn..., 11]
+		`, "r", Anis(10, 1, 2, 3, 11)},
+		{`
+		nn = [1,2,3]
+		r = [11, nn...]
+		`, "r", Anis(11, 1, 2, 3)},
+		{`
+		nn = [1,2,3]
+		r = (11, nn..., 12, 13)
+		`, "r", Tanis(11, 1, 2, 3, 12, 13)},
+		{`
+		nn = [1,2,3]
+		r = (12, nn..., 13)
+		`, "r", Tanis(12, 1, 2, 3, 13)},
+		{`
+		mm = some(25)
+		r = (12, mm..., 13)
+		`, "r", Tanis(12, 25, 13)},
+		{`
+		mm = none
+		r = (12, mm..., 14)
+		`, "r", Tanis(12, 14)},
+		{`
+		mm = none
+		r = (15, mm...)
+		`, "r", Tanis(15)},
+		// // error case with dict...
+		// {`
+		// mm = {}
+		// r = (15, mm...)
+		// `, "r", Tanis(15)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestFilterMethod(t *testing.T) {
 	tdata := []struct {

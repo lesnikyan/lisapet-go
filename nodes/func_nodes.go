@@ -191,12 +191,69 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 			// special service functions
 			if nfun.IsServ() {
 				vals[i] = vex
-				i += 1
+				i++
 				continue
 			}
 		}
-		nmExp, ok := vex.(*OperAssign)
-		if !ok {
+		switch nmExp := vex.(type) {
+		case *OperAssign:
+			// named arg
+			lvar, ok := nmExp.Left.(*VarExpr)
+			if !ok {
+				return fmt.Errorf("func call (Args2): Named arg in func call without left part: %T", nmExp.Left)
+			}
+			err := nmExp.Right.Do(cx)
+			if err != nil {
+				return err
+			}
+			lval := nmExp.Right.Get()
+			// fmt.Printf("FunCall (Args3): r-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.Right, nmExp.Right, lval, lval == nil)
+			if lval == nil {
+				return errors.New("func call (Args): Named arg in func call without value")
+			}
+			argName := lvar.name
+			mvals[argName] = lval.V
+		case *TripleDots:
+			if nmExp.Left == nil {
+				panic("func call, expanding arg: nil object ")
+			}
+			nmExp.Left.Do(cx)
+			lval := GetExprVal(nmExp.Left, nil)
+			// fmt.Printf("FunCall (Args4): L-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.Left, nmExp.Left, lval, lval)
+			var src []any
+			switch vv := lval.(type) {
+			case *objects.ListVal:
+				src = vv.Elems
+			case *objects.TupleVal:
+				src = vv.Elems
+			case *objects.DictVal:
+				// expand dict to named args
+				for k, v := range vv.Vmap {
+					sk, ok := k.(string)
+					if !ok {
+						return fmt.Errorf("fun arg: expand dict: key must be a string, got %T", k)
+					}
+					mvals[sk] = v
+				}
+				continue
+			case *objects.Maybe:
+				if !vv.IsNone() {
+					vals[i] = vv.Val
+					i++
+				}
+				continue
+			}
+			// list, tuple
+			tvals := make([]any, len(vals)+len(src))
+			copy(tvals, vals)
+			vals = tvals
+			for _, elem := range src {
+				vals[i] = elem
+				i++
+			}
+
+		// case *VarExpr:
+		default:
 			// ordered arg
 			err := vex.Do(cx)
 			if err != nil {
@@ -207,27 +264,9 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 				return errors.New("func call: no result of argument expression")
 			}
 			vals[i] = val
-			i += 1
+			i++
 			continue
 		}
-		// variadic args
-
-		// named arg
-		lvar, ok := nmExp.Left.(*VarExpr)
-		if !ok {
-			return fmt.Errorf("func call (Args2): Named arg in func call without left part: %T", nmExp.Left)
-		}
-		err := nmExp.Right.Do(cx)
-		if err != nil {
-			return err
-		}
-		lval := nmExp.Right.Get()
-		// fmt.Printf("FunCall (Args3): r-exp:(%T, %v) lval: %v ?nil: %v \n", nmExp.Right, nmExp.Right, lval, lval == nil)
-		if lval == nil {
-			return errors.New("func call (Args): Named arg in func call without value")
-		}
-		argName := lvar.name
-		mvals[argName] = lval.V
 	}
 	// fmt.Printf("FunCall args## count: %d, ::%d\n", len(vals), len(vals[:i]))
 	// put args to func

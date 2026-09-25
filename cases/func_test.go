@@ -19,14 +19,221 @@ ok 7. multi assign
 ok 8. multi result: return a, b, 10
 ok 12. constructors of builtin types: int(), list(), tuple(), etc
 ok 15. builtin methods: 'a b c'.split(' ')
+11. nn... variative count of args, triple-dot operator
 
 9. return from: match-case
-11. variative count of args, triple-dot operator
 13. func overaload: by arg count, by arg types
 14.1 multitype for var
 14.2 multitype for args
 
 */
+
+// call: foo({k:v}...)
+func TestFCallTriDotsDict(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(a, b=1, c=1)
+			a * b + c
+		#
+		dd = {'b':2, 'c':3}
+		r = foo(5, dd...)
+		`, "r", int64(13)},
+		{`
+		func foo(a, b=1, c=1)
+			a * b + c
+		#
+		dd = {'c':3}
+		r = []
+		r <- foo(5, dd...)
+		dd = {}
+		r <- foo(20, dd...)
+		`, "r", Anis(8, 21)},
+		{`
+		func foo(a, b=1, c=1)
+			a * b + c
+		#
+		dd = {'b':7}
+		r = foo(5, dd...)
+		`, "r", int64(36)},
+		{`
+		func foo(nn..., a=1, b=1)
+			[a * b + n ; n <- nn]
+		#
+		dd = {'b': 100}
+		r = foo([11,22,33]..., a=5, dd...)
+		`, "r", Anis(511, 522, 533)},
+		{`
+		dd = {'aa':1, 'rr':2}
+		r = dict(x=101,  dd...)
+		`, "r", adk(dk{"aa": 1, "rr": 2, "x": 101})},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+// call: foo(nn...)
+func TestFuncCallTripleDot(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(a, b, c)
+			[a, b, c]
+		#
+		ss = [1, 2, 3]
+		r = foo(ss...)
+		`, "r", Anis(1, 2, 3)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(ss...)
+		`, "r", Anis(10, 20, 30)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		r = foo([4,5,6]...)
+		`, "r", Anis(40, 50, 60)},
+		{`
+		func nums()
+			[7,8,9]
+		#
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		r = foo(nums()...)
+		`, "r", Anis(70, 80, 90)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		ss = [1 .. 5]
+		r = foo(ss...)
+		`, "r", Anis(10, 20, 30, 40, 50)},
+		{`
+		func foo(nn...)
+			[x * 10; x <- nn]
+		#
+		ss = [x ; x <- iter(4)]
+		r = foo(ss...)
+		`, "r", Anis(0, 10, 20, 30, 40)},
+		{`
+		func foo(a, b, nn...)
+			[x * a + b; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(2, 100, ss...)
+		`, "r", Anis(102, 104, 106)},
+		{`
+		func foo(a, b, nn...)
+			[x * a + b; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(2, 100, 5, 6, 7,  ss...)
+		`, "r", Anis(110, 112, 114, 102, 104, 106)},
+		{`
+		func foo(a, b, nn..., m=1, k=1)
+			[x * a * m + b*k; x <- nn]
+		#
+		ss = [1, 2, 3]
+		r = foo(3, 100, 5, 6, 7,  ss..., m=5, k=20)
+		`, "r", Anis(2075, 2090, 2105, 2015, 2030, 2045)},
+		{`
+		func foo(a, b, m=1, nn...)
+			[x * a * m + b; x <- nn]
+		#
+		ss = [1, 1000, 5, 1,2,3]
+		r = foo(ss...)
+		`, "r", Anis(1005, 1010, 1015)},
+		{`
+		# expand tuple
+		func foo(a, b, m=1, nn...)
+			[x * a * m + b; x <- nn]
+		#
+		ss = (2, 1000, 5, 1,2,3)
+		r = foo(ss...)
+		`, "r", Anis(1010, 1020, 1030)},
+		{`
+		# expand empty or 1-elem list
+		func foo(a, m=1)
+			a * m
+		#
+		r = []
+		ss = [[2], [5]]
+		for m <- ss
+			r <- foo(7, m...)
+		`, "r", Anis(14, 35)},
+		{`
+		# expand empty or 1-elem tuple
+		func foo(a, m=1)
+			a * m
+		#
+		r = []
+		ss = [(2,), (5,), (,)]
+		for m <- ss
+			r <- foo(2, m...)
+		`, "r", Anis(4, 10, 2)},
+		{`
+		# expand maybe
+		func foo(a, m=1)
+			a * m
+		#
+		r = []
+		ss = [some(2), some(5), none]
+		for m <- ss
+			r <- foo(3, m...)
+		`, "r", Anis(6, 15, 3)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+// define: func foo(args...)
+func TestFuncVariadicArgs(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(nn...)
+			nn
+		#
+		r = foo(1,2,3)
+		`, "r", Anis(1, 2, 3)},
+		{`
+		func foo(a, b, nn...)
+			nn + [a, b]
+		#
+		r = foo(1,2,3, 4, 5)
+		`, "r", Anis(3, 4, 5, 1, 2)},
+		{`
+		func foo(nn..., c=0)
+			nn + [c * 10]
+		#
+		r = foo(1,2,3, c = 4)
+		`, "r", Anis(1, 2, 3, 40)},
+		{`
+		func foo(a, b, nn..., c=0)
+			nn + [c * 10, a, b]
+		#
+		r = foo(1,2,3, 4, 5, c = 4)
+		`, "r", Anis(3, 4, 5, 40, 1, 2)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestDefined(t *testing.T) {
 	tdata := []struct {

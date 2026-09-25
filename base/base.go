@@ -27,6 +27,7 @@ type Context interface {
 	GetElem(name string) *ContextElem
 	DeleteElem(name string) error
 	SubContext() Context
+	GetRoot() Context
 }
 
 type ContextElem struct {

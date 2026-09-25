@@ -140,14 +140,16 @@ type Maybe struct {
 }
 
 func (mb *Maybe) IsNone() bool {
+	// fmt.Printf(" MB None: %v \n", mb.None)
 	return mb.None
 }
 
 func Some(v any) *Maybe {
 	return &Maybe{Val: v}
 }
+
 func None() *Maybe {
-	return &Maybe{}
+	return &Maybe{None: true}
 }
 
 // ****************************************
