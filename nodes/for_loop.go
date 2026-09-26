@@ -148,11 +148,11 @@ func NewForCond(subEx *SequenceSemicolon) *ForCondNode {
 	init := subEx.Subs[0]
 	cond := subEx.Subs[1]
 	post := subEx.Subs[2]
-	return &ForCondNode{InitEx: init, CondEx: cond, PostEx: post, Block: NewBlock()}
+	return &ForCondNode{InitEx: init, CondEx: cond, PostEx: post, Block: NewEmptyBlock()}
 }
 
 func NewWhile(cond base.Expression) *ForCondNode {
-	return &ForCondNode{InitEx: &EmptyExpr{}, CondEx: cond, PostEx: &EmptyExpr{}, Block: NewBlock()}
+	return &ForCondNode{InitEx: &EmptyExpr{}, CondEx: cond, PostEx: &EmptyExpr{}, Block: NewEmptyBlock()}
 }
 
 // ***************************************************
@@ -252,7 +252,7 @@ func (nd *ForSourceNode) Add(sub base.Expression) {
 
 func NewForSource(subEx *LeftArrow) *ForSourceNode {
 	subEx.IsIter = true
-	return &ForSourceNode{Block: NewBlock(), IterExpr: subEx}
+	return &ForSourceNode{Block: NewEmptyBlock(), IterExpr: subEx}
 }
 
 type WhileNode struct {

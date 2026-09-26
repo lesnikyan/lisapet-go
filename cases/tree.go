@@ -67,8 +67,14 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 		// fmt.Println("L2E3>", cline.Src, res, err, "r-oper:", operTree.oper)
 		// PrintONode(operTree, 0)
 		expr, ok = ProcExprTree(operTree)
+		// fmt.Printf("L2E3> %s r-oper: %s expr: %T \n", cline.Src, operTree.oper, expr)
 		if !ok {
 			return nil, lineInterpretErr
+		}
+		semic, ok := expr.(*nodes.SequenceSemicolon)
+		if ok {
+			// fmt.Println("tree. semicSeq#1")
+			expr = semic.AsBlock()
 		}
 	}
 	res := &SplitState{Expr: expr, Done: true}
@@ -87,7 +93,7 @@ type ExprLink struct {
 
 // make executable block of expressions by parsed lines
 func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
-	top := nodes.NewBlock()
+	top := nodes.NewEmptyBlock()
 	if len(clines) == 0 {
 		return nil, errors.New("empty code to build tree")
 	}

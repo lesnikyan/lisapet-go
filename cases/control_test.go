@@ -9,6 +9,61 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// expr ; expr ; expr
+func TestBlockInline(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = 10
+		a = 1; b = 2;c = a + b 
+		r += c
+		`, "r", int64(13)},
+		{`
+		r = 10
+		a = 1; b = 2; r += (a + b)
+		`, "r", int64(13)},
+		{`
+		r = (a = 1; b = 2; a + b)
+		`, "r", int64(3)},
+		{`
+		r = (
+			a = 10;
+			b = 6;
+			a + b
+		)
+		`, "r", int64(16)},
+		{`
+		func foo(x)
+			x + 10
+		r = (a = 5; foo(a))
+		`, "r", int64(15)},
+		{`
+		nn = [10]
+		r = (a = 11; nn <- a)
+		`, "r", Anis(10, 11)},
+		{`
+		nn = [10]
+		r = (nn <- 12; nn - [0])
+		`, "r", int64(10)},
+		{`
+		nn = [10]
+		r = (nn<-1; nn<-2; nn<-3; nn<-4; nn <- 5)
+		`, "r", Anis(10, 1, 2, 3, 4, 5)},
+		{`
+		r = (b = 2; a = 1; a *= b; a *= b; a *= b; a *= b; a *= b; a *= b; a *= b; a)
+		`, "r", int64(128)},
+		{`
+		r = (a = 1; a *= 2; a *= 3; a *= 4; a *= 5; a *= 6; a *= 7; a)
+		`, "r", int64(5040)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestControlIfNot(t *testing.T) {
 	tdata := []struct {
 		src   string

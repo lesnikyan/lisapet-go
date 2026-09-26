@@ -1,6 +1,8 @@
 package nodes
 
-import "github.com/lesnikyan/lisapet-go/base"
+import (
+	"github.com/lesnikyan/lisapet-go/base"
+)
 
 type BrType int
 
@@ -36,4 +38,12 @@ func (br *Brackets) Get() *base.Val {
 
 func (br *Brackets) Do(ctx base.Context) error {
 	return br.Sub.Do(ctx)
+}
+
+func NewBrackets(sub base.Expression, bt BrType) *Brackets {
+	if semic, ok := sub.(*SequenceSemicolon); ok {
+		sub = semic.AsBlock()
+	}
+	bb := &Brackets{Sub: sub, Type: bt}
+	return bb
 }

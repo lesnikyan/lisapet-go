@@ -157,7 +157,6 @@ func (cs *SequenceComma) GetVals() *base.Val {
 }
 
 func (cs *SequenceComma) Do(ctx base.Context) error {
-	// TODO: loop processing over subs
 	cs.res = nil
 	var err error
 	for _, sub := range cs.Subs {
@@ -188,6 +187,19 @@ type SequenceSemicolon struct {
 
 func (cs *SequenceSemicolon) Get() *base.Val {
 	return base.NewVal(cs.res)
+}
+
+/*
+cases:
+1. line in block.
+2. in round brackets (if not a generator)
+3. after /:
+4. after :?
+5.
+*/
+func (cs *SequenceSemicolon) AsBlock() *BlockExpr {
+	subs := cs.Subs
+	return NewBlock(subs)
 }
 
 func (cs *SequenceSemicolon) Do(ctx base.Context) error {
