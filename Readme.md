@@ -120,15 +120,15 @@ next - by dates...
         `foo(1,2, nums...) => foo(1, 2, nums[0], nums[1], ... )`  if list, tuple  
         `foo(1,2, some(14)...) => foo(1, 2, 14 )` val from `some`, no effect if `none`  
     Added `dict` expanding in function call, `dict` expands as set of named args:   func: `foo({key:val}...)` => `foo(key=val, ...)`  
+- --26 Implemented inline block: `a = 1; b = 2; x = a + b`  
+- --27 Implemented inline control: `if`, `for`, `while` `/:` . Now as exception in indent-based blocks. Works from start of line only.   
 
 
 #### next TODO:   
-- inline block: ` ; ; `  
-- inline control: `if`, `for`, `while` `/:`  
 - user-defined type constructor  
 - string-comprehension: `~[string|glif ; iter ; cond]` 
-- byte comprehension: `0x[byte|iint ; iter ; cond ]`  
-- formatting by expression include: "Hello {name}!"  
+- byte comprehension: `0x[byte|int ; iter ; cond ]`  
+- formatting by expression include: `~"Hello {name}!"`  
 - /postpone after lambdas/ builtin methods for:   
     maybe.isNone   
     string: upper, lower, lcut(length):#cut left indents in multiline string:  
@@ -136,9 +136,15 @@ next - by dates...
 - CLI: lp file.et  
 - `const`  
 - match statement: simple vals  
+- fix inline blocks after  `/:`, `:?`
 - match pattern   
 - func overload  
 - func high-order features  
+- closures  
+- lambda   
+- carry ~>   
+- composition *  
+- apply $  
 - enum  
 - grup  
 

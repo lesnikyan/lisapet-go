@@ -145,6 +145,12 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
 		expr = &nodes.OperBin{} // func-apply
+	case "/:":
+		expr = &nodes.OperBin{}
+		panic(" operator /:")
+	case ":?":
+		expr = &nodes.OperBin{}
+		panic(" operator :? not implemented yet")
 	default:
 		switch {
 		case slices.Contains(binOpers, oper):
@@ -464,7 +470,8 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 		// non comma-separated cases: (a + b), [1 .. 5]
 		switch oper {
 		case "(":
-			return &nodes.Brackets{Sub: subs, Type: bt}, true
+			// return &nodes.Brackets{Sub: subs, Type: bt}, true
+			return nodes.NewBrackets(subs, bt), true
 		case "[":
 			// fmt.Printf("BEx#11 < %s >  L(%T %v), R(%T %v) comm: %v\n", oper, lexp, lok, subs, rok, okc)
 			switch subex := subs.(type) {
@@ -554,8 +561,19 @@ func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 		// panic("19")
 	case "(", "[", "{", "(:":
 		return BracketsExpr(rNode)
-	case ",", ";":
+	case ",":
 		return ProcSequence(rNode)
+	case ";":
+		return ProcSequence(rNode)
+		// expr, ok := ProcSequence(rNode)
+		// if !ok {
+		// 	return nil, false
+		// }
+		// semic, ok := expr.(*nodes.SequenceSemicolon)
+		// if !ok {
+		// 	return nil, false
+		// }
+		// return semic.AsBlock(), true
 	case "\\":
 		// lambda \ arg -> ..
 		return nil, false
@@ -611,7 +629,18 @@ func OperSub(node *OperNode, elems []*lang.Elem) (base.Expression, bool) {
 	// fmt.Println("OperSubs#1", node == nil, len(elems), FPrintElems(elems))
 	// PrintONode(node, 0)
 	if node != nil {
-		return ProcExprTree(node)
+		expr, ok := ProcExprTree(node)
+		if !ok {
+			return nil, false
+		}
+		// semic, ok := expr.(*nodes.SequenceSemicolon)
+		// if ok {
+		// 	switch node.oper {
+		// 	case "(", "/:", ":?":
+		// 		return semic.AsBlock(), true
+		// 	}
+		// }
+		return expr, ok
 	} else if len(elems) > 0 {
 		return ProcSubElems(elems)
 	}

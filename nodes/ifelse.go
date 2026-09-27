@@ -107,7 +107,7 @@ func NewIf(cond base.Expression) *IfNode {
 		}
 		cond = conExpr.Subs[len(conExpr.Subs)-1]
 		// fmt.Printf("#--IF (;) #1 (%T: %v), #2(%T: %v) \n", conExpr, conExpr, cond, cond)
-		prev = NewBlock()
+		prev = NewEmptyBlock()
 		for _, sub := range conExpr.Subs[:len(conExpr.Subs)-1] {
 			prev.Add(sub)
 		}
@@ -116,7 +116,7 @@ func NewIf(cond base.Expression) *IfNode {
 	}
 	node := &IfNode{
 		condition: cond,
-		BlockIf:   NewBlock(),
+		BlockIf:   NewEmptyBlock(),
 		preCond:   prev,
 	}
 	return node
@@ -160,5 +160,5 @@ func (nd *ElseNode) Add(sub base.Expression) {
 }
 
 func NewElseNode() *ElseNode {
-	return &ElseNode{Block: NewBlock()}
+	return &ElseNode{Block: NewEmptyBlock()}
 }

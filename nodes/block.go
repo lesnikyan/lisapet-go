@@ -98,13 +98,19 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			hasRes = false
 		case *ForSourceNode:
 			// fmt.Printf("Block.Loop node \n")
-
 			inPup := cur.GetPopUp()
 			if inPup != nil {
 				bk.PopUp = inPup
 				return nil
 			}
 			hasRes = false
+		case *BlockExpr:
+			inPup := cur.GetPopUp()
+			if inPup != nil {
+				bk.PopUp = inPup
+				return nil
+			}
+			hasRes = true
 		default:
 			// fmt.Printf("Bl.Do# defl: %T, %v\n", exp, exp)
 			hasRes = true
@@ -161,8 +167,14 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 	return nil
 }
 
-func NewBlock() *BlockExpr {
+func NewEmptyBlock() *BlockExpr {
 	bk := &BlockExpr{}
 	bk.subs = []base.Expression{}
+	return bk
+}
+
+func NewBlock(subs []base.Expression) *BlockExpr {
+	bk := &BlockExpr{}
+	bk.subs = subs
 	return bk
 }

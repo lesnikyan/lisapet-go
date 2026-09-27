@@ -49,13 +49,16 @@ var brOpens = map[string]string{
 	"(:": ")",
 }
 
+var kwOpers = strings.Split("if else for while match", " ")
+
 // var _operPriorStr = `( ) [ ] { } 1 . 1 ~> 1 ... 1 -x ! ~ 1 ** ^/ 1 * / % 1 + - 1` +
 // 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
 // 	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
 
 var _operPriorStr2 = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
-	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 fun: 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
+	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 fun: 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ;` +
+	` 1 if else for while match 1 !: :? => 1 /: `
 
 // spec: fun=
 
@@ -289,6 +292,12 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		closeBr = false
 		prev = cur
 		cur = el
+
+		// // fix type of keyword as an operator
+		// if etp == Lt.Word && slices.Contains(kwOpers, tx) {
+		// 	el.Type = Lt.Oper
+		// 	etp = Lt.Oper
+		// }
 
 		curPart = append(curPart, i)
 		if etp != Lt.Oper {

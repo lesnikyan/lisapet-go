@@ -62,7 +62,7 @@ func (fd *FuncDef) SetObject(obj *VarExpr) {
 }
 
 func NewFuncDef(name string, args []base.Expression) *FuncDef {
-	return &FuncDef{Name: name, Args: args, Block: NewBlock()}
+	return &FuncDef{Name: name, Args: args, Block: NewEmptyBlock()}
 }
 
 // === MethodDef
