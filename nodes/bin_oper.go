@@ -380,3 +380,32 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 	}
 	return false, fmt.Errorf("Error in type check: sttrange case ")
 }
+
+// ====
+
+/*
+1. if cond /: eval
+2. for iter /: eval
+3. ptrn-match /: eval
+*/
+type InlineControl struct {
+	left  base.Expression
+	right base.Expression
+
+	res any
+}
+
+func (op *InlineControl) SetLeft(xp base.Expression) {
+	op.left = xp
+}
+func (op *InlineControl) SetRight(xp base.Expression) {
+	op.right = xp
+}
+
+func (op *InlineControl) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *InlineControl) Do(cx base.Context) error {
+	return nil
+}

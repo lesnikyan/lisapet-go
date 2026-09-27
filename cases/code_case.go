@@ -145,6 +145,12 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
 		expr = &nodes.OperBin{} // func-apply
+	case "/:":
+		expr = &nodes.OperBin{}
+		panic(" operator /:")
+	case ":?":
+		expr = &nodes.OperBin{}
+		panic(" operator :? not implemented yet")
 	default:
 		switch {
 		case slices.Contains(binOpers, oper):

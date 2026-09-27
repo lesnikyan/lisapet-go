@@ -3,9 +3,12 @@ package cases
 import (
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
+	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 	"github.com/lesnikyan/lisapet-go/nodes"
 )
 
@@ -17,6 +20,68 @@ type SplitState struct {
 	Done  bool
 }
 
+var ctrOpers = strings.Split("if for while", " ")
+
+func hasPartial(elems []*lang.Elem) []*lang.CLine {
+	inlineParts := make([]*lang.CLine, 0)
+	curPart := []*lang.Elem{}
+	begin := 0
+	for i, el := range elems {
+		if el.Type == Lt.Oper && el.Text == "/:" {
+			bb := begin
+			for k := bb; k < len(elems); k++ {
+				if elems[k].Type == Lt.Space {
+					continue
+				}
+				bb = k
+				break
+			}
+			curPart = elems[bb:i]
+			inlineParts = append(inlineParts, &lang.CLine{Elems: curPart})
+			// fmt.Printf(" #1: %d, %d \n", begin, i)
+			begin = i + 1
+		}
+	}
+	if begin < len(elems)-1 {
+		// tail not added
+		// fmt.Printf(" #2: %d, %d \n", begin, len(elems)-1)
+		curPart = elems[begin:]
+		inlineParts = append(inlineParts, &lang.CLine{Elems: curPart})
+	}
+	return inlineParts
+}
+
+func InlineContrExpr(inlineParts []*lang.CLine, prevTree *LineTree) (*SplitState, error) {
+	var rootExp base.Expression
+	var prev base.Expression
+
+	// fmt.Printf(" #3: %d, \n", len(inlineParts))
+	for _, cpart := range inlineParts {
+		// println(">>", i, " ... ", FPrintElems(cpart.Elems))
+		var ptree *LineTree
+		state, err := Line2Expr(cpart, ptree)
+		if err != nil {
+			return nil, err
+		}
+		expr := state.Expr
+		if rootExp == nil {
+			// first part
+			rootExp = expr
+			prev = expr
+			continue
+		}
+		//  next parts
+
+		supr, ok := prev.(base.SuperExpr)
+		if !ok {
+			panic(fmt.Sprintf("incorrect super block of inline control %T", prev))
+		}
+		supr.Add(expr)
+		prev = expr
+	}
+	return &SplitState{Expr: rootExp, Done: true}, nil
+}
+
 func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 
 	var err error
@@ -24,6 +89,12 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 	var ok bool
 	if IsLKWord(cline.Elems, prevTree) {
 		// control or definition expression
+		if len(cline.Elems) > 5 && slices.Contains(ctrOpers, cline.Elems[0].Text) {
+			lParts := hasPartial(cline.Elems)
+			if len(lParts) > 1 {
+				return InlineContrExpr(lParts, prevTree)
+			}
+		}
 		state, err := KWordExp(cline.Elems, prevTree)
 		if err != nil {
 			fmt.Println("Error LKWord!", err)
