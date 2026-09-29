@@ -3,11 +3,51 @@ package cases
 import "testing"
 
 /*
-1. x -> x + 10
-2. (x, y) -> x + y
-3. _ -> 1
-4. \x, y,  -> x + y
+ok 1. x -> x + 10
+ok 2. (x, y) -> x + y
+ok 3. _ -> 1
+ok 4. \x, y,  -> x + y
 */
+
+// #foo = \x, y -> x + y
+// #r = foo(1)
+func TestLambdaBackSlash(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = 1
+		foo = \ x -> x + 20
+		r = foo(5)
+		`, "r", int64(25)},
+		{`
+		r = 1
+		foo = \ x, y -> x + y * 10
+		r = foo(6, 3)
+		`, "r", int64(36)},
+		{`
+		func foo(f, x)
+			f(x)
+		r = []
+		f1 = \ x -> x + 10
+		r <- foo(f1, 3)
+		r <- foo(\x -> x * 10, 4)
+		`, "r", Anis(13, 40)},
+		{`
+		func foo(x, y, f)
+			f(x, y)
+		r = []
+		f1 = \ x, y -> x * 10 + y
+		r <- foo(1, 2, f1)
+		r <- foo(5, 7, \x, y -> x * y)
+		`, "r", Anis(12, 35)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestLambda(t *testing.T) {
 	tdata := []struct {

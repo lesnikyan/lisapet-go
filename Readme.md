@@ -122,10 +122,16 @@ next - by dates...
     Added `dict` expanding in function call, `dict` expands as set of named args:   func: `foo({key:val}...)` => `foo(key=val, ...)`  
 - --26 Implemented inline block: `a = 1; b = 2; x = a + b`  
 - --27 Implemented inline control: `if`, `for`, `while` `/:` . Now as exception in indent-based blocks. Works from start of line only.   
+- --29 Implemented **lambda functions** : `arg -> res`  
+    Implemented back-slash as a beginning lexem of `lambda`: `foo(a, b, \x, y -> x + y)`  
 
 
-#### next TODO:   
-- lambda : `arg -> res`   
+#### next TODO:    
+- func high-order features  
+- closures  
+- carry ~>   
+- composition *  
+- apply $  
 - user-defined type constructor  
 - string-comprehension: `~[string|glif ; iter ; cond]` 
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
@@ -137,14 +143,9 @@ next - by dates...
 - CLI: lp file.et  
 - `const`  
 - match statement: simple vals  
-- fix inline blocks after  `/:`, `:?`
-- match pattern   
+- match patterns   
+- fix inline blocks after  `:?`
 - func overload  
-- func high-order features  
-- closures  
-- carry ~>   
-- composition *  
-- apply $  
 - enum  
 - grup  
 

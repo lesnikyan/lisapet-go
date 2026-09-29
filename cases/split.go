@@ -47,6 +47,7 @@ var brOpens = map[string]string{
 	"[":  "]",
 	"{":  "}",
 	"(:": ")",
+	"\\": "->",
 }
 
 var kwOpers = strings.Split("if else for while match", " ")
@@ -56,15 +57,15 @@ var kwOpers = strings.Split("if else for while match", " ")
 // 	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ; 1 !: :? => 1 /: `
 
 var _operPriorStr2 = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
-	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
+	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 ->` +
 	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 fun: 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ;` +
 	` 1 if else for while match 1 !: :? => 1 /: `
 
 // spec: fun=
 
-var _operPriorFBr = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
-	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
-	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 = += -= *= /= %= 1 , 1 .. 1 <- 1 @! 1 ; 1 !: :? => 1 /: `
+// var _operPriorFBr = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
+// 	`<< >> 1 =~ ?~ /~1 < <= > >= !> ?> !?> 1 == != 1 & 1 ^ 1 | 1 :: 1 && 1 || 1 \\ 1 ->` +
+// 	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 = += -= *= /= %= 1 , 1 .. 1 <- 1 @! 1 ; 1 !: :? => 1 /: `
 
 var unary = strings.Split("- ! ~ + @ @!", " ")
 var unaryR = strings.Split("... ~>", " ")
@@ -87,7 +88,8 @@ func priorSet(opers string) [][]string {
 }
 
 var priors2 = priorSet(_operPriorStr2)
-var priorsFuBr = priorSet(_operPriorFBr)
+
+// var priorsFuBr = priorSet(_operPriorFBr)
 
 // var priors = priorSet(_operPriorStr)
 
@@ -221,10 +223,10 @@ const (
 	// PriorKeyMatch // case of match
 )
 
-var priorMap = map[PriorKey][][]string{
-	PriorKeyBase:  priors2,
-	PriorKeyFunBr: priorsFuBr,
-}
+// var priorMap = map[PriorKey][][]string{
+// 	PriorKeyBase:  priors2,
+// 	PriorKeyFunBr: priorsFuBr,
+// }
 
 func notEmptyLeft(node *OperNode) bool {
 	return node.leftNode != nil || len(node.leftElems) > 0
@@ -261,7 +263,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			brCx = brSt[len(brSt)-1]
 		}
 	} else {
-		rNode = &OperNode{prior: 10000, oper: "ЫХ"} // root node
+		rNode = &OperNode{prior: 10000, oper: "ЩУ"} // root node
 		parents = []*OperNode{rNode}
 		cNode = rNode
 	}
@@ -311,16 +313,18 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		if slashLambda && tx == `->` {
 			// TODO: move to bracket-closing section
 		}
-		if id := strings.Index(cbrs, tx); id > -1 {
+		// if id := strings.Index(cbrs, tx); id > -1 {
+		if op, ok := brmap[tx]; ok || (slashLambda && tx == "->") {
 			// lastbr := brs[len(brs)-1]
 			// expBr, ok := brmap[tx]
 			closeBr = true
 			brC -= 1
 			// log.Println("$11", tx, brC, brs, ok, expBr, "clM", closeBr)
+			// log.Println("$11", tx, brC, ok, op, "clM", closeBr)
 			// finding last brackets in parent
 			tInd := 0
 			for k := len(parents) - 1; k >= 0; k-- {
-				// log.Println("$## find parent#close1:", k, parents[k].oper, parents[k].IsBrackets, "LE:", FPrintElems(parents[k].leftElems))
+				// log.Println("$## find parent#close1:", k, parents[k].oper, "isBr:", parents[k].IsBrackets, "LE:", FPrintElems(parents[k].leftElems))
 				if parents[k].IsBrackets {
 					tInd = k
 					break
@@ -334,14 +338,28 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 
 			} else {
 				// new cur is a parent of closed brackets node
+				openB := parents[tInd]
 				fParent := parents[tInd-1]
+				parents = parents[:tInd]
 				cNode = fParent
+				// log.Println("###close. fParent:", fParent.oper, " opener:", openB.oper)
+				if openB.oper == "\\" {
+					// lambda slash
+					curpri := getPrior(opris, tx)
+					cNode = &OperNode{oper: tx, prior: curpri}
+					cNode.leftNode = openB
+					fParent.rightNode = cNode
+					// parents[tInd] = cNode
+					// parents = parents[:tInd+1]
+					parents = append(parents, cNode)
+					slashLambda = false
+				}
 			}
 			// log.Println("###closed. CNODE:", i, cNode.oper, cNode.IsBrackets, "LE:", FPrintElems(cNode.leftElems))
-			parents = parents[:tInd]
+
 			// log.Println("$cl2:rem1:", len(brSt), brSt[len(brSt)-1].oper)
 			if len(brSt) == 0 {
-				panic("illegal closing brackets without open pair")
+				panic("illegal closing brackets without open pair, cur: " + op)
 			}
 			brSt = brSt[0 : len(brSt)-1]
 			if len(brSt) > 0 {
@@ -372,6 +390,9 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 			// if brC == 0 {
 			// 	brpos = append(brpos, ints2{i, -1}) // opened br
 			// }
+			if tx == "\\" {
+				slashLambda = true
+			}
 			brC += 1
 			curpri := solidExPrior
 			tNode := &OperNode{BracketOpen: tx, IsBrackets: true, oper: tx, prior: curpri}

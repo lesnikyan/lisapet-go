@@ -122,7 +122,7 @@ func TestOperSplit2(t *testing.T) {
 		{"0x[1e 2f]", -1, []ints2{}},
 		{"(x,y) -> x + y", -1, []ints2{}},
 
-		// {"\\x,y -> x + y", -1, []ints2{}}, // TODO: resolve slash-leading lambda expression
+		{"\\x,y -> x + y", -1, []ints2{}}, // TODO: resolve slash-leading lambda expression
 
 		// {"", -1, []ints2{}},
 
@@ -132,6 +132,7 @@ func TestOperSplit2(t *testing.T) {
 	}
 	for _, tt := range tdata {
 		sctx := &par.SplitContext{}
+		// println(">>", tt.src)
 		line := par.SplitLine([]rune(tt.src), sctx)
 		res, err := Line2tree(line, nil)
 		assert.Nil(t, err)

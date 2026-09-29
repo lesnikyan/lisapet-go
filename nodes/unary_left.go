@@ -141,3 +141,25 @@ func DelElem(cx base.Context, arg base.Expression) error {
 	}
 	return fmt.Errorf("operator @!: trying to delete incorrect type: %T", arg)
 }
+
+type BackSlash struct {
+	Right base.Expression
+
+	res any
+}
+
+func (op *BackSlash) SetRight(xp base.Expression) {
+	op.Right = xp
+}
+
+func (op *BackSlash) SetLeft(xp base.Expression) {
+
+}
+
+func (op *BackSlash) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *BackSlash) Do(cx base.Context) error {
+	return nil
+}

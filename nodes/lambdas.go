@@ -45,6 +45,7 @@ type LambdaExp struct {
 }
 
 func (mb *LambdaExp) SetLeft(args base.Expression) {
+	// fmt.Printf("lambda setLeft: incorrect args type: %T \n", args)
 	var arxp []base.Expression
 	switch sub := args.(type) {
 	case *VarExpr:
@@ -57,8 +58,11 @@ func (mb *LambdaExp) SetLeft(args base.Expression) {
 		return
 	case *TupleExpr:
 		arxp = sub.Seq.Subs
-	// case BackSlash:
-	// \ x, y, -> expr
+	case *BackSlash:
+		// \ x, y, -> expr
+		exSub := sub.Right
+		mb.SetLeft(exSub)
+		return
 	default:
 		panic(fmt.Sprintf("lambda setLeft: incorrect args type: %T", sub))
 	}

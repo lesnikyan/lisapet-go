@@ -139,8 +139,10 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.OperBin{Oper: OperByStr(oper)} // Elvis: short-ternary
 	case "::":
 		expr = &nodes.OperType{} // lambda
+	case "\\":
+		expr = &nodes.BackSlash{} // lambda args
 	case "->":
-		expr = &nodes.LambdaExp{} // lambda
+		expr = &nodes.LambdaExp{} // iter, append
 	case "<-":
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
@@ -574,9 +576,9 @@ func ProcExprTree(rNode *OperNode) (base.Expression, bool) {
 		// 	return nil, false
 		// }
 		// return semic.AsBlock(), true
-	case "\\":
-		// lambda \ arg -> ..
-		return nil, false
+	// case "\\":
+	// 	// lambda \ arg -> ..
+	// 	return nil, false
 	default:
 		return ProcOperTree(rNode)
 	}
