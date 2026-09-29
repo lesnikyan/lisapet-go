@@ -140,7 +140,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	case "::":
 		expr = &nodes.OperType{} // lambda
 	case "->":
-		expr = &nodes.LambdaExpr{} // lambda
+		expr = &nodes.LambdaExp{} // lambda
 	case "<-":
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":

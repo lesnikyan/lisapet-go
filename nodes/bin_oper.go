@@ -388,24 +388,24 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 2. for iter /: eval
 3. ptrn-match /: eval
 */
-type InlineControl struct {
-	left  base.Expression
-	right base.Expression
+// type InlineControl struct {
+// 	left  base.Expression
+// 	right base.Expression
 
-	res any
-}
+// 	res any
+// }
 
-func (op *InlineControl) SetLeft(xp base.Expression) {
-	op.left = xp
-}
-func (op *InlineControl) SetRight(xp base.Expression) {
-	op.right = xp
-}
+// func (op *InlineControl) SetLeft(xp base.Expression) {
+// 	op.left = xp
+// }
+// func (op *InlineControl) SetRight(xp base.Expression) {
+// 	op.right = xp
+// }
 
-func (op *InlineControl) Get() *base.Val {
-	return base.NewVal(op.res)
-}
+// func (op *InlineControl) Get() *base.Val {
+// 	return base.NewVal(op.res)
+// }
 
-func (op *InlineControl) Do(cx base.Context) error {
-	return nil
-}
+// func (op *InlineControl) Do(cx base.Context) error {
+// 	return nil
+// }

@@ -125,6 +125,7 @@ next - by dates...
 
 
 #### next TODO:   
+- lambda : `arg -> res`   
 - user-defined type constructor  
 - string-comprehension: `~[string|glif ; iter ; cond]` 
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
@@ -141,7 +142,6 @@ next - by dates...
 - func overload  
 - func high-order features  
 - closures  
-- lambda   
 - carry ~>   
 - composition *  
 - apply $  

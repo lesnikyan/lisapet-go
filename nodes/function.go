@@ -204,6 +204,9 @@ func (fn *FuncBlock) PrepareArgs(cx base.Context) error {
 	overId := len(fn.argVals)
 	for i, arg := range fn.Args {
 		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg.Name)
+		if arg.Name == "_" {
+			continue
+		}
 		// take var
 		vName := arg.Name
 		var vr *base.Var

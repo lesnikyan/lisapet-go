@@ -33,7 +33,6 @@ func (fd *FuncDef) MakeFunc(cx base.Context) (*objects.Function, error) {
 
 	fbk := &FuncBlock{Block: fd.Block, dfnArgs: fd.Args}
 	err := fbk.Init(cx)
-	// err := fn.Init(cx)
 	if err != nil {
 		return nil, errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
 	}
@@ -253,6 +252,7 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 			}
 
 		// case *VarExpr:
+		// 	println(222)
 		default:
 			// ordered arg
 			err := vex.Do(cx)
