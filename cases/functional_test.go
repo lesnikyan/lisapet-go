@@ -7,7 +7,84 @@ ok 1. x -> x + 10
 ok 2. (x, y) -> x + y
 ok 3. _ -> 1
 ok 4. \x, y,  -> x + y
+5. compose(foo, bar)
+6. foo * bar # compose oper
+7. foo $ arg # apply oper
 */
+
+// composition, builtin oper
+func _TestFuncComposeOper(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x)
+			..
+		func bar(x)
+			..
+		f = foo * bar
+		r = f(1)
+		`, "r", int64(25)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+// composition, builtin func
+func TestFuncCompose(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x)
+			x + 10
+		func bar(x)
+			x * 2
+		f = compose(foo, bar)
+		r = []
+		for n <- [1 .. 5]
+			r <- f(n)
+			`, "r", Anis(12, 14, 16, 18, 20)},
+		{`
+		func foo(x)
+			x + 100
+		func bar(x)
+			x + 10
+		func baz(x)
+			x * 2
+		f = compose(foo, bar, baz)
+		r = []
+		for n <- [1 .. 5]
+			r <- f(n)
+			`, "r", Anis(112, 114, 116, 118, 120)},
+		{`
+		func foo(x)
+			x + 100
+		func bar(x)
+			x + 10
+		func baz(x)
+			x * 2
+		f = compose(foo, bar, baz, \x -> x % 4)
+		r = []
+		for n <- [1 .. 5]
+			r <- f(n)
+			`, "r", Anis(112, 114, 116, 110, 112)},
+		{`
+		f = compose(\n -> n * 2, \x -> x + 10)
+		r = []
+		for n <- [1 .. 5]
+			r <- f(n)
+			`, "r", Anis(22, 24, 26, 28, 30)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 // #foo = \x, y -> x + y
 // #r = foo(1)
@@ -48,7 +125,6 @@ func TestLambdaBackSlash(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
-
 func TestLambda(t *testing.T) {
 	tdata := []struct {
 		src   string

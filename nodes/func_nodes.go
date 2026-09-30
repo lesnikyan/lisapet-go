@@ -164,8 +164,10 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	case *MFunc:
 		fc.fun = fn
 	case *objects.Method:
-		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 		fc.fun = fn
+	case *Composed:
+		fc.fun = fn
+		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 	case *base.Type:
 		if fn.Construct == nil {
 			return errors.New("trying to call undefined constructor of type " + fn.Name)
