@@ -13,7 +13,7 @@ ok 4. \x, y,  -> x + y
 */
 
 // composition, builtin oper
-func _TestFuncComposeOper(t *testing.T) {
+func TestFuncComposeOper(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -21,12 +21,22 @@ func _TestFuncComposeOper(t *testing.T) {
 	}{
 		{`
 		func foo(x)
-			..
+			x + 10
 		func bar(x)
-			..
+			x * 2
 		f = foo * bar
-		r = f(1)
-		`, "r", int64(25)},
+		r = f(3)
+		`, "r", int64(16)},
+		{`
+		func foo(x)
+			x + 10
+		func bar(x)
+			x * 2
+		func baz(x)
+			x + 5
+		f = foo * bar * baz
+		r = f(3)
+		`, "r", int64(26)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

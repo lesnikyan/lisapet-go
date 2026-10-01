@@ -123,15 +123,17 @@ next - by dates...
 - --26 Implemented inline block: `a = 1; b = 2; x = a + b`  
 - --27 Implemented inline control: `if`, `for`, `while` `/:` . Now as exception in indent-based blocks. Works from start of line only.   
 - --29 Implemented **lambda functions** : `arg -> res`  
-    Implemented back-slash as a beginning lexem of `lambda`: `foo(a, b, \x, y -> x + y)`  
+    Implemented back-slash as a beginning lexem of `lambda`: `\x, y -> x + y`  
+-  --30 Implemented composition of function:
+    1) Composition by builtin func: `composedFunc = compose(func1, func2)`
+    2) Composition by operator: `composedFunc = func1 * func2`
 
 
 #### next TODO:    
 - func high-order features  
+- apply $  
 - closures  
 - carry ~>   
-- composition *  
-- apply $  
 - user-defined type constructor  
 - string-comprehension: `~[string|glif ; iter ; cond]` 
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  

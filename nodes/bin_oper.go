@@ -122,19 +122,19 @@ func (op *OperBin) Do(cx base.Context) error {
 	}
 
 	// Other bin operators
-	res, ok := ApplyOper(lvv, rvv, op.Oper.Id)
-	if !ok {
+	res, err := ApplyOper(lvv, rvv, op.Oper.Id)
+	if err != nil {
 		// fmt.Printf("Error in bin oper: L(%v) <%s> R(%v) \n", lvv, op.Oper.Sign, rvv)
 		errm := fmt.Errorf("Error in bin oper: L(%T: %v) <%s> R(%T: %v) ", op.left, op.left, op.Oper.Sign, op.right, op.right)
-		return errm // TODO: add more informative error
+		return errors.Join(errm, err) // TODO: add more informative error
 	}
 	op.res = res
 	return nil
 }
 
-func ApplyOper(left any, right any, oper Opid) (any, bool) {
+func ApplyOper(left any, right any, oper Opid) (any, error) {
 	if oper == OpEqual || oper == OpNotEqual {
-		return EqCompare(left, right, oper), true
+		return EqCompare(left, right, oper), nil
 	}
 
 	var res any
@@ -162,9 +162,13 @@ func ApplyOper(left any, right any, oper Opid) (any, bool) {
 		res, ok = binOperBytes(oper, val, right)
 	case *ob.Regexp:
 		res, ok = binOperRegexp(oper, val, right)
-
+	case base.FuncVal:
+		return binOperFunc(oper, val, right)
 	}
-	return res, ok
+	if !ok {
+		return nil, fmt.Errorf("Error in applying of bin oper: L(%T) <%s> R(%T) ", left, OperByIndex(oper), right)
+	}
+	return res, nil
 }
 
 func ElvisRes(left any, right any) any {

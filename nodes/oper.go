@@ -69,6 +69,15 @@ func OperIndex(s string) Opid {
 	}
 	return id
 }
+
+func OperByIndex(id Opid) string {
+	s, ok := _operStrMap[id]
+	if ok {
+		return s
+	}
+	return ""
+}
+
 func NewOper(sg string, id Opid) *Oper {
 	return &Oper{Sign: sg, Id: id}
 }
