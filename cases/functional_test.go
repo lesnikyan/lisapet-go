@@ -7,10 +7,184 @@ ok 1. x -> x + 10
 ok 2. (x, y) -> x + y
 ok 3. _ -> 1
 ok 4. \x, y,  -> x + y
-5. compose(foo, bar)
-6. foo * bar # compose oper
-7. foo $ arg # apply oper
+ok 5. compose(foo, bar)
+ok 6. foo * bar # compose oper
+ok 7. foo $ arg # apply oper
+8. carry()
+9. foo~>
 */
+
+// carry(foo)
+func _TestFuncCarry(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x, y)
+			x + 10 * y
+		#
+		f = carry(foo)
+		r = f(3)(4)
+		`, "r", int64(15)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+// func $ arg
+func TestFuncApplyOper(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		func foo(x)
+			x + 10
+		#
+		r = foo $ 5
+		`, "r", int64(15)},
+		// (lambda) $ arg
+		{`
+		foo = x -> x + 20
+		r = foo $ 5
+		`, "r", int64(25)},
+		{`
+		r = (x -> x + 20) $ 6
+		`, "r", int64(26)},
+		{`
+		r = x -> x + 20 $ 7
+		`, "r", int64(27)},
+		// foo * bar $ arg
+		{`
+		r = (x -> x + 20) $ 6
+		`, "r", int64(26)},
+		{`
+		func foo(x)
+			x + 20
+		func bar(x)
+			x * 2
+		r = foo * bar $ 3
+		`, "r", int64(26)},
+		{`
+		func foo(x)
+			x + 20
+		func bar(x)
+			x * 2
+		r = bar * foo $ 3
+		`, "r", int64(46)},
+		// foo $ bar(x)
+		{`
+		func foo(x)
+			x + 20
+		func bar(x)
+			x * 2
+		r = foo $ bar(4)
+		`, "r", int64(28)},
+		{`
+		func bar(x)
+			x * 2
+		r = \x -> x + 30 $ bar(4)
+		`, "r", int64(38)},
+		// foo $ x $ y # foo => func
+		{`
+		func foo(f)
+			f(100)
+		# 
+		func bar(x)
+			\y -> x + y
+		#
+		r = foo $ bar $ 7
+		`, "r", int64(107)},
+		{`
+		func foo(f)
+			f(100)
+		# 
+		func bar(x)
+			\y -> x + y
+		#
+		r = foo $ (bar $ 8)
+		`, "r", int64(108)},
+		{`
+		func foo(f)
+			k = 100
+			func (x)
+				f(k + x)
+		# 
+		func bar(x)
+			x * 2
+		#
+		r = (foo $ bar) $ 9
+		`, "r", int64(218)},
+		{`
+		func foo(x)
+			y = x * 10
+			func Q(f)
+				f(y)
+		# 
+		func bar(x)
+			\y -> x + y
+		#
+		r = foo(3) $ bar $ 5
+		`, "r", int64(35)},
+		// onj.method $ arg
+		{`
+		struct A a: int
+		func q: A foo(x)
+			q.a * x
+		#
+		a1 = A{a:3}
+		r = a1.foo $ 7
+		`, "r", int64(21)},
+		{`
+		struct A a: int
+		func q: A foo(x)
+			q.a * x
+		#
+		func bar(x)
+			x + 100
+		#
+		a1 = A{a:3}
+		r = a1.foo * bar $ 7
+		`, "r", int64(321)},
+		{`
+		struct A a: int
+		func q: A foo(x)
+			q.a * x
+		#
+		func bar(x)
+			x + 100
+		#
+		a1 = A{a:3}
+		r = bar * a1.foo $ 7
+		`, "r", int64(121)},
+		// builtin funcs
+		{`
+		r = 'q w e r'.split $ ' '
+		`, "r", Anis("q", "w", "e", "r")},
+
+		// map, fold
+		{`
+		nn = [1 .. 5]
+		r = nn.map $ \x -> x * 10
+		`, "r", Anis(10, 20, 30, 40, 50)},
+		{`
+		# fold can't apply because 2 args, carrying needed
+		func xfold(nn)
+			func R(x)
+				func Q(f)
+					nn.fold(x, f)
+		nn = [1 .. 5]
+		r = xfold(nn)(1000) $ \x,y -> x + y	
+		`, "r", int64(1015)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 // composition, builtin oper
 func TestFuncComposeOper(t *testing.T) {

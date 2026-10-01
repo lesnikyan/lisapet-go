@@ -26,7 +26,7 @@ var c_mlines = strings.Split("''' \"\"\" ```", ` `)
 var rxChar = regexp.MustCompile(`[a-zA-Z_\$]`)
 
 var charSet = lang.Kmap([]rune("qwertyuiopasdfghjklzxcvbnm" +
-	"QWERTYUIOPASDFGHJKLZXCVBNM_$"))
+	"QWERTYUIOPASDFGHJKLZXCVBNM_"))
 
 var quotSet = lang.Kmap([]rune("'\"`"))
 

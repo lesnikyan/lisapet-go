@@ -127,11 +127,11 @@ next - by dates...
 -  --30 Implemented composition of function:
     1) Composition by builtin func: `composedFunc = compose(func1, func2)`
     2) Composition by operator: `composedFunc = func1 * func2`
+- 2006.10.01 Implement apply function `$` operator: `foo $ arg`  
 
 
 #### next TODO:    
 - func high-order features  
-- apply $  
 - closures  
 - carry ~>   
 - user-defined type constructor  

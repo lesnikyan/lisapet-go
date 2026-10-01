@@ -146,7 +146,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	case "<-":
 		expr = &nodes.LeftArrow{} // L-arrow
 	case "$":
-		expr = &nodes.OperBin{} // func-apply
+		expr = nodes.EmptyDollarOper() // func-apply
 	case "/:":
 		expr = &nodes.OperBin{}
 		panic(" operator /:")

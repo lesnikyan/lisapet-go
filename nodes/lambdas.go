@@ -7,34 +7,6 @@ import (
 )
 
 // Expression that make and return Lambda-obiect
-// type LambdaExpr struct {
-// 	Args       []base.Expression
-// 	BlockNodes []base.Expression
-
-// 	res *ob.Function
-// }
-
-// // ser Args: var, colon, CommaSeq
-// func (md *LambdaExpr) SetLeft(base.Expression) {
-// 	count := 1
-// 	// if nor single vcar count = len of seq
-// 	md.Args = make([]base.Expression, +count)
-// }
-
-// // set block expression: oper, value, semicolon seq, brackets
-// func (md *LambdaExpr) SetRight(base.Expression) {
-// 	// need process passed expr
-// }
-
-// func (md *LambdaExpr) Do(base.Context) error {
-// 	// TODO: make lambda (Function)
-// 	return nil
-// }
-
-// func (md *LambdaExpr) Get() *base.Val {
-// 	// TODO: return lambda
-// 	return nil
-// }
 
 type LambdaExp struct {
 	Args []base.Expression
@@ -107,4 +79,42 @@ func (mb *LambdaExp) Do(cx base.Context) error {
 		return err
 	}
 	return nil
+}
+
+// ====
+
+type DollarOper struct {
+	Left  base.Expression
+	Right base.Expression
+
+	fCall *FuncCall
+
+	res any
+}
+
+func (op *DollarOper) SetLeft(xp base.Expression) {
+	op.Left = xp
+	op.fCall.Src = op.Left
+}
+func (op *DollarOper) SetRight(xp base.Expression) {
+	op.Right = xp
+	op.fCall.args = []base.Expression{op.Right}
+}
+
+func (op *DollarOper) Get() *base.Val {
+	return op.fCall.Get()
+}
+
+func (op *DollarOper) Do(cx base.Context) error {
+	err := op.fCall.Do(cx)
+	if err != nil {
+		return err
+	}
+	// op.res = op.fCall.Get()
+	return nil
+}
+
+func EmptyDollarOper() *DollarOper {
+	fCall := &FuncCall{}
+	return &DollarOper{fCall: fCall}
 }
