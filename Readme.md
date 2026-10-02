@@ -132,12 +132,10 @@ next - by dates...
     Carry limits: 
         1) Applicable to function with ordered args only (no named, default val or variadic args).  
         2) Need preload builtin function by new function: `BuiltFuncCounted(...)`.  
+    Implemented carry operator `~>` : `foo ~> (a)(b)`   
 
 
-#### next TODO:    
-- func high-order features  
-- closures  
-- carry operator `~>`   
+#### next TODO:   
 - user-defined type constructor  
 - string-comprehension: `~[string|glif ; iter ; cond]` 
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  

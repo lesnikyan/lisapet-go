@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
 )
@@ -59,20 +61,34 @@ func (op *TripleDots) Do(cx base.Context) error {
 
 // left ~>
 type TildArrow struct {
-	left base.Expression
+	Left base.Expression
 	res  any
 }
 
-func (op *TildArrow) SetLeft(xp base.Expression) {
-	op.left = xp
-}
-
 func (op *TildArrow) SetRight(xp base.Expression) {}
+
+func (op *TildArrow) SetLeft(xp base.Expression) {
+	op.Left = xp
+}
 
 func (op *TildArrow) Get() *base.Val {
 	return base.NewVal(op.res)
 }
 
 func (op *TildArrow) Do(cx base.Context) error {
+	err := op.Left.Do(cx)
+	if err != nil {
+		return err
+	}
+	fval := GetExprVal(op.Left, nil)
+	fun, ok := fval.(base.FuncVal)
+	if !ok {
+		return fmt.Errorf("carry oper ~> : trying to pass not a function, %T", fval)
+	}
+	res, err := carry(cx, fun)
+	if err != nil {
+		return err
+	}
+	op.res = res
 	return nil
 }
