@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	ob "github.com/lesnikyan/lisapet-go/objects"
 )
 
@@ -341,7 +342,7 @@ func binOperByte(opid Opid, a byte, b any) (any, bool) {
 	return nil, false
 }
 
-func binOperGlyf(opid Opid, a rune, b any) (any, bool) { return nil, false }
+func binOperGlif(opid Opid, a rune, b any) (any, bool) { return nil, false }
 
 func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
 
@@ -463,8 +464,18 @@ func binOperDict(opid Opid, a *ob.DictVal, b any) (any, bool) {
 	return nil, false
 }
 
+func binOperFunc(opid Opid, a base.FuncVal, b any) (any, error) {
+	switch opid {
+	case OpMult:
+		switch b.(type) {
+		case base.FuncVal:
+			return compose(nil, []any{a, b})
+		}
+	}
+	return nil, fmt.Errorf("func operators: bad operator `%s` or right operand %T ", OperByIndex(opid), b)
+}
+
 func binOperType(opid Opid, a any, b any) (any, bool)              { return nil, false }
-func binOperFunc(opid Opid, a *ob.Function, b any) (any, bool)     { return nil, false }
 func binOperStruct(opid Opid, a *ob.StructInst, b any) (any, bool) { return nil, false }
 func binOperRegext(opid Opid, a *ob.Regexp, b any) (any, bool)     { return nil, false }
 func binOperAny(opid Opid, a any, b any) (any, bool)               { return nil, false }

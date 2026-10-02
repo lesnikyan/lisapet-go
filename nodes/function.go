@@ -24,6 +24,10 @@ func (fn *FuncBlock) AddArg(arg *obj.ArgExp) {
 	fn.Args = append(fn.Args, arg)
 }
 
+func (fn *FuncBlock) ArgCount() int {
+	return len(fn.Args)
+}
+
 // 1. positional args, 2. named args,
 // 3. default arg vals, 4. variative count
 // 5. ovreload by arg count, 6. overload by arg types
@@ -204,6 +208,9 @@ func (fn *FuncBlock) PrepareArgs(cx base.Context) error {
 	overId := len(fn.argVals)
 	for i, arg := range fn.Args {
 		// fmt.Printf(" Fu.PArg#1 %d) (%T, %v)  \n", i, arg, arg.Name)
+		if arg.Name == "_" {
+			continue
+		}
 		// take var
 		vName := arg.Name
 		var vr *base.Var

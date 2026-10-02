@@ -122,6 +122,17 @@ next - by dates...
     Added `dict` expanding in function call, `dict` expands as set of named args:   func: `foo({key:val}...)` => `foo(key=val, ...)`  
 - --26 Implemented inline block: `a = 1; b = 2; x = a + b`  
 - --27 Implemented inline control: `if`, `for`, `while` `/:` . Now as exception in indent-based blocks. Works from start of line only.   
+- --29 Implemented **lambda functions** : `arg -> res`  
+    Implemented back-slash as a beginning lexem of `lambda`: `\x, y -> x + y`  
+-  --30 Implemented `composition` of function:
+    1) Composition by builtin func: `composedFunc = compose(func1, func2)`
+    2) Composition by operator: `composedFunc = func1 * func2`
+- 2006.10.01 Implement apply function `$` operator: `foo $ arg`  
+- --02 Implemented `carry` as a builit function `f = carry(funcABC); f(a)(b)(c)`
+    Carry limits: 
+        1) Applicable to function with ordered args only (no named, default val or variadic args).  
+        2) Need preload builtin function by new function: `BuiltFuncCounted(...)`.  
+    Implemented carry operator `~>` : `foo ~> (a)(b)`   
 
 
 #### next TODO:   
@@ -132,19 +143,14 @@ next - by dates...
 - /postpone after lambdas/ builtin methods for:   
     maybe.isNone   
     string: upper, lower, lcut(length):#cut left indents in multiline string:  
+    string.replace(dict)  
     regexp operators [ split: `/~`-  thinking]  
 - CLI: lp file.et  
 - `const`  
 - match statement: simple vals  
-- fix inline blocks after  `/:`, `:?`
-- match pattern   
+- match patterns   
+- fix inline blocks after  `:?`
 - func overload  
-- func high-order features  
-- closures  
-- lambda   
-- carry ~>   
-- composition *  
-- apply $  
 - enum  
 - grup  
 

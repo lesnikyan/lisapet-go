@@ -33,7 +33,6 @@ func (fd *FuncDef) MakeFunc(cx base.Context) (*objects.Function, error) {
 
 	fbk := &FuncBlock{Block: fd.Block, dfnArgs: fd.Args}
 	err := fbk.Init(cx)
-	// err := fn.Init(cx)
 	if err != nil {
 		return nil, errors.Join(errors.New("FuncDef.MakeFunc: init error"), err)
 	}
@@ -165,8 +164,12 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 	case *MFunc:
 		fc.fun = fn
 	case *objects.Method:
-		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 		fc.fun = fn
+	case *Composed:
+		fc.fun = fn
+	case *Curried:
+		fc.fun = fn
+		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 	case *base.Type:
 		if fn.Construct == nil {
 			return errors.New("trying to call undefined constructor of type " + fn.Name)
@@ -253,6 +256,7 @@ func (fc *FuncCall) DoArgs(cx base.Context) error {
 			}
 
 		// case *VarExpr:
+		// 	println(222)
 		default:
 			// ordered arg
 			err := vex.Do(cx)
@@ -298,7 +302,7 @@ func (fc *FuncCall) Do(cx base.Context) error {
 	if r == nil {
 		r = NoResult
 	}
-	fc.resVal = r
+	// fc.resVal = r
 	fc.res = r.V
 	// fmt.Printf(" - FCall(%s).Do#5 br(%T : %v) fr(%T : %v) \n", fc.fun.GetName(), r, r, fc.res, fc.res)
 	return nil

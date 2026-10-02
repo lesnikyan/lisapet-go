@@ -61,6 +61,7 @@ type FuncVal interface {
 	Get() *Val
 	GetName() string
 	SetArgVals(vals []any, mvals map[string]any)
+	ArgCount() int
 	// IsParent() bool
 }
 

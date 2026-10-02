@@ -214,7 +214,10 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 	if !ok {
 		return errors.New("sub oper of math-assign hasn't found")
 	}
-	res, ok := ApplyOper(lvv, rvv, subOper)
+	res, err := ApplyOper(lvv, rvv, subOper)
+	if err != nil {
+		return err
+	}
 	AssignVal(cx, op.left, res)
 	return nil
 }

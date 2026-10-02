@@ -244,6 +244,10 @@ func (mt *Method) Get() *base.Val {
 	return mt.Func.Get()
 }
 
+func (mt *Method) ArgCount() int {
+	return mt.Func.ArgCount() - 1 // except instance arg
+}
+
 func NewMethod(fn base.FuncVal, ntype *base.Type, iname string) *Method {
 	// instArg :=
 	mt := &Method{Func: fn, InstName: iname, Type: ntype}

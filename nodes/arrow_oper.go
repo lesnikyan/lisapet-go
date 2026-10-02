@@ -7,6 +7,12 @@ import (
 	ob "github.com/lesnikyan/lisapet-go/objects"
 )
 
+// =====
+type AppendOper struct {
+	Target any // *T of [T ob.ListVal | ob.DitcVal]
+	Src    any // right arg
+}
+
 // **********************************
 type LeftArrow struct {
 	left   base.Expression
