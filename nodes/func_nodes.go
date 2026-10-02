@@ -167,6 +167,8 @@ func (fc *FuncCall) getFunc(cx base.Context) error {
 		fc.fun = fn
 	case *Composed:
 		fc.fun = fn
+	case *Curried:
+		fc.fun = fn
 		// fmt.Printf("getFunc, Method: %T, %v inst: %T, %v \n", fn, fn, fn.Inst, fn.Inst)
 	case *base.Type:
 		if fn.Construct == nil {
@@ -300,7 +302,7 @@ func (fc *FuncCall) Do(cx base.Context) error {
 	if r == nil {
 		r = NoResult
 	}
-	fc.resVal = r
+	// fc.resVal = r
 	fc.res = r.V
 	// fmt.Printf(" - FCall(%s).Do#5 br(%T : %v) fr(%T : %v) \n", fc.fun.GetName(), r, r, fc.res, fc.res)
 	return nil

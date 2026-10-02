@@ -33,3 +33,22 @@ func funcsCompose(cx base.Context, args []any) (any, error) {
 	res, err := compose(cx, args)
 	return res, err
 }
+
+// ====
+
+func carry(cx base.Context, src base.FuncVal) (*Curried, error) {
+	count := src.ArgCount()
+	return NewCurried(src, cx.SubContext(), count), nil
+}
+
+func funcsCarry(cx base.Context, args []any) (any, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("carry: expected 1 argument, but %d passed", len(args))
+	}
+	fun, ok := args[0].(base.FuncVal)
+	if !ok {
+		return nil, fmt.Errorf("carry: trying to pass not a function, %T", args[0])
+	}
+	res, err := carry(cx, fun)
+	return res, err
+}

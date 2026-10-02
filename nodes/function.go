@@ -24,6 +24,10 @@ func (fn *FuncBlock) AddArg(arg *obj.ArgExp) {
 	fn.Args = append(fn.Args, arg)
 }
 
+func (fn *FuncBlock) ArgCount() int {
+	return len(fn.Args)
+}
+
 // 1. positional args, 2. named args,
 // 3. default arg vals, 4. variative count
 // 5. ovreload by arg count, 6. overload by arg types

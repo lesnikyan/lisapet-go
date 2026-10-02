@@ -44,16 +44,21 @@ func (fn *Function) SetArgVals(vals []any, nvals map[string]any) {
 	fn.Block.SetArgVals(vals, nvals)
 }
 
+func (fn *Function) ArgCount() int {
+	return fn.Block.ArgCount()
+}
+
 func (fn *Function) Do(cx base.Context) error {
 	fn.res = nil
 	fn.resVal = nil
 
-	// fmt.Printf(" ---- ob.Fu.Do#1 \n")
+	// fmt.Printf(" ---- ob.Fu.Do#1 <%s> \n", fn.Name)
 
 	// inner context
 	inCx := fn.defCtx.SubContext()
 	err := fn.Block.Do(inCx)
 	if err != nil {
+		// fmt.Printf(" ---- ob.Fu.Do#3 Error: %v \n", err)
 		return err
 	}
 	res := fn.Block.Get()
@@ -83,4 +88,5 @@ type FSubBlock interface {
 	Do(cx base.Context) error
 	Get() *base.Val
 	GetPopUp() *base.PopUp
+	ArgCount() int
 }

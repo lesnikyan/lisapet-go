@@ -15,7 +15,7 @@ ok 7. foo $ arg # apply oper
 */
 
 // carry(foo)
-func _TestFuncCarry(t *testing.T) {
+func TestFuncCarry(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -27,7 +27,80 @@ func _TestFuncCarry(t *testing.T) {
 		#
 		f = carry(foo)
 		r = f(3)(4)
-		`, "r", int64(15)},
+		`, "r", int64(43)},
+		{`
+		# 1 arg, just formal test
+		func foo(x)
+			x + 10
+		#
+		f = carry(foo)
+		r = f(4)
+		`, "r", int64(14)},
+		{`
+		# 3 args
+		func foo(x, y, z)
+			x * 100 + y * 10 + z
+		#
+		f = carry(foo)
+		r = f(3)(4)(5)
+		`, "r", int64(345)},
+		{`
+		func foo(a, b, c, d)
+			[a, b, c, d]
+		#
+		f = carry(foo)
+		r = f(1)(2)(3)(4)
+		`, "r", Anis(1, 2, 3, 4)},
+		{`
+		func foo(a, b, c, d, e)
+			[a, b, c, d, e*10]
+		#
+		f = carry(foo)
+		r = f(1)(2)(3)(4)(5)
+		`, "r", Anis(1, 2, 3, 4, 50)},
+		{`
+		# 8 args
+		func foo(a, b, c, d, e, f, g, h)
+			[a, b, c, d, e+10, f+20, g+30, h+100]
+		#
+		f = carry(foo)
+		r = f(1)(2)(3)(4)(5)(6)(7)(8)
+		`, "r", Anis(1, 2, 3, 4, 15, 26, 37, 108)},
+		// combine with composition and $
+		{`
+		func foo(x, y)
+			x + 10 * y
+		#
+		f = carry(foo)
+		r = f(3) $ 7
+		`, "r", int64(73)},
+		{`
+		func foo(x, y)
+			x + 10 * y
+		#
+		f = carry(foo)
+		r = f $ 3 $ 9
+		`, "r", int64(93)},
+		{`
+		func foo(x, y)
+			x + 10 * y
+		func bar(x)
+			10 + x
+		#
+		f = carry(foo)
+		r = f(3) * bar $ 7
+		`, "r", int64(173)},
+		// carry method
+		{`
+		struct A a:int
+		#
+		func q:A foo(x, y)
+			x + q.a * y
+		#
+		a1 = A{a:20}
+		f = carry(a1.foo)
+		r = f(3)(5)
+		`, "r", int64(103)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

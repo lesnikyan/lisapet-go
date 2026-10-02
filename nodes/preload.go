@@ -16,6 +16,7 @@ func PreloadFuncs(cx base.Context) {
 	BuiltFunc(cx, "devDef33", devDefArgs33, nil)
 	BuiltFunc(cx, "devDefOrd", devDefOrds, nil)
 	BuiltFunc(cx, "compose", funcsCompose, nil)
+	BuiltFunc(cx, "carry", funcsCarry, nil)
 }
 
 func PreloadServFuncs(cx base.Context) {

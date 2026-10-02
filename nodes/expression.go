@@ -266,6 +266,10 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
+		if eVal == nil {
+			// return with no value
+			return NullV()
+		}
 		// fmt.Printf("GetExp.FuncCall#Val: %T, %v >> %T, %v \n", eVal, eVal, eVal.V, eVal.V)
 		return eVal.V
 	case *NumSeqExpr:
