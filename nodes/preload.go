@@ -108,5 +108,12 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "regexp", "split", regexpSplit)
 	// mur
 	BuiltMethod(cx, "mur", "mult", murMult)
+	// maybe
+	BuiltMethod(cx, "maybe", "isNone", maybeIsNone)
+	BuiltMethod(cx, "maybe", "isSome", maybeIsSome)
+	BuiltMethod(cx, "maybe", "get", maybeGet)
+	BuiltMethod(cx, "maybe", "map", maybeMap)
+	BuiltMethod(cx, "maybe", "fold", maybeFold)
+	BuiltMethod(cx, "maybe", "maybe", maybeMaybe)
 
 }

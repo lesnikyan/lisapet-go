@@ -999,6 +999,123 @@ func regexpSplit(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewListVal(vals2anis(ss)), nil
 }
 
+func maybeIsNone(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.isNone: %T", inst)
+	}
+	return mb.IsNone(), nil
+}
+
+func maybeIsSome(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.isSome: %T", inst)
+	}
+	return !mb.IsNone(), nil
+}
+
+func maybeGet(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.get: %T", inst)
+	}
+	if mb.IsNone() {
+		return nil, fmt.Errorf("maybe.get can't return value from none")
+	}
+	return mb.Val, nil
+}
+
+func maybeCallFunc(cx base.Context, fnVal any, fargs []any) (any, error) {
+	// fn, err := objFunc(farg)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// fargs := []any{nil}
+	// fargs[0] = mb.Val
+	var err error
+	fn, err := objFunc(fnVal)
+	if err != nil {
+		return nil, err
+	}
+	nargs := map[string]any{}
+	fn.SetArgVals(fargs, nargs)
+	err = fn.Do(cx)
+	if err != nil {
+		return nil, err
+		// return nil, errors.Join(errors.New("error maybe.map "), err)
+	}
+	fr := fn.Get()
+	var nr any
+	if fr == nil {
+		nr = NullV()
+	} else {
+		nr = fr.V
+	}
+	return nr, nil
+}
+
+func maybeMap(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.map: %T", inst)
+	}
+	if len(args) != 1 {
+		return nil, fmt.Errorf("maybe.map wait 1 arg passed: %d", len(args))
+	}
+	if mb.IsNone() {
+		return objects.None(), nil
+	}
+	fargs := []any{mb.Val}
+	nr, err := maybeCallFunc(cx, args[0], fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.map "), err)
+	}
+	res := objects.Some(nr)
+	return res, nil
+}
+
+func maybeFold(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.fold: %T", inst)
+	}
+	if len(args) != 2 {
+		return nil, fmt.Errorf("maybe.fold wait 2 arg passed: %d", len(args))
+	}
+	acc := args[0] // accumulator
+	if mb.IsNone() {
+		return acc, nil
+	}
+	fargs := []any{acc, mb.Val}
+	nr, err := maybeCallFunc(cx, args[1], fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.fold "), err)
+	}
+	return nr, nil
+}
+
+func maybeMaybe(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.may: %T", inst)
+	}
+	if len(args) != 2 {
+		return nil, fmt.Errorf("maybe.fold wait 2 arg passed: %d", len(args))
+	}
+	df := args[0] // default val
+	if mb.IsNone() {
+		return df, nil
+	}
+	fargs := []any{mb.Val}
+	funcVal := args[1]
+	nr, err := maybeCallFunc(cx, funcVal, fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.fold "), err)
+	}
+	return nr, nil
+}
+
 // TODO:
 // list.filter
 // tuple filter

@@ -133,17 +133,18 @@ next - by dates...
         1) Applicable to function with ordered args only (no named, default val or variadic args).  
         2) Need preload builtin function by new function: `BuiltFuncCounted(...)`.  
     Implemented carry operator `~>` : `foo ~> (a)(b)`   
+- --03 Ad builtin methods of `maybe` type: `isNone`, `isSome`, `map`, `fold`, `maybe`  
+
 
 
 #### next TODO:   
+- /postpone after lambdas/ builtin methods for: 
+    string: upper, lower, lcut(length):#cut left indents in multiline string:  
+    string.replace(dict)  
 - user-defined type constructor  
 - string-comprehension: `~[string|glif ; iter ; cond]` 
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
-- formatting by expression include: `~"Hello {name}!"`  
-- /postpone after lambdas/ builtin methods for:   
-    maybe.isNone   
-    string: upper, lower, lcut(length):#cut left indents in multiline string:  
-    string.replace(dict)  
+- formatting by expression include: `~"Hello {name}!"`     
     regexp operators [ split: `/~`-  thinking]  
 - CLI: lp file.et  
 - `const`  

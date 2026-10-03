@@ -198,6 +198,8 @@ func binOperString(opid Opid, a string, b any) (any, bool) {
 				vals = src.Elems
 			case *ob.TupleVal:
 				vals = src.Elems
+			case *ob.Null:
+				vals = []any{"<null>"}
 			default:
 				vals = []any{b}
 			}
