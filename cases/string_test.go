@@ -31,6 +31,71 @@ bytes([]int, string, glif, []glif)
 
 // """ .. \n .. \n """.lines()
 
+func TestStringMethods2(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// upper
+		{`
+		r = ['upper:']
+		ss = ['a', 'Aaa','Bimbom','TTT','a5Buk']
+		for s <- ss
+			r <- s.upper()
+		`, "r", Anis("upper:", "A", "AAA", "BIMBOM", "TTT", "A5BUK")},
+		//lower
+		{`
+		r = ['lower:']
+		ss = ['a', 'Aaa','Bimbom','TTT','a5Buk']
+		for s <- ss
+			r <- s.lower()
+		`, "r", Anis("lower:", "a", "aaa", "bimbom", "ttt", "a5buk")},
+
+		// replace by dict
+		{`
+		ss = ['123 Q 456 22' , 'Abbcc 35Q', 'a,b,c,d,Q', 'one man, one cap, one cat', 'Qust']
+		#dd = {',': ';', }
+		dd = {g',': ';', re'([0-9]{3})':'<$1>', 'one':g'1', g'Q':'R'}
+		r = []
+		for s <- ss
+			r <- s.replace(dd)
+		`, "r", Anis("<123> R <456> 22", "Abbcc 35R", "a;b;c;d;R", "1 man; 1 cap; 1 cat", "Rust")},
+
+		// {``, "r",  Anis()},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
+		tt.src = strings.ReplaceAll(tt.src, "~", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestStringLCut(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// replace
+		{`
+		s = """
+				Hello!
+				Dear editor.
+				How are yo?
+		"""
+		r =  s.lcut(2)
+		`, "r", "\nHello!\nDear editor.\nHow are yo?\n"},
+		// {``, "r",  Anis()},
+		// {``, "r",  Anis()},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
+		tt.src = strings.ReplaceAll(tt.src, "~", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestStringMethRX(t *testing.T) {
 	tdata := []struct {
 		src   string

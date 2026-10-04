@@ -73,6 +73,9 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "string", "has", stringHas)
 	BuiltMethod(cx, "string", "lines", stringLines)
 	BuiltMethod(cx, "string", "trim", stringTrim)
+	BuiltMethod(cx, "string", "lcut", stringLCut)
+	BuiltMethod(cx, "string", "upper", stringUpper)
+	BuiltMethod(cx, "string", "lower", stringLower)
 	// list
 	BuiltMethod(cx, "list", "join", listJoin)
 	BuiltMethod(cx, "list", "map", listMap)
@@ -108,5 +111,13 @@ func BuiltMethods(cx base.Context) {
 	BuiltMethod(cx, "regexp", "split", regexpSplit)
 	// mur
 	BuiltMethod(cx, "mur", "mult", murMult)
+	// maybe
+	BuiltMethod(cx, "maybe", "isNone", maybeIsNone)
+	BuiltMethod(cx, "maybe", "isSome", maybeIsSome)
+	BuiltMethod(cx, "maybe", "get", maybeGet)
+	BuiltMethod(cx, "maybe", "map", maybeMap)
+	BuiltMethod(cx, "maybe", "fold", maybeFold)
+	BuiltMethod(cx, "maybe", "maybe", maybeMaybe)
+	BuiltMethod(cx, "maybe", "filter", maybeFilter)
 
 }

@@ -11,6 +11,8 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
+// ==== String
+
 func stringSplit(cx base.Context, inst any, args []any) (any, error) {
 	s, ok := inst.(string)
 	if !ok {
@@ -58,7 +60,47 @@ type GS interface {
 // 	return strings.ReplaceAll(s, old, rep)
 // }
 
-// TODO: replace({dict}) : {old1:repl1, ...}
+func ReplaceMulti(s string, srch any, repl any) (string, error) {
+	var rep string
+	// if not dict
+	if repl != nil {
+		switch a1 := repl.(type) {
+		case string:
+			rep = a1
+		case objects.Glif:
+			rep = string([]rune{a1})
+		default:
+			return "", fmt.Errorf("string.replace: replacement mast be string")
+		}
+	}
+	// searching elem
+	// var err error
+	switch old := srch.(type) {
+	case string:
+		res := strings.ReplaceAll(s, old, rep)
+		return res, nil
+	case objects.Glif:
+		res := strings.ReplaceAll(s, string([]rune{old}), rep)
+		return res, nil
+	case *objects.DictVal:
+		// key - search, val - replacement
+		t := s
+		for k, v := range old.Vmap {
+			tr, err := ReplaceMulti(t, k, v)
+			if err != nil {
+				return "", errors.Join(fmt.Errorf("string.replace: with dict arg"), err)
+			}
+			t = tr
+		}
+		return t, nil
+	case *objects.Regexp:
+		res := old.Replace(s, rep)
+		return res, nil
+	default:
+		return "", fmt.Errorf("string.replace: pattern mast be string or glif")
+	}
+}
+
 func stringReplace(cx base.Context, inst any, args []any) (any, error) {
 	// args[0,1]: string|glif|Regexp, string|glif
 	// args[0]: dict
@@ -70,35 +112,15 @@ func stringReplace(cx base.Context, inst any, args []any) (any, error) {
 		return nil, fmt.Errorf("No args of in string.replace")
 	}
 
-	// replacement
-	var rep string
+	var rep any
 	if len(args) > 1 {
-		switch a1 := args[1].(type) {
-		case string:
-			rep = a1
-		case objects.Glif:
-			rep = string([]rune{a1})
-		default:
-			return nil, fmt.Errorf("string.replace: replacement mast be string")
-		}
+		rep = args[1]
 	}
-
-	// searching elem
-	switch old := args[0].(type) {
-	case string:
-		res := strings.ReplaceAll(s, old, rep)
-		return res, nil
-	case objects.Glif:
-		res := strings.ReplaceAll(s, string([]rune{old}), rep)
-		return res, nil
-	case *objects.DictVal:
-		return nil, fmt.Errorf("string.replace: dict arg not implemented")
-	case *objects.Regexp:
-		res := old.Replace(s, rep)
-		return res, nil
-	default:
-		return nil, fmt.Errorf("string.replace: pattern mast be string or glif")
+	res, err := ReplaceMulti(s, args[0], rep)
+	if err != nil {
+		return nil, errors.Join(fmt.Errorf("string.replace: with dict arg"), err)
 	}
+	return res, nil
 }
 
 // vals: ListVal | TupleVal
@@ -240,7 +262,7 @@ func SeqJoin[T *objects.ListVal | *objects.TupleVal](inst T, args []any) (any, e
 	return res, nil
 }
 
-// ---- type List
+// ==== List
 
 func listJoin(cx base.Context, inst any, args []any) (any, error) {
 	src, ok := inst.(*objects.ListVal)
@@ -455,7 +477,7 @@ func listFilter(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewListVal(rr), nil
 }
 
-// ---- type Tuple
+// ==== Tuple
 
 func tupleJoin(cx base.Context, inst any, args []any) (any, error) {
 	src, ok := inst.(*objects.TupleVal)
@@ -495,7 +517,7 @@ func tupleFilter(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewTupleVal(rr), nil
 }
 
-// ---- type Dict
+// ==== Dict
 
 // map keys and vals map(func(k, v) >> rk,rv)
 func dictMap(cx base.Context, inst any, args []any) (any, error) {
@@ -674,7 +696,7 @@ func dictVals(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewListVal(nn), nil
 }
 
-// ---- type Bytes
+// ==== Bytes
 
 // bits: 0x[f1] >> [1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,1]
 func bytesBits(cx base.Context, inst any, args []any) (any, error) {
@@ -999,8 +1021,192 @@ func regexpSplit(cx base.Context, inst any, args []any) (any, error) {
 	return objects.NewListVal(vals2anis(ss)), nil
 }
 
-// TODO:
-// list.filter
-// tuple filter
-// dict.filter
-// string upper, lower
+// ==== Maybe
+
+func maybeIsNone(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.isNone: %T", inst)
+	}
+	return mb.IsNone(), nil
+}
+
+func maybeIsSome(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.isSome: %T", inst)
+	}
+	return !mb.IsNone(), nil
+}
+
+func maybeGet(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.get: %T", inst)
+	}
+	if mb.IsNone() {
+		return nil, fmt.Errorf("maybe.get can't return value from none")
+	}
+	return mb.Val, nil
+}
+
+func maybeCallFunc(cx base.Context, fnVal any, fargs []any) (any, error) {
+	var err error
+	fn, err := objFunc(fnVal)
+	if err != nil {
+		return nil, err
+	}
+	nargs := map[string]any{}
+	fn.SetArgVals(fargs, nargs)
+	err = fn.Do(cx)
+	if err != nil {
+		return nil, err
+	}
+	fr := fn.Get()
+	var nr any
+	if fr == nil {
+		nr = NullV()
+	} else {
+		nr = fr.V
+	}
+	return nr, nil
+}
+
+func maybeMap(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.map: %T", inst)
+	}
+	if len(args) != 1 {
+		return nil, fmt.Errorf("maybe.map wait 1 arg passed: %d", len(args))
+	}
+	if mb.IsNone() {
+		return objects.None(), nil
+	}
+	fargs := []any{mb.Val}
+	nr, err := maybeCallFunc(cx, args[0], fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.map "), err)
+	}
+	res := objects.Some(nr)
+	return res, nil
+}
+
+func maybeFold(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.fold: %T", inst)
+	}
+	if len(args) != 2 {
+		return nil, fmt.Errorf("maybe.fold wait 2 arg passed: %d", len(args))
+	}
+	acc := args[0] // accumulator
+	if mb.IsNone() {
+		return acc, nil
+	}
+	fargs := []any{acc, mb.Val}
+	nr, err := maybeCallFunc(cx, args[1], fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.fold "), err)
+	}
+	return nr, nil
+}
+
+func maybeMaybe(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.may: %T", inst)
+	}
+	if len(args) != 2 {
+		return nil, fmt.Errorf("maybe.fold wait 2 arg passed: %d", len(args))
+	}
+	df := args[0] // default val
+	if mb.IsNone() {
+		return df, nil
+	}
+	fargs := []any{mb.Val}
+	funcVal := args[1]
+	nr, err := maybeCallFunc(cx, funcVal, fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.fold "), err)
+	}
+	return nr, nil
+}
+
+// mb = some(val) | none
+// mb.filter(f: function)
+// if none => none; f(val): if false => none; if true =>
+func maybeFilter(cx base.Context, inst any, args []any) (any, error) {
+	mb, ok := inst.(*objects.Maybe)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance in maybe.filter: %T", inst)
+	}
+	if mb.IsNone() {
+		return objects.None(), nil
+	}
+	if len(args) != 1 {
+		return nil, fmt.Errorf("maybe.filter wait 1 arg passed: %d", len(args))
+	}
+	fargs := []any{mb.Val}
+	funcVal := args[0]
+	res, err := maybeCallFunc(cx, funcVal, fargs)
+	if err != nil {
+		return nil, errors.Join(errors.New("error maybe.filter "), err)
+	}
+	switch rv := res.(type) {
+	case bool:
+		if rv {
+			return mb, nil
+		}
+		return objects.None(), nil
+	case *objects.Null:
+		return objects.None(), nil
+	}
+	return nil, fmt.Errorf("maybe.filter passed function should return bool, but returned: %T", res)
+}
+
+// cut left indents in multiline string
+func stringLCut(cx base.Context, inst any, args []any) (any, error) {
+	s, ok := inst.(string)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of string in string.lcut: %T", inst)
+	}
+	if len(args) != 1 {
+		return nil, fmt.Errorf("string.lcut wait 1 arg passed: %d", len(args))
+	}
+	a0, ok := args[0].(int64)
+	if !ok {
+		return nil, fmt.Errorf("string.lcut arg must be int: %d", len(args))
+	}
+	size := int(a0)
+	vv := []string{}
+	for n := range strings.Lines(s) {
+		rs := []rune(n)
+		// just crop all chars by size
+		lrs := len(rs)
+		if lrs < size {
+			vv = append(vv, string(rs[lrs-1:lrs]))
+			continue
+		}
+		cc := string(rs[size:])
+		vv = append(vv, cc)
+	}
+	res := strings.Join(vv, "")
+	return res, nil
+}
+
+func stringUpper(cx base.Context, inst any, args []any) (any, error) {
+	s, ok := inst.(string)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of string in string.lcut: %T", inst)
+	}
+	return strings.ToUpper(s), nil
+}
+
+func stringLower(cx base.Context, inst any, args []any) (any, error) {
+	s, ok := inst.(string)
+	if !ok {
+		return nil, fmt.Errorf("Bad instance of string in string.lcut: %T", inst)
+	}
+	return strings.ToLower(s), nil
+}
