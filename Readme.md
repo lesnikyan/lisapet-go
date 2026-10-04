@@ -1,9 +1,24 @@
 
 ## Overview.
 Go-lang implementation of `Lisapet` programming language.  
+Status: in dev. Previously was implemented on python (its slow :D )  
+Lisapet-go is an library which can be used in go-code for run code snippets written on `lisapet` language without compiling go code.  
+So its an interpreter you can use in your code. Code can be interpreted to executable object and store for time you want to run it. Once interpreted executable object (I named it executable tree) can be run any times.  
+You can add your own built in functions for faster evaluation (some necessary of them I did, but not many).  
+Lisapet has builtin types: int ( really int64), float (yes 64), string, bytes (like []byte), glif (like rune), byte, bool, null (like nil).  
+And containers: list, tuple, dict (like map), maybe (some(val) | none),  
+Type `struct` (like struct with elements of classes), function (`func`) (and lambdas: `\arg -> expr`), native regexp,  
+enum (in dev), grup (like namespace or static class, in dev).  
+It has some features from functional approach: lambdas, closures, carrying, composition.
+Functional features for collections: .map(), .fold(), .filter().  
+Function overloading (in dev).  
+Types (and structs) have a methods.  
+Typical control elements: `if`, `for`, `while`. Comprehensive expressions as shortened syntax, generators.   
+Pattern matching via control `match` (in dev).
+Some extra features, see syntax:  
 [Syntax overview in repo of python implementation](https://github.com/lesnikyan/lisapet/blob/dev/readme.md).  
-  
-  
+
+
 raw dev log:  
   
 0. I resigned myself to write it with Go...  
