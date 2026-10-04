@@ -50,8 +50,30 @@ func TestMaybeMethods(t *testing.T) {
 		for n <- ss
 			r <- n.maybe(0, foo)
 		`, "r", Anis(0, 11, 15, -9)},
+		// filter
+		{`
+		func foo(x)
+			x > 0
+		r = []
+		ss = [none, some(1), some(5), some(2), some(-19), some(20), some(21), some(105), ]
+		for n <- ss
+			t = n.filter(foo)
+			if t.isSome()
+				r <- t.get()
+			else
+				r <- '#n1'
+			d = n.filter(\x -> x % 2 != 0)
+			if d.isSome()
+				r <- d.get()
+			else
+				r <- '#n2'
+		`, "r", Anis("#n1", "#n2", 1, 1, 5, 5, 2, "#n2", "#n1", -19, 20, "#n2", 21, 21, 105, 105)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
+/*
+
+ */
