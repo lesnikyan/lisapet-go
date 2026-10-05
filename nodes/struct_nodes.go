@@ -67,15 +67,6 @@ func (se *StructDefExpr) StrDefArgs(cx base.Context) ([]*objects.StructField, er
 			// rexp, ok := fex.Right.(*VarExpr) // type
 			switch rexp := fex.Right.(type) {
 			case *VarExpr:
-				// et := cx.GetElem(rexp.name)
-				// if et == nil {
-				// 	// type not found
-				// }
-				// ft, ok := et.V.(*base.Type)
-				// if !ok {
-				// 	// not type
-				// 	return nil, errors.New("struct def: bad type name in `field:type`")
-				// }
 				ft, err := rexp.AsType(cx)
 				if err != nil {
 					return nil, err
@@ -138,12 +129,22 @@ func (se *StructDefExpr) Do(cx base.Context) error {
 	}
 	sdef := objects.NewSructDef(se.Name, fields, parents)
 	stype := base.DefineUserType(se.Name, sdef)
+	defConstr := objects.NewDefConstr(sdef)
+	stype.Construct = defConstr
 	sdef.Type = stype
 	cx.AddType(stype)
+	// MakeStrConstr(cx, sdef)
 	return nil
 }
 
-// /
+// func MakeStrConstr(cx base.Context, sdef *objects.StructDef) {
+// 	fields := sdef.GetFields()
+// 	fmt.Printf("MakeConstr: %s \n", sdef.Name)
+// 	for i, fl := range fields {
+// 		fmt.Printf(" - StrCons.sdef# @%s  %d field: %s, type: %s \n", sdef.Name, i, fl.Name, fl.Type.Name)
+// 	}
+// }
+
 // StrName{a:2, b:5}
 type StructConstr struct {
 	Name   string
@@ -188,8 +189,6 @@ func (se *StructConstr) Do(cx base.Context) error {
 	fsource := make([]*OperColon, lfd)
 	copy(fsource, se.Args)
 	fsource = append(fsource, se.Subs...)
-	// fields := make([]*objects.StructField, len(fsource))
-	// for i, ex := range fsource {
 	args := make(map[string]any)
 	for _, arg := range fsource {
 		nexp, ok := arg.Left.(*VarExpr)
