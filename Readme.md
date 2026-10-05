@@ -138,34 +138,35 @@ next - by dates...
 - --26 Implemented inline block: `a = 1; b = 2; x = a + b`  
 - --27 Implemented inline control: `if`, `for`, `while` `/:` . Now as exception in indent-based blocks. Works from start of line only.   
 - --29 Implemented **lambda functions** : `arg -> res`  
-    Implemented back-slash as a beginning lexem of `lambda`: `\x, y -> x + y`  
--  --30 Implemented `composition` of function:
-    1) Composition by builtin func: `composedFunc = compose(func1, func2)`
-    2) Composition by operator: `composedFunc = func1 * func2`
+    Implemented back-slash as a beginning lexem of `lambda`: `\x, y -> x + y`   
+-  --30 Implemented `composition` of function:  
+    1) Composition by builtin func: `composedFunc = compose(func1, func2)`  
+    2) Composition by operator: `composedFunc = func1 * func2`  
 - 2006.10.01 Implement apply function `$` operator: `foo $ arg`  
-- --02 Implemented `carry` as a builit function `f = carry(funcABC); f(a)(b)(c)`
-    Carry limits: 
+- --02 Implemented `carry` as a builit function `f = carry(funcABC); f(a)(b)(c)`  
+    Carry limits:  
         1) Applicable to function with ordered args only (no named, default val or variadic args).  
         2) Need preload builtin function by new function: `BuiltFuncCounted(...)`.  
     Implemented carry operator `~>` : `foo ~> (a)(b)`   
 - --03 Added builtin methods of `maybe` type: `isNone`, `isSome`, `map`, `fold`, `maybe`, `filter`  
-    Added methods of string: upper, lower, lcut(length):#cut left indents in multiline string
-    Fixed `string.replace(arg)` with `dict` arg: `str.replace({'one':'two', re'[0-9]':'($1)'})`
+    Added methods of string: upper, lower, lcut(length):#cut left indents in multiline string  
+    Fixed `string.replace(arg)` with `dict` arg: `str.replace({'one':'two', re'[0-9]':'($1)'})`  
+- --05 Implemented default callable constructor for struct type: `struct A a:int, b:bool ; A(12, true)`  
 
 
 
 #### next TODO:   
-- user-defined type constructor  
+- match statement: simple vals  
+- match patterns   
+- fix inline blocks after  `:?`
 - string-comprehension: `~[string|glif ; iter ; cond]` 
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     
     regexp operators [ split: `/~`-  thinking]  
 - CLI: lp file.et  
 - `const`  
-- match statement: simple vals  
-- match patterns   
-- fix inline blocks after  `:?`
 - func overload  
+- user-defined constructor of struct is a regular function: postpone after func overloading  
 - enum  
 - grup  
 

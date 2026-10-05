@@ -348,7 +348,12 @@ func (fn *DefConstr) Do(cx base.Context) error {
 	}
 	avv := map[string]any{}
 	for i, val := range args {
-		avv[fields[i].Name] = val
+		sf := fields[i]
+		tOk, pval := PrepareVal(sf.Type, val)
+		if !tOk {
+			return fmt.Errorf("struct: incorrect type for field `%s`", val)
+		}
+		avv[sf.Name] = pval
 	}
 	inst := sdef.NewInstance(avv)
 	fn.resV = base.NewVal(inst)
