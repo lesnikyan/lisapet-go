@@ -8,6 +8,70 @@ import "testing"
 
 */
 
+// callable constructor
+func TestStructFConstr(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// magic default constr
+		{`
+		struct A a: int, aa: string
+		struct B(A) b: float
+		#
+		a1 = A(11) # a, aa
+		a2 = A(12, "A2")
+		b1 = B(21, "B1", 1.5) # a, aa, b
+		r = [a1, a2, b1]
+		`, "r", Anis(Stf("A", dk{"a": 11, "aa": ""}), Stf("A", dk{"a": 12, "aa": "A2"}),
+			Stf("B", dk{"a": 21, "aa": "B1", "b": 1.5}))},
+		{`
+		struct A a: int, aa: string
+		struct B(A) b: float
+		struct C(A,B) c: bool
+		#
+		c1 = C(31, "C3", 3.5, true) # a, aa, b, c
+		r = [c1]
+		`, "r", Anis(Stf("C", dk{"a": 31, "aa": "C3", "b": 3.5, "c": true}))},
+		// default constr, empty and partial args
+		{`
+		struct A a: int, aa: string
+		#
+		r = [A()]
+		`, "r", Anis(Stf("A", dk{"a": 0, "aa": ""}))},
+		{`
+		struct A a: int, aa: string
+		#
+		r = [A(15)]
+		`, "r", Anis(Stf("A", dk{"a": 15, "aa": ""}))},
+		{`
+		struct A a: int, aa: string
+		struct B(A) b: float
+		#
+		r = [B()]
+		`, "r", Anis(Stf("B", dk{"a": 0, "aa": "", "b": 0.0}))},
+		{`
+		struct A a: int, aa: string
+		struct B(A) b: float
+		#
+		r = [B(22)]
+		`, "r", Anis(Stf("B", dk{"a": 22, "aa": "", "b": 0.0}))},
+		{`
+		struct A a: int, aa: string
+		struct B(A) b: float
+		struct C(A,B) c: bool
+		#
+		r = [C(), C(34, "C4", 4.5)]
+		`, "r", Anis(
+			Stf("C", dk{"a": 0, "aa": "", "b": 0.0, "c": false}),
+			Stf("C", dk{"a": 34, "aa": "C4", "b": 4.5, "c": false}))},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestStructParentMulti(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -85,6 +149,7 @@ func TestStructParentMulti(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestStructParent(t *testing.T) {
 	tdata := []struct {
 		src   string

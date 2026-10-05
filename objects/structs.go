@@ -15,11 +15,6 @@ type StructField struct {
 	Val    any
 }
 
-// type DeepField struct {
-// 	Name string
-// 	Field *StructField
-// }
-
 // struct definition object
 type StructDef struct {
 	Name    string
@@ -96,28 +91,56 @@ func (sd *StructDef) GetMethods() []base.FuncVal {
 func (sd *StructDef) GetFields() []*StructField {
 	pmt := make([]*StructField, 0)
 
+	for _, name := range sd.FNames {
+		f := sd.Fields[name]
+		// fmt.Printf("StDef GetF3. %s f: %s \n", sd.Name, f.Name)
+		pmt = append(pmt, f)
+	}
+	// fmt.Printf("StDef GetF. pps: %d \n", len(sd.Parents))
+	// for _, prt := range sd.Parents {
+	// 	fmt.Printf("StDef GetPf4. t: %s \n", prt.Name)
+	// 	mm := prt.GetFields()
+	// 	pmt = append(pmt, mm...)
+	// }
+	// println("-- $1 ", sd.Name)
+	return pmt
+}
+
+func (sd *StructDef) GetParentFields() []*StructField {
+	pmt := make([]*StructField, 0)
+
+	// for _, f := range sd.Fields {
+	// 	fmt.Printf("StDef GetF3. %s f: %s \n", sd.Name, f.Name)
+	// 	pmt = append(pmt, f)
+	// }
 	// fmt.Printf("StDef GetF. pps: %d \n", len(sd.Parents))
 	for _, prt := range sd.Parents {
-		// fmt.Printf("StDef GetPf3. t: %s \n", prt.Name)
+		// fmt.Printf("StDef GetPPf5. t: %s \n", prt.Name)
 		mm := prt.GetFields()
 		pmt = append(pmt, mm...)
 	}
-	for _, f := range sd.Fields {
-		// fmt.Printf("StDef GetF4. f: %s : %s \n", k, f.Name)
-		pmt = append(pmt, f)
-	}
+	// println("-- $1 ", sd.Name)
 	return pmt
 }
 
 func (sd *StructDef) InitChild() {
 	// fmt.Printf("StDef.InitCh1 t: %s \n", sd.Name)
 	// fields
-	ff := sd.GetFields()
+	ff := sd.GetParentFields()
+	fnn := make([]string, len(ff))
+	ti := 0
 	for _, fd := range ff {
 		// fmt.Printf("StDef.InitCh2 f: %v \n", fd)
+		if _, ok := sd.Fields[fd.Name]; ok {
+			continue
+		}
 		sd.Fields[fd.Name] = fd
-		sd.FNames = append(sd.FNames, fd.Name)
+		fnn[ti] = fd.Name
+		ti++
 	}
+	fnn = fnn[:ti]
+	fnn = append(fnn, sd.FNames...)
+	sd.FNames = fnn
 
 	// methods
 	mm := sd.GetMethods()
@@ -133,12 +156,16 @@ func NewSructDef(name string, fields []*StructField, parents []*StructDef) *Stru
 	fm := make(map[string]*StructField, len(fields))
 	fnames := make([]string, len(fields))
 	methMap := make(map[string]*Method)
+	for i, fld := range fields {
+		fm[fld.Name] = fld
+		fnames[i] = fld.Name
+	}
 	stype := &StructDef{Name: name, Fields: fm, FNames: fnames, Parents: parents, Methods: methMap}
 	stype.InitChild()
-	for i, fld := range fields {
-		stype.Fields[fld.Name] = fld
-		stype.FNames[i] = fld.Name
-	}
+	// for i, fld := range fields {
+	// 	stype.Fields[fld.Name] = fld
+	// 	stype.FNames[i] = fld.Name
+	// }
 	return stype
 }
 
@@ -284,4 +311,73 @@ func (mb *StrMember) Set(val any) error {
 		return mb.Obj.Set(mb.Field, val)
 	}
 	return nil
+}
+
+// ====
+
+// func StrConstr(sdef *objects.StructDef, args []any) (*objects.StructInst, error) {
+// 	fields := sdef.GetFields()
+// 	if len(args) > len(fields) {
+// 		return nil, fmt.Errorf("struct: too many arguments for type %s", sdef.Name)
+// 	}
+// 	avv := map[string]any{}
+// 	for i, val := range args {
+// 		avv[fields[i].Name] = val
+// 	}
+// 	inst := sdef.NewInstance(avv)
+// 	// inst := &objects.StructInst{}
+// 	return inst, nil
+// }
+
+// magic function, default callable constructor
+type DefConstr struct {
+	Name string
+	sdef *StructDef
+	args []any // passed args
+
+	resV *base.Val
+}
+
+func (fn *DefConstr) Do(cx base.Context) error {
+	fn.resV = nil
+	sdef := fn.sdef
+	fields := sdef.GetFields()
+	args := fn.args
+	if len(args) > len(fields) {
+		return fmt.Errorf("struct def constr: too many arguments for type %s", sdef.Name)
+	}
+	avv := map[string]any{}
+	for i, val := range args {
+		avv[fields[i].Name] = val
+	}
+	inst := sdef.NewInstance(avv)
+	fn.resV = base.NewVal(inst)
+	return nil
+}
+
+func (fn *DefConstr) ArgCount() int {
+	return len(fn.sdef.FNames)
+}
+
+func (fn *DefConstr) IsServ() bool {
+	return false
+}
+
+func (fn *DefConstr) Get() *base.Val {
+	if fn.resV == nil {
+		return nil
+	}
+	return fn.resV
+}
+
+func (fn *DefConstr) GetName() string {
+	return fn.Name
+}
+
+func (fn *DefConstr) SetArgVals(vals []any, nmvals map[string]any) {
+	fn.args = vals
+}
+
+func NewDefConstr(def *StructDef) *DefConstr {
+	return &DefConstr{sdef: def}
 }
