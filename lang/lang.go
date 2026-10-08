@@ -7,8 +7,15 @@ type Elem struct {
 	Type Lt.Lt
 }
 
+type Spec int
+
+const (
+	SpecMatch = 1 // mark of matching patter string
+)
+
 type CLine struct {
-	Elems  []*Elem
-	Src    string
-	Indent int
+	Elems   []*Elem
+	Src     string
+	Indent  int
+	Special Spec
 }

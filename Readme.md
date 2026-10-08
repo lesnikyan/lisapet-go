@@ -152,6 +152,8 @@ next - by dates...
     Added methods of string: upper, lower, lcut(length):#cut left indents in multiline string  
     Fixed `string.replace(arg)` with `dict` arg: `str.replace({'one':'two', re'[0-9]':'($1)'})`  
 - --05 Implemented default callable constructor for struct type: `struct A a:int, b:bool ; A(12, true)`  
+- --08 Implemented `match` statement as a multi-branch control node.  
+    Added simplest paterns:  value pattern: simple val: numbers, bool, string, glif; any-value pattern `_`   
 
 
 

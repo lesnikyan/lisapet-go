@@ -20,6 +20,9 @@ func SameType(a any, b any) bool {
 }
 
 func EqualInternTypes(a any, b any) bool {
+	if !(SameType(a, b)) {
+		return false
+	}
 	switch av := a.(type) {
 	case *ob.ListVal:
 		bv, ok := b.(*ob.ListVal)
@@ -39,29 +42,49 @@ func EqualInternTypes(a any, b any) bool {
 			return false
 		}
 		return maps.Equal(av.Vmap, bv.Vmap)
+	case *ob.Maybe:
+		bv, ok := b.(*ob.Maybe)
+		if !ok {
+			return false
+		}
+		if av.None && bv.None {
+			return true
+		}
+		if av.None || bv.None {
+			return false
+		}
+		return EqualInternTypes(av.Val, bv.Val)
 	}
 	// other types
+	// fmt.Printf("EqualInternTypes: %v == %v \n", a, b)
 	return a == b
 }
 
 // TODO: implement ==, != for all types.
 func EqCompare(a any, b any, oper Opid) bool {
-	notSamet := !SameType(a, b)
+	// notSamet := !SameType(a, b)
+	// switch oper {
+	// case OpEqual:
+	// 	if notSamet {
+	// 		return false
+	// 	} else {
+	// 		// TODO: struct, enum, grup
+	// 		return EqualInternTypes(a, b)
+	// 	}
+	// case OpNotEqual:
+	// 	if notSamet {
+	// 		return true
+	// 	} else {
+	// 		// TODO: struct, enum, grup
+	// 		return !EqualInternTypes(a, b)
+	// 	}
+	// }
+	eq := EqualInternTypes(a, b)
 	switch oper {
 	case OpEqual:
-		if notSamet {
-			return false
-		} else {
-			// TODO: struct, enum, grup
-			return EqualInternTypes(a, b)
-		}
+		return eq
 	case OpNotEqual:
-		if notSamet {
-			return true
-		} else {
-			// TODO: struct, enum, grup
-			return !EqualInternTypes(a, b)
-		}
+		return !eq
 	}
 	return false
 }

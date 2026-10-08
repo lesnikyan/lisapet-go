@@ -47,6 +47,7 @@ func (vex *ValExpr) Get() *base.Val {
 		v = base.CropStr(val.V, 3, 3)
 	default:
 		v = val
+		// fmt.Println("ValExp: T:", val)
 	}
 	return base.NewVal(v)
 }
@@ -326,7 +327,12 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 
 	default:
 		// fmt.Printf("GetExprVal#100: (%T) %T, %v\n", vv, vv.Get(), vv.Get())
-		return vv.Get().V
+		exv := vv.Get()
+		if exv == nil {
+			return nil
+		}
+		// fmt.Printf("GetExprVal#101: %T:  %v\n", exv.V, exv.V)
+		return exv.V
 	}
 	if eVal != nil {
 		return eVal.V

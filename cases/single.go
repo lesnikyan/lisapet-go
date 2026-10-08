@@ -157,7 +157,7 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 			}
 		}
 	case Lt.Text:
-		// fmt.Println("CaseVal. Text")
+		// fmt.Printf("CaseVal. Text: `%v` \n", etext)
 		return valex(etext), true
 	case Lt.Mttext:
 		// fmt.Println("CaseVal. Mttext")
