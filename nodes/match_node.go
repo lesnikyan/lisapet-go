@@ -52,7 +52,7 @@ func (mt *MatchNode) Do(cx base.Context) error {
 	for i, cs := range mt.Cases {
 		inCx := cx.SubContext()
 		// cs.Pattern.PutArg(arg)
-		// fmt.Printf(" MtNode.Do.for %d: %T\n", i, cs)
+		// fmt.Printf(" MtNode.Do.for %d: %T >> %T: %v\n", i, cs, arg, arg)
 		ptok, err := cs.Pattern.Match(inCx, arg)
 		if err != nil {
 			return errors.Join(fmt.Errorf("Error in match pattern %d: %T", i, cs.Pattern), err)

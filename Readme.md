@@ -154,6 +154,7 @@ next - by dates...
 - --05 Implemented default callable constructor for struct type: `struct A a:int, b:bool ; A(12, true)`  
 - --08 Implemented `match` statement as a multi-branch control node.  
     Added simplest paterns:  value pattern: simple val: numbers, bool, string, glif; any-value pattern `_`   
+    Added match pattern by type: `:: int`
 
 
 

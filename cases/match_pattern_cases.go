@@ -50,7 +50,6 @@ func ValOperPattern(expr base.Expression) (nodes.MatchPattern, error) {
 			// 	println("MtC oper dot")
 			// val := nodes.GetExprVal(pex, nil)
 		}
-
 	}
 	return nil, nil
 }
@@ -94,11 +93,19 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		// multicase
 	case "::":
 		// typed val
+		// println("oper ::")
+		// PrintONode(rNode, 0)
+		expr, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		if !ok {
+			return nil, fmt.Errorf("Bad sub expr in :: oper")
+		}
+		return &nodes.MCaseType{TypeExp: expr}, nil
 	case "@":
 		// val assign
 	case ":?":
 		// extra guard
-	case "_":
+
+		// case "_":
 		// most common pattern
 
 	}

@@ -289,6 +289,47 @@ func (op *OperType) Get() *base.Val {
 	return base.NewVal(op.res)
 }
 
+// var val = base.NewVal
+
+func ExprGetType(ex base.Expression, cx base.Context) (*base.Type, error) {
+	ex.Do(cx)
+	var rtype *base.Type
+	switch rvar := ex.(type) {
+	case *VarExpr:
+		tname := rvar.GetName()
+		rtype = cx.GetType(tname)
+		// fmt.Printf(" -- # -- %T, %v  type: %v\n", rvar, rvar.GetName(), rtype)
+		if rtype == nil {
+			return nil, fmt.Errorf("get type error: type `%s` not found ", tname)
+		}
+		return rtype, nil
+	case *ValExpr:
+		// fmt.Printf(" -- # -- %T, %v\n", rvar, rvar.Val)
+		v := rvar.Get()
+		if v == nil {
+			return nil, fmt.Errorf("get type error: bad type val: %T ", rvar)
+		}
+		switch v.V.(type) {
+		case *obb.Null:
+			tp := cx.GetType("null")
+			if tp == nil {
+				return nil, fmt.Errorf("get type error: type `null` not found ")
+			}
+			return tp, nil
+		}
+	// case *MixedTypeExpr:
+	case *OperBin:
+		mt, err := MixedSubs(rvar, cx)
+		tp := &base.Type{Mix: mt, Id: base.TypeMixed}
+		if err != nil {
+			// fmt.Println("OperColon.R mixwed error", err, mt)
+			return nil, err
+		}
+		return tp, nil
+	}
+	return nil, fmt.Errorf("get type error: bad type expression: %T ", ex)
+}
+
 func (op *OperType) Do(cx base.Context) error {
 	// fmt.Printf("OperType.Do#0: oper :: (%T:%v) (%T:%v) \n", op.left, op.left, op.right, op.right)
 	op.left.Do(cx)
@@ -365,6 +406,9 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 		// if mt.Id == base.TypeMixed {
 		// 	return CheckTypeEqual(val, mt.Mix)
 		// }
+		if mt.Id == base.TypeMixed {
+			return CheckTypeEqual(val, mt.Mix)
+		}
 		switch tval := val.(type) {
 		case *ob.StructInst:
 			stype := tval.Type
@@ -379,6 +423,7 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 			return tval.Def.HasParent(mt.Id), nil
 		default:
 			vtype := obb.TypeIdByVal(val)
+			// fmt.Printf(" ??Type. tname: %s, id: %d == %T: %v \n", mt.Name, mt.Id, val, vtype)
 			return vtype == mt.Id, nil
 		}
 	}
