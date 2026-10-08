@@ -57,14 +57,6 @@ func Tanis(vals ...any) *Tup {
 	return &Tup{Anynn(vals)}
 }
 
-// type Gf struct {
-// 	v string
-// }
-
-// func TGf(v obb.Glif) *Gf {
-// 	return &Gf{v: string([]rune{v})}
-// }
-
 func Gf(s string) obb.Glif {
 	return []rune(s)[0]
 }

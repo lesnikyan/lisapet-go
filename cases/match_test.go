@@ -21,12 +21,13 @@ func _TestMatchTypeVar(t *testing.T) {
 	}
 }
 
-func _TestMatchReturn(t *testing.T) {
+func TestMatchReturn(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
+		// match / return
 		{`
 		func foo(x)
 			match x
@@ -38,11 +39,33 @@ func _TestMatchReturn(t *testing.T) {
 					return 'str: %s' << x
 				_
 					return '_48'
-		nn = [1, "quatro"]
+		nn = [1, "quatro", 'hello', 2.5, 224]
 		r = []
 		for n <- nn
 			r <- foo(n)
-		`, "r", int64(5)},
+		`, "r", Anis("num 1", "str: quatro", "greeting", "_48", "num 224")},
+		// match / if / return
+		{`
+		func foo(x)
+			match x
+				:: int
+					if x % 2 == 0
+						return 'x2 num %d' << x
+					return 'num %d' << x
+				"hello"
+					return "greeting"
+				:: string
+					if len(x) > 8
+						return 's: %s' << x[0:9]
+					else
+						return 'str: %s' << x
+				_
+					return '_49'
+		nn = [1, "quatro", 'hello Barbarian', 2.5, 224]
+		r = []
+		for n <- nn
+			r <- foo(n)
+		`, "r", Anis("num 1", "str: quatro", "s: hello Bar", "_49", "x2 num 224")},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

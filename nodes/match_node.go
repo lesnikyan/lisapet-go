@@ -51,17 +51,12 @@ func (mt *MatchNode) Do(cx base.Context) error {
 
 	for i, cs := range mt.Cases {
 		inCx := cx.SubContext()
-		// cs.Pattern.PutArg(arg)
 		// fmt.Printf(" MtNode.Do.for %d: %T >> %T: %v\n", i, cs, arg, arg)
 		ptok, err := cs.Pattern.Match(inCx, arg)
 		if err != nil {
 			return errors.Join(fmt.Errorf("Error in match pattern %d: %T", i, cs.Pattern), err)
 		}
-		// cres := GetExprVal(cs.Pattern, nil)
-		// cf, ok := cres.(bool)
-		// if !ok {
-		// 	return fmt.Errorf("Matching pattern must return bool, case %d returned %T", i, cres)
-		// }
+
 		if !ptok {
 			// pattern not matched
 			continue
@@ -70,6 +65,11 @@ func (mt *MatchNode) Do(cx base.Context) error {
 		err = cs.Block.Do(cx)
 		if err != nil {
 			return err
+		}
+		pup := cs.Block.GetPopUp()
+		if pup != nil {
+			// return, etc
+			mt.PopUp = pup
 		}
 		bres := GetExprVal(cs.Block, nil)
 		if bres != nil {
