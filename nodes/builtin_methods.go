@@ -26,7 +26,7 @@ func stringSplit(cx base.Context, inst any, args []any) (any, error) {
 	case string:
 		sep = sepv
 	case objects.Glif:
-		sep = string([]rune{sepv})
+		sep = string([]rune{rune(sepv)})
 	case *objects.Regexp:
 		ss := sepv.Split(s)
 		return objects.NewListVal(vals2anis(ss)), nil
@@ -68,7 +68,7 @@ func ReplaceMulti(s string, srch any, repl any) (string, error) {
 		case string:
 			rep = a1
 		case objects.Glif:
-			rep = string([]rune{a1})
+			rep = string([]rune{rune(a1)})
 		default:
 			return "", fmt.Errorf("string.replace: replacement mast be string")
 		}
@@ -80,7 +80,7 @@ func ReplaceMulti(s string, srch any, repl any) (string, error) {
 		res := strings.ReplaceAll(s, old, rep)
 		return res, nil
 	case objects.Glif:
-		res := strings.ReplaceAll(s, string([]rune{old}), rep)
+		res := strings.ReplaceAll(s, string([]rune{rune(old)}), rep)
 		return res, nil
 	case *objects.DictVal:
 		// key - search, val - replacement
@@ -139,7 +139,7 @@ func JoinElems(src any, sep string) (any, error) {
 		case string:
 			ss[i] = n
 		case objects.Glif:
-			ss[i] = string([]rune{n})
+			ss[i] = string([]rune{rune(n)})
 		default:
 			return nil, fmt.Errorf(".join: element should be a string or glif, %T received", v)
 		}
@@ -199,7 +199,7 @@ func stringHas(cx base.Context, inst any, args []any) (any, error) {
 		res := strings.Contains(s, sub)
 		return res, nil
 	case objects.Glif:
-		res := strings.ContainsRune(s, sub)
+		res := strings.ContainsRune(s, rune(sub))
 		return res, nil
 	default:
 		return nil, fmt.Errorf("Bad instance of string in string.has: %T", inst)
@@ -234,7 +234,7 @@ func stringTrim(cx base.Context, inst any, args []any) (any, error) {
 	case string:
 		cuts = cc
 	case objects.Glif:
-		cuts = string([]rune{cc})
+		cuts = string([]rune{rune(cc)})
 	default:
 		return nil, fmt.Errorf("Bad arg of string.trim: %T", inst)
 	}
@@ -250,7 +250,7 @@ func SeqJoin[T *objects.ListVal | *objects.TupleVal](inst T, args []any) (any, e
 	case string:
 		sep = a0
 	case objects.Glif:
-		sep = string([]rune{a0})
+		sep = string([]rune{rune(a0)})
 	default:
 		return nil, fmt.Errorf("Bad arg in list.join: %T", a0)
 	}
@@ -405,7 +405,7 @@ func listSort(cx base.Context, inst any, args []any) (any, error) {
 	rr := make([]any, len(vals))
 	for i, v := range vals {
 		switch n := v.(type) {
-		case bool, byte, int64, float64, rune, string:
+		case bool, byte, int64, float64, rune, objects.Glif, string:
 			rr[i] = n
 		default:
 			return nil, fmt.Errorf("Not ordered type of elem in list.sort: %T", n)

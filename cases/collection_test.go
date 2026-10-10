@@ -579,12 +579,25 @@ func TestListMethods(t *testing.T) {
 		#
 		s = "Hello Letters 1234"
 		r = s.split(' ').map(glifs).flat()
-		`, "r", Anynn([]obb.Glif("HelloLetters1234"))},
+		`, "r", Gfs("HelloLetters1234")},
 		// {``, "r",  Anis(11, )},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
+}
+
+func Gfs(src any) []any {
+	switch ts := src.(type) {
+	case string:
+		rr := []rune(ts)
+		ss := make([]any, len(rr))
+		for i, s := range rr {
+			ss[i] = s
+		}
+		return ss
+	}
+	return nil
 }
 
 func TestCollBlockNested(t *testing.T) {

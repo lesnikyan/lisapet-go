@@ -409,6 +409,23 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		exp := nodes.NewReturn(subExp)
 		return &SplitState{Expr: exp, Done: true}, nil
 	case kMatch:
+		mtTree, err := Line2tree(subElems[1:], kwRoot)
+		if err != nil {
+			// do smth
+		}
+		if !mtTree.Finished {
+			// unclosed expression, need continue on next line...
+			return &SplitState{Done: false, LTree: mtTree}, nil
+		}
+		subNode := mtTree.Tree
+		// PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		// fmt.Printf("Case#MAtch1,1: (%T, %v): %v \n", subExp, subExp, ok)
+		if !ok {
+			return nil, mockErr
+		}
+		exp := &nodes.MatchNode{ArgExp: subExp}
+		return &SplitState{Expr: exp, Done: true}, nil
 	case kEnum:
 	case kGrup:
 	case kStruct:

@@ -74,6 +74,8 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 			bk.PopUp = pup
 			return nil
 
+		// other resulting expressions: func def, func call, operators, value, if-else, match, etc
+
 		case *IfNode:
 			// fmt.Printf("Block.Do IfNode \n")
 			inPup := cur.GetPopUp()
@@ -87,7 +89,19 @@ func (bk *BlockExpr) Do(cx base.Context) error {
 				}
 				continue
 			}
-			// other resulting expressions: func def, func call, operators, value, if-else, match, etc
+		case *MatchNode:
+			// fmt.Printf("Block.Do MatchNode \n")
+			inPup := cur.GetPopUp()
+			if inPup != nil {
+				bk.PopUp = inPup
+				return nil
+			} else {
+				r := cur.Get()
+				if r != nil {
+					bk.res = r.V
+				}
+				continue
+			}
 		case *ForCondNode:
 			// fmt.Printf("Block.Loop node \n")
 			inPup := cur.GetPopUp()

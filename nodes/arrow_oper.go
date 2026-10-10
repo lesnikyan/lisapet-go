@@ -176,7 +176,7 @@ func (it *IterAssign) Next() error {
 		return err
 	}
 	vals = vv
-	// fmt.Printf(" -- ItAs#1 <%T> %d (%T, %v) \n", it.Src, len(vals), vals[0], vals[0])
+	// fmt.Printf(" -- ItAs#1 <%T> %d (%T, %v), (%T, %v) \n", it.Src, len(vals), vals[0], vals[0], vals[1], vals[1])
 	// check val ciunt for multi source: for a, b, c <- nn, cc, vv
 	switch len(it.Target) {
 	case 0:

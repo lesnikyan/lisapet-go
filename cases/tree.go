@@ -107,9 +107,23 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 		expr = state.Expr
 		// fmt.Println("L2E1>", cline.Src, expr, err)
 	} else {
+		matchCase := false
+		if cline.Special > 0 {
+			switch cline.Special {
+			case lang.SpecMatch:
+				matchCase = true
+			}
+		}
 		if len(cline.Elems) == 1 {
 			expr, ok := ProcSubElems(cline.Elems)
 			if ok {
+				if matchCase {
+					ptr, err := SimplePattern(expr)
+					if err != nil {
+						return nil, err
+					}
+					expr = nodes.NewMatchCase(ptr)
+				}
 				res := &SplitState{Expr: expr, Done: true}
 				return res, nil
 			}
@@ -124,9 +138,18 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 			return &SplitState{Done: false, LTree: res}, nil
 		}
 		ltree := res.Tree
-		// fmt.Println("L2E2>", cline.Src, res, err, "::", ltree, ":~", ltree.rightNode)
+		// fmt.Println("L2E2>", cline.Src, res, err, "::", ltree, ":~", ltree.rightNode, "; matchCase:", matchCase)
+		// fmt.Println("L2E2>", cline.Src, "; matchCase:", matchCase)
 		// PrintONode(ltree, 0)
 		operTree := ltree.rightNode
+		if matchCase {
+			ptr, err := ProcMatchPattern(operTree, ltree.rightElems)
+			if err != nil {
+				return nil, err
+			}
+			expr = nodes.NewMatchCase(ptr)
+			return &SplitState{Expr: expr, Done: true}, nil
+		}
 		if operTree == nil {
 			if len(ltree.rightElems) > 0 {
 				if expr, ok := OperSub(nil, ltree.rightElems); ok {
@@ -191,8 +214,39 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 			// new expression
 			cind = cline.Indent
 		}
+
+		elseInd := false // if expr is `else`
+		elseInd = cline.Elems[0].Type == Lt.Word && cline.Elems[0].Text == "else"
+
+		// fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
+		if cind <= nblock.indent {
+			// end of prev block
+			// if _, ok := expr.(*nodes.ElseNode); ok {
+			// 	elseInd = true
+			// }
+			pfound := false
+			for i := len(parents) - 1; i >= 0; i-- {
+				pfound = false
+				if elseInd {
+					if parents[i].indent == cind {
+						pfound = true
+					}
+				} else if parents[i].indent < cind {
+					pfound = true
+				}
+				// pfound = () || ()
+				if pfound {
+					nblock = parents[i]
+					parents = parents[:i+1]
+					break
+				}
+			}
+		}
 		// fmt.Println(">>>>", cline.Src, "Elems:", FPrintElems(cline.Elems))
 		// fmt.Println(">>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind, "L-inden:", cline.Indent)
+		if _, ok := nblock.elem.(*nodes.MatchNode); ok {
+			cline.Special = lang.SpecMatch
+		}
 		curState, err := Line2Expr(cline, ltree)
 		if err != nil {
 			return nil, err
@@ -218,35 +272,38 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		prevExpr = nExpr
 		nExpr = &ExprLink{elem: expr, indent: cind}
 		// fmt.Println("tt2>", fmt.Sprintf("%T", expr), nodes.OperArgsInfo(expr))
-		elseInd := false // if expr is `else`
 
-		// fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
-		if cind <= nblock.indent {
-			// end of prev block
-			if _, ok := expr.(*nodes.ElseNode); ok {
-				elseInd = true
-			}
-			pfound := false
-			for i := len(parents) - 1; i >= 0; i-- {
-				pfound = false
-				if elseInd {
-					if parents[i].indent == cind {
-						pfound = true
-					}
-				} else if parents[i].indent < cind {
-					pfound = true
-				}
-				// pfound = () || ()
-				if pfound {
-					nblock = parents[i]
-					parents = parents[:i+1]
-					break
-				}
-			}
-		}
+		// elseInd := false // if expr is `else`
+		// elseInd = cline.Elems[0].Type == Lt.Word && cline.Elems[0].Text == "else"
+
+		// // fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
+		// if cind <= nblock.indent {
+		// 	// end of prev block
+		// 	if _, ok := expr.(*nodes.ElseNode); ok {
+		// 		elseInd = true
+		// 	}
+		// 	pfound := false
+		// 	for i := len(parents) - 1; i >= 0; i-- {
+		// 		pfound = false
+		// 		if elseInd {
+		// 			if parents[i].indent == cind {
+		// 				pfound = true
+		// 			}
+		// 		} else if parents[i].indent < cind {
+		// 			pfound = true
+		// 		}
+		// 		// pfound = () || ()
+		// 		if pfound {
+		// 			nblock = parents[i]
+		// 			parents = parents[:i+1]
+		// 			break
+		// 		}
+		// 	}
+		// }
 		// fmt.Println("Tree,Indent2:", "pLen:", len(parents))
 
 		// fmt.Printf("tree.Block3 %T: %v .line: (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
+		// fmt.Printf("tree.Block3 %T .line: (%T)  \n", nblock.elem, expr)
 		switch texp := expr.(type) { // cur expr
 		case *nodes.ElseNode:
 			// nblock is: if | else if
@@ -270,7 +327,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 
 		case base.Block:
 			nblock.elem.Add(expr)
-			// fmt.Printf("tree. base.Block: %T is parrent of %T (add?:%v)\n", texp, expr, texp.IsParent())
+			// fmt.Printf("tree. base.Block: %T is parrent of %T (parent?:%v)\n", nblock.elem, texp, texp.IsParent())
 			if texp.IsParent() {
 				// fmt.Printf("tree. expr base.Block: %T is parrent \n", texp)
 				bl := &BlockLink{elem: texp, indent: cind}
@@ -321,7 +378,12 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				parn.AddToRight(expr)
 			case *nodes.ListExpr, *nodes.TupleExpr, *nodes.DictExpr:
 				parn.Add(expr)
+			case *nodes.MatchCaseNode:
+				// println("MatchCaseNode.Add...")
+				// fmt.Printf(" parent: %T \n", parn.Pattern)
+				parn.Add(expr)
 			case base.SuperExpr:
+				// println("SuperExpr.Add...")
 				parn.Add(expr)
 			default:
 				parn.Add(expr)
