@@ -411,7 +411,7 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 		}
 		switch tval := val.(type) {
 		case *ob.StructInst:
-			stype := tval.Type
+			stype := tval.Def.Type
 			if stype == nil {
 				return false, fmt.Errorf("Error in type check: struct type: not defined ")
 			}
@@ -423,7 +423,7 @@ func CheckTypeEqual[MT *base.Type | *base.MixedType](val any, expType MT) (bool,
 			return tval.Def.HasParent(mt.Id), nil
 		default:
 			vtype := obb.TypeIdByVal(val)
-			// fmt.Printf(" ??Type. tname: %s, id: %d == %T: %v \n", mt.Name, mt.Id, val, vtype)
+			// fmt.Printf(" ??Type. tname: %s, id: %d == %T: %v ; res= %v \n", mt.Name, mt.Id, val, vtype, vtype == mt.Id)
 			return vtype == mt.Id, nil
 		}
 	}

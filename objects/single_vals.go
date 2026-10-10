@@ -87,7 +87,7 @@ func MakeRegexp(src string, flags string) *Regexp {
 
 //====
 
-type Glif = rune
+type Glif rune
 
 //====
 

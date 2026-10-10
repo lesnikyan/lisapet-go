@@ -83,7 +83,7 @@ func CaseVal(ee []*lang.Elem) (base.Expression, bool) {
 						// fmt.Printf("Error bad Glif %s \n", ee[1].Text)
 						return nil, false
 					}
-					return valex(rrs[1]), true
+					return valex(obb.Glif(rrs[1])), true
 
 				case "re":
 					//regexp

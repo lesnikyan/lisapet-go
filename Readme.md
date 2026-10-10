@@ -152,31 +152,48 @@ next - by dates...
     Added methods of string: upper, lower, lcut(length):#cut left indents in multiline string  
     Fixed `string.replace(arg)` with `dict` arg: `str.replace({'one':'two', re'[0-9]':'($1)'})`  
 - --05 Implemented default callable constructor for struct type: `struct A a:int, b:bool ; A(12, true)`  
-- --08 Implemented `match` statement as a multi-branch control node.  
+- --08 Implemented **match** statement as a main pattern matching functionality (multi-branch control node).  
     Added simplest paterns:  value pattern: simple val: numbers, bool, string, glif; any-value pattern `_`   
-    Added match pattern by type: `:: int`
+    Added match pattern (_MP) by type: `:: int`
+- --10 Added _MP by type with assigning variable: `name :: string`
 
 
 
-#### next TODO:   
-- match statement: simple vals  
-- match patterns   
-- fix inline blocks after  `:?`
-- string-comprehension: `~[string|glif ; iter ; cond]` 
+#### next TODO:  
+- match patterns:   
+- _MP multi-type: `x :: (int | float)`  
+- _MP list. elements: subpattern: value, type, etc; _underscore, ?QM, *star.   
+- _MP tuple. same elements.  
+- _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    
+- _MP maybe: `some(12)`, `none`  
+- _MP combined: `pattern1 | pattern2`  
+- _MP struct: `Type{field: val, }`,  `_{}`   
+- _MP regepx : `re'A[a-z]+' `
+- _MP assing subpattern via `@`: `[name @ re'A.+', _, last @ _]`  
+- _MP inline matching case: `patt /: expr`  
+- _MP with guard: `ptrn ?: x > 0 /: expr`  
+- fix inline blocks after  `:?`  
+
+- string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     
-    regexp operators [ split: `/~`-  thinking]  
+    regexp operators [ split: `/~`-  thinking]    
 - CLI: lp file.et  
 - `const`  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
 - enum  
+- _MP Enum: `colors.red`  
 - grup  
+BUGS:  
+- math plus: `r <- 200. + 3.2` // dot after 200 breaks expression.  
 
 
-
+Naming fun )))  
 dev names:  
+    folxt: functional-object language of executable tree
     foxet: functional-object executable tree  
+    foxcot: functional-object executable and contextual tree  
     foxen: functional-object executable nodes  
     folixen: functional-object language interpreter of executable nodes  
     foxilt: functional-object extensible interpreter of lexical tree   

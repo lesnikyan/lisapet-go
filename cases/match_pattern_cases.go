@@ -16,13 +16,30 @@ func SimplePattern(exp base.Expression) (nodes.MatchPattern, error) {
 		return &nodes.MCaseVal{Val: nodes.GetExprVal(tex, nil)}, nil
 	case *nodes.VarExpr:
 		// sub pattern: var
-		if tex.GetName() == "_" {
+		vname := tex.GetName()
+		if vname == "_" {
 			// fmt.Println("mt var=", tex.GetName())
 			// common sub pattern
 			return &nodes.MCaseUnder{}, nil
 		}
+		return &nodes.MCaseVar{Expr: tex}, nil
 	}
 	return nil, fmt.Errorf("No expression case for simple matching pattern by %T type ", exp)
+}
+
+func VarPattern(node *OperNode, elems []*lang.Elem) (*nodes.MCaseVar, error) {
+	if len(elems) != 1 {
+		return nil, fmt.Errorf("Not a var expression in case matching pattern by elems: %s ", FPrintElems(elems))
+	}
+	expr, ok := OperSub(node, elems)
+	if !ok {
+		return nil, fmt.Errorf("No expression case for var matching pattern by elems: %s ", FPrintElems(elems))
+	}
+	varx, ok := expr.(*nodes.VarExpr)
+	if !ok {
+		return nil, fmt.Errorf("mathcing pattern: not a var exprettion: %T ", expr)
+	}
+	return &nodes.MCaseVar{Expr: varx}, nil
 }
 
 func ValOperPattern(expr base.Expression) (nodes.MatchPattern, error) {
@@ -97,9 +114,17 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		// PrintONode(rNode, 0)
 		expr, ok := OperSub(rNode.rightNode, rNode.rightElems)
 		if !ok {
-			return nil, fmt.Errorf("Bad sub expr in :: oper")
+			return nil, fmt.Errorf("Bad right sub expr in :: oper")
 		}
-		return &nodes.MCaseType{TypeExp: expr}, nil
+		var varPtr *nodes.MCaseVar
+		if rNode.leftNode != nil || len(rNode.leftElems) > 0 {
+			vpt, err := VarPattern(rNode.leftNode, rNode.leftElems)
+			if err != nil {
+				return nil, err
+			}
+			varPtr = vpt
+		}
+		return &nodes.MCaseType{TypeExp: expr, Var: varPtr}, nil
 	case "@":
 		// val assign
 	case ":?":

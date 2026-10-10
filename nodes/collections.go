@@ -58,6 +58,8 @@ func CollExprValues(src []base.Expression, num int) []any {
 				i++
 			}
 		default:
+
+			// fmt.Printf(" = ColDo %T, (%T, %v) \n", ex, GetExprVal(exv, nil), GetExprVal(exv, nil))
 			elems[i] = GetExprVal(exv, nil)
 			i++
 		}

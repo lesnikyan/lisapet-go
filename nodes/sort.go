@@ -3,6 +3,8 @@ package nodes
 import (
 	"cmp"
 	"fmt"
+
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 type Ord interface {
@@ -25,7 +27,7 @@ const (
 
 func checkOrd(a any) {
 	switch a.(type) {
-	case int64, bool, rune, string, byte, float64:
+	case int64, bool, rune, objects.Glif, string, byte, float64:
 		// nothing to do
 	default:
 		panic(fmt.Sprintf("Bad sorting type %T", a))
@@ -46,12 +48,14 @@ func CmpOrd(a any, b any) int {
 		default:
 			return -1
 		}
-	case rune:
+	case objects.Glif:
 		switch a := a.(type) {
-		case rune:
+		case objects.Glif:
 			return cmp.Compare(a, b)
 		case string:
 			return 1
+		// case int64:
+		// 	return cmp.Compare(a, int64(b))
 		default:
 			return -1
 		}
@@ -61,6 +65,8 @@ func CmpOrd(a any, b any) int {
 	case string:
 		return 1
 	case rune:
+		return 1
+	case objects.Glif:
 		return 1
 	case bool:
 		switch b := b.(type) {

@@ -62,7 +62,7 @@ func (mt *MatchNode) Do(cx base.Context) error {
 			continue
 		}
 		// eval block
-		err = cs.Block.Do(cx)
+		err = cs.Block.Do(inCx)
 		if err != nil {
 			return err
 		}

@@ -141,6 +141,7 @@ func (it *ListIter) Next() ([]any, error) {
 	}
 	i := int64(it.index)
 	val := it.Src[it.index]
+	// fmt.Printf(" -- Listter.Next  val=(%T, %v) \n", val, val)
 	it.index += 1
 	return []any{i, val}, nil
 }

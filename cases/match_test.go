@@ -2,19 +2,104 @@ package cases
 
 import "testing"
 
-func _TestMatchTypeVar(t *testing.T) {
+func TestMatchTypeVar(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
 		res   any
 	}{
 		{`
-		x = 111
+		x = 23
 		r = 0
 		match x
-			:: int
-				r = 5
-		`, "r", int64(5)},
+			a :: int
+				r = 100 + a
+		`, "r", int64(123)},
+		// simple vals
+		{`
+		nn = [11, 12, 3.5, 4.002, g'Q', g'S', 'hello', null]
+		
+		#nn = [44, g'Q']
+		r = []
+		for x <- nn
+			match x
+				a :: int
+					r <- 100 + a
+				b :: float
+					r <- 200.0 + b
+				c :: glif
+					r <- "'%c'" << c
+				s :: string
+					r <- '%% %s %%' << s
+				_
+					r <- 99
+		`, "r", Anis(111, 112, 203.5, 204.002, "'Q'", "'S'", "% hello %", 99)},
+		// containers
+		{`
+		nn = [{11:111}, (2,3), [4,5,6], some(7), none, null]
+		r = []
+		for x <- nn
+			match x
+				a :: list
+					r += a
+				b :: tuple
+					for t <- b
+						r <- t
+				d :: dict
+					for k, v <- d
+						r <- k
+						r <- v
+				c :: maybe
+					if c.isSome()
+						r <- c.get()
+					else
+						r <- 98
+				_
+					r <- 99
+		`, "r", Anis(11, 111, 2, 3, 4, 5, 6, 7, 98, 99)},
+		// structs
+		{`
+		struct A a: int
+		struct B b: float
+		struct C(A) c: string
+		struct D(A) d: bool
+		#
+		nn = [A(11), A(22), B(3.2), C(4, 'cats'), D(55, false), null, 19]
+		r = []
+		for x <- nn
+			match x
+				c :: C
+					r <- 'C.c:%s' << c.c
+				b :: B
+					r <- 200.0 + b.b
+				a :: A
+					r <- 100 + a.a
+				n :: null
+					r <- n 
+				_
+					r <- 99
+		`, "r", Anis(111, 122, 203.2, "C.c:cats", 155, Tnull(), 99)},
+		// functions
+		{`
+		struct A a: int
+		#
+		func foo(x)
+			x * 5
+		func bar(x)
+			x + 100
+		func ns:A sum(x)
+			x + ns.a
+		#
+		a1 = A(300)
+		nn = [foo, bar, a1.sum, \x -> x * 3, 19]
+		r = []
+		for x <- nn
+			match x
+				f :: function
+					r <- f(12)
+				_
+					r <- 999
+		`, "r", Anis(60, 112, 312, 36, 999)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

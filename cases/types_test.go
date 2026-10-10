@@ -390,11 +390,11 @@ func TestConstructIBFG(t *testing.T) {
 		`, "r", float64(1.22)},
 		{`
 		r:glif = glif(100)
-		`, "r", Gf("d")},
+		`, "r", 'd'},
 		{`
 		bb = [0 61]
 		r = glif(bb[1])
-		`, "r", Gf("a")},
+		`, "r", 'a'},
 		{`
 		r = glif('百')
 		`, "r", '百'},

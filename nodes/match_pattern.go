@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -39,7 +41,7 @@ func (mc *MCaseVal) Match(cx base.Context, arg any) (bool, error) {
 type MCaseUnder struct {
 }
 
-func (mc *MCaseUnder) Do(base.Context) error {
+func (mc *MCaseUnder) Do(cx base.Context) error {
 	return nil
 }
 func (mc *MCaseUnder) Get() *base.Val {
@@ -55,6 +57,7 @@ func (mc *MCaseUnder) Match(cx base.Context, arg any) (bool, error) {
 
 type MCaseType struct {
 	TypeExp base.Expression
+	Var     *MCaseVar
 	TypeVal *base.Type
 }
 
@@ -81,5 +84,42 @@ func (mc *MCaseType) Match(cx base.Context, arg any) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	if !ok {
+		return false, nil
+	}
+	// assign var if presents
+	if mc.Var != nil {
+		ok, err = mc.Var.Match(cx, arg)
+		if err != nil {
+			return false, err
+		}
+
+	}
 	return ok, nil
+}
+
+// ====
+
+type MCaseVar struct {
+	Expr *VarExpr
+}
+
+func (mc *MCaseVar) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseVar) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseVar) Match(cx base.Context, arg any) (bool, error) {
+	// fmt.Printf("MCaseVar  Match: %T: %v \n", arg, arg)
+	// mc.Do(cx)
+	mc.Expr.NewVar(cx)
+	vr := mc.Expr.GetVar()
+	if vr == nil {
+		return false, fmt.Errorf("var patter couldn't add var %s", mc.Expr.GetName())
+	}
+	vr.Val = arg
+	// fmt.Printf("MCaseVar  Match: arg= %v :: vr = %v \n", arg, vr)
+	return true, nil
 }

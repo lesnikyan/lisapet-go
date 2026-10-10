@@ -27,7 +27,7 @@ func Anynn[T any](vals []T) []any {
 		var x any = n
 		switch v := x.(type) {
 		case obb.Glif:
-			x = v
+			x = rune(v)
 		case int:
 			x = int64(v)
 		case []int64:
@@ -58,7 +58,7 @@ func Tanis(vals ...any) *Tup {
 }
 
 func Gf(s string) obb.Glif {
-	return []rune(s)[0]
+	return obb.Glif([]rune(s)[0])
 }
 
 type dk = map[any]any
@@ -103,7 +103,7 @@ func pres(src any) any {
 	case int64, string, bool, float64:
 		return val
 	case obb.Glif:
-		// TGf(val)
+		return rune(val)
 	case base.Mur:
 		return mr(val)
 	case *obb.Regexp:
@@ -275,8 +275,8 @@ func RunTCodeVarExp(t *testing.T, i int, tt TTst) {
 			assert.Equal(t2, tt.res, vobj)
 		case obb.Glif:
 			// fmt.Printf("tt#Glif  (%T, %v)  (%T, %v) \n", vr, vr, vobj, vobj)
-			// pp := string(vobj)
-			assert.Equal(t2, tt.res, vobj)
+			// pp := string(rune(vobj))
+			assert.Equal(t2, tt.res, rune(vobj))
 		case *obb.Null:
 			// fmt.Printf("tt#Null:  (%T, %v)  <Null> result \n", vr, vr)
 			assert.Equal(t2, tt.res, vobj)

@@ -30,7 +30,7 @@ func constr_string(cx base.Context, args []any) (any, error) {
 		// return string(rr), nil
 		return fmt.Sprintf("%d", a), nil
 	case objects.Glif:
-		rr := []rune{a}
+		rr := []rune{rune(a)}
 		return string(rr), nil
 
 	case objects.Bytes:
@@ -58,7 +58,7 @@ func constr_string(cx base.Context, args []any) (any, error) {
 			case byte:
 				r = rune(x)
 			case objects.Glif:
-				r = x
+				r = rune(x)
 			}
 			rr[i] = r
 		}
@@ -244,7 +244,7 @@ func constr_bytes(cx base.Context, args []any) (any, error) {
 		return objects.Bytes(a), nil
 	case objects.Glif:
 		// TODO: maybe should split rune (int32) byte-by-byte. thinking
-		rr := []rune{a}
+		rr := []rune{rune(a)}
 		return objects.Bytes(string(rr)), nil
 	case objects.Bytes:
 		bb := make(objects.Bytes, len(a))
