@@ -79,6 +79,7 @@ func (mc *MCaseType) Match(cx base.Context, arg any) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	// fmt.Printf("MCaseType  Match: tval= %T, typeId: %v \n", mc.TypeVal, mc.TypeVal.Id)
 	ok, err := CheckTypeEqual(arg, mc.TypeVal)
 	// fmt.Printf("MCaseType  Match: ok= %v :: err= %v \n", ok, err)
 	if err != nil {

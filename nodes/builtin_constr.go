@@ -208,6 +208,8 @@ func constr_glif(cx base.Context, args []any) (any, error) {
 		return rr[0], nil
 	case byte:
 		return objects.Glif(a), nil
+	case objects.Glif:
+		return a, nil
 	case objects.Bytes:
 		r, _ := utf8.DecodeRune(a)
 		return objects.Glif(r), nil

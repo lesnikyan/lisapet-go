@@ -2,6 +2,89 @@ package cases
 
 import "testing"
 
+func TestMatchMultitype(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// no brackets
+		{`
+		x = 23
+		r = 0
+		match x
+			a :: int | float
+				r = a + 100
+		`, "r", int64(123)},
+		// in brackets
+		{`
+		x = 22.4
+		r = 0
+		match x
+			a :: (int | float)
+				r = a + 100
+		`, "r", float64(122.4)},
+		{`
+		nn = [-88, 61.5, 0, 22, g'Q', 00x41, null]
+		r = []
+		for x <- nn
+			match x
+				a :: (int | float)
+					r <- a + 100
+				b :: (list | tuple)
+					r += list(b)
+				c :: (byte | int | glif)
+					r <- glif(c)
+				s :: (string | bytes)
+					r <- string(s)
+				_
+					r <- 99
+		`, "r", Anis(12, 161.5, 100, 122, 'Q', 'A', 99)},
+		{`
+		struct A a: int
+		struct B a: int
+		struct C c: int
+		struct D c: int, d : int
+		struct E(D) e: int
+		nn = [A(11), B(12), C(13), D(14, 24), E(15, 25, 16), null, none, 22]
+		r = []
+		for x <- nn
+			match x
+				a :: (A | B)
+					r <- a.a 
+				c :: C | D
+					r <- c.c
+					match c
+						e :: E
+							r <- e.e
+						d :: D
+							r <- d.d
+				:: null | maybe
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(11, 12, 13, 14, 24, 15, 16, 98, 98, 99)},
+		{`
+		nn = [101, 00x22, g'W', 1.4, "Hello", true, null, re'[0-9]']
+		r = []
+		ss = "aa2bb4cc"
+		for x <- nn
+			match x
+				a :: int | float | byte | glif | bool | string | regexp
+					match a
+						b :: regexp
+							r += b.split(ss)
+							continue
+					r <- a
+				_
+					r <- 99000099
+		`, "r", Anis(101, byte(0x22), 'W', 1.4, "Hello", true, 99000099, "aa", "bb", "cc")},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchTypeVar(t *testing.T) {
 	tdata := []struct {
 		src   string

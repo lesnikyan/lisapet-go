@@ -156,12 +156,12 @@ next - by dates...
     Added simplest paterns:  value pattern: simple val: numbers, bool, string, glif; any-value pattern `_`   
     Added match pattern (_MP) by type: `:: int`
 - --10 Added _MP by type with assigning variable: `name :: string`
+    Added _MP multi-type: `x :: (int | float)`, `y :: int | glif | string`  
 
 
 
 #### next TODO:  
 - match patterns:   
-- _MP multi-type: `x :: (int | float)`  
 - _MP list. elements: subpattern: value, type, etc; _underscore, ?QM, *star.   
 - _MP tuple. same elements.  
 - _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    

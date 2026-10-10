@@ -75,7 +75,7 @@ func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, er
 	return nil, nil
 }
 
-var _mtPatOps = strings.Split(". -", " ")
+var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
 
 func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
 	// fmt.Println("ProcMPT", FPrintElems(elems), "node:", rNode)
@@ -105,7 +105,7 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 	case "(":
 		// tuple | some() | expr in brackets
 	case "{":
-		// dict | Struct{}
+		// dict | Struct{} | _{}
 	case "|":
 		// multicase
 	case "::":
@@ -113,6 +113,7 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		// println("oper ::")
 		// PrintONode(rNode, 0)
 		expr, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		// fmt.Printf(" :: %T \n", expr)
 		if !ok {
 			return nil, fmt.Errorf("Bad right sub expr in :: oper")
 		}

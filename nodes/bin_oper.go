@@ -318,6 +318,12 @@ func ExprGetType(ex base.Expression, cx base.Context) (*base.Type, error) {
 			return tp, nil
 		}
 	// case *MixedTypeExpr:
+	case *Brackets:
+		if rvar.Type != RoundBr {
+			return nil, fmt.Errorf("get type error:only round brackets is allowed ")
+		}
+		sub := rvar.Sub
+		return ExprGetType(sub, cx)
 	case *OperBin:
 		mt, err := MixedSubs(rvar, cx)
 		tp := &base.Type{Mix: mt, Id: base.TypeMixed}
