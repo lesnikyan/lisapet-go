@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/lesnikyan/lisapet-go/base"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 type MatchPattern interface {
@@ -123,4 +124,128 @@ func (mc *MCaseVar) Match(cx base.Context, arg any) (bool, error) {
 	vr.Val = arg
 	// fmt.Printf("MCaseVar  Match: arg= %v :: vr = %v \n", arg, vr)
 	return true, nil
+}
+
+// ====
+
+// *
+type MCaseStar struct {
+}
+
+func (mc *MCaseStar) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseStar) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseStar) Match(cx base.Context, arg any) (bool, error) {
+	return true, nil
+}
+
+// ====
+
+// ?
+type MCaseQMark struct {
+}
+
+func (mc *MCaseQMark) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseQMark) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseQMark) Match(cx base.Context, arg any) (bool, error) {
+	return true, nil
+}
+
+// ====
+
+type MCaseList struct {
+	Subs []MatchPattern
+
+	minLen int
+	maxLen int
+}
+
+func (mc *MCaseList) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseList) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
+	// fmt.Printf("MCaseList  Match: %T: %v \n", arg, arg)
+	// min := 0
+	// max := 0
+	// noMin := false
+	// noMax := false
+	arglist, ok := arg.(*objects.ListVal)
+	if !ok {
+		return false, nil
+	}
+	vals := arglist.Elems
+	// vid := 0 // vals index
+	subs := mc.Subs
+	slen := len(subs)
+	sid := 0 // subs index
+	for _, v := range vals {
+		if sid >= slen {
+			return false, nil
+		}
+		sp := subs[sid]
+		switch mp := sp.(type) {
+		case *MCaseVal:
+			ok, err := mp.Match(cx, v)
+			if err != nil {
+				return false, err
+			}
+			if !ok {
+				return false, nil
+			}
+			sid++
+		case *MCaseVar:
+			ok, err := mp.Match(cx, v)
+			if err != nil {
+				return false, err
+			}
+			if !ok {
+				return false, nil
+			}
+			sid++
+		case *MCaseUnder:
+		case *MCaseStar:
+			// noMax = true
+		case *MCaseQMark:
+
+		default:
+			// noMin = true
+		}
+	}
+	// fmt.Printf("MCaseList  Match: arg= %v :: vr = %v \n", arg, vr)
+	return true, nil
+}
+
+func NewMCaseList(subs []MatchPattern) *MCaseList {
+	// min := 0
+	// max := 0
+	// noMin := false
+	// noMax := false
+	// for i, sp := range subs {
+	// 	switch mp := sp.(type) {
+	// 	case *MCaseVal:
+	// 	case *MCaseVar:
+	// 	case *MCaseUnder:
+	// 	case *MCaseStar:
+	// 		noMax = true
+	// 	case *MCaseQMark:
+
+	// 	default:
+	// 		noMin = true
+	// 	}
+	// }
+
+	return &MCaseList{Subs: subs}
 }

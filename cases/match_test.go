@@ -2,6 +2,73 @@ package cases
 
 import "testing"
 
+func TestMatchList(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// simple and basic case: vals, vars
+		{`
+		x = [4, 5, 6, 7]
+		r = 0
+		match x
+			[4, 5, a, b]
+				r = 1000 + a * 10 +b 
+		`, "r", int64(1067)},
+		// one val
+		{`
+		x = [4]
+		r = 0
+		match x
+			[4]
+				r = 14 
+			_
+				r = 99 
+		`, "r", int64(14)},
+		// one var
+		{`
+		x = [17]
+		r = 0
+		match x
+			[4]
+				r = 14 
+			[a]
+				r = 100 + a 
+			_
+				r = 99 
+		`, "r", int64(117)},
+		// empty list
+		{`
+		x = []
+		r = 0
+		match x
+			[]
+				r = 100
+			_
+				r = 99
+		`, "r", int64(100)},
+		// one var
+		{`
+		nn = [[1], [2], [3], 5, null, [4,5], [5,6,7]]
+		r = []
+		for x <- nn
+			match x
+				[2]
+					r <- 222 
+				[a]
+					r <- 100 + a 
+				[a, b]
+					r <- 1000 * a + b 
+				_
+					r <- 99 
+		`, "r", Anis(101, 222, 103, 99, 99, 4005, 99)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchMultitype(t *testing.T) {
 	tdata := []struct {
 		src   string

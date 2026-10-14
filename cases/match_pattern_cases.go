@@ -77,8 +77,90 @@ func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, er
 
 var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
 
+// func subMPElemSimple(node *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
+// 	if len(elems) != 1 {
+// 		return nil, fmt.Errorf("m-pattern: sub elem more 1 lexem: not found")
+// 	}
+// 	switch elems[0].Type {
+// 	case Lt.Oper:
+// 		// *, ?
+// 	case Lt.Word:
+// 		// var
+// 		switch
+// 	default:
+// 		// values
+
+// 	}
+// }
+
+// func subMPElem(node *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
+
+// }
+
+func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
+	node := rNode
+	elems := []nodes.MatchPattern{}
+	last := rNode
+	for node != nil && node.oper == rNode.oper {
+		last = node
+		sub, err := ProcMatchPattern(node.rightNode, node.rightElems)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, sub)
+
+		node = node.leftNode
+	}
+	first, err := ProcMatchPattern(last.leftNode, last.leftElems)
+	if err != nil {
+		return nil, err
+	}
+	// fmt.Printf("SeqSub#3 %T %v %T", last, ok, first)
+	elems = append(elems, first)
+	slices.Reverse(elems)
+	// fmt.Println("Seq#1:", elems)
+	return elems, nil
+}
+
+func MPList(node *OperNode) (nodes.MatchPattern, error) {
+	subNode := node.rightNode
+	elems := node.rightElems
+	if subNode == nil {
+		if len(elems) == 0 {
+			// no subs
+			return nodes.NewMCaseList(nil), nil
+		}
+		// 1 sub: val, var, _, ?, *
+		expr, ok := OperSub(nil, elems)
+		if !ok {
+			return nil, fmt.Errorf("Bad sequnce elem in matching pattern: `%s`", FPrintElems(elems))
+		}
+		subOne, err := SimplePattern(expr)
+		if err != nil {
+			return nil, err
+		}
+		return nodes.NewMCaseList([]nodes.MatchPattern{subOne}), nil
+	}
+	// next if sub oper not empty
+	switch subNode.oper {
+	case "?":
+		//  optional
+	case "*":
+		// any num of optional
+	case ",":
+		// regular case: several elements
+		subs, err := MPSeqSubs(subNode)
+		if err != nil {
+			return nil, err
+		}
+		return nodes.NewMCaseList(subs), nil
+	}
+	panic("list match pattern: case not found")
+}
+
 func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-	// fmt.Println("ProcMPT", FPrintElems(elems), "node:", rNode)
+	// fmt.Println("ProcMPT", FPrintElems(elems), "node:")
+	// PrintONode(rNode, 0)
 	if rNode == nil {
 		if len(elems) == 0 {
 			// empty tree
@@ -102,6 +184,11 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 	switch rNode.oper {
 	case "[":
 		// list
+		mpt, err := MPList(rNode)
+		if err != nil {
+			return nil, err
+		}
+		return mpt, nil
 	case "(":
 		// tuple | some() | expr in brackets
 	case "{":

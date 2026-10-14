@@ -153,16 +153,16 @@ next - by dates...
     Fixed `string.replace(arg)` with `dict` arg: `str.replace({'one':'two', re'[0-9]':'($1)'})`  
 - --05 Implemented default callable constructor for struct type: `struct A a:int, b:bool ; A(12, true)`  
 - --08 Implemented **match** statement as a main pattern matching functionality (multi-branch control node).  
-    Added simplest paterns:  value pattern: simple val: numbers, bool, string, glif; any-value pattern `_`   
-    Added match pattern (_MP) by type: `:: int`
-- --10 Added _MP by type with assigning variable: `name :: string`
+    Added simplest paterns:  value pattern: simple val: numbers, bool, string, glif; any-value (otherwise) pattern `_`   
+    Added match pattern (_MP) by type: `:: int`  
+- --10 Added _MP by type with assigning variable: `name :: string`  
     Added _MP multi-type: `x :: (int | float)`, `y :: int | glif | string`  
-
+- --14 Added list pattern to match cases: empty, with vals, vars: `[1, 'a', a, b]`.  
 
 
 #### next TODO:  
 - match patterns:   
-- _MP list. elements: subpattern: value, type, etc; _underscore, ?QM, *star.   
+- _MP list. elements: spec subpatterns: _underscore, ?QM, *star.   
 - _MP tuple. same elements.  
 - _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    
 - _MP maybe: `some(12)`, `none`  
