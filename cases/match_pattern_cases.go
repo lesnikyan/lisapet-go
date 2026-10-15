@@ -104,6 +104,7 @@ func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
 	for node != nil && node.oper == rNode.oper {
 		last = node
 		sub, err := ProcMatchPattern(node.rightNode, node.rightElems)
+		// fmt.Printf("MPSeqSubs#1 %v %T err: %v\n", node.oper, sub, err)
 		if err != nil {
 			return nil, err
 		}

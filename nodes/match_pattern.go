@@ -177,7 +177,6 @@ func (mc *MCaseList) Get() *base.Val {
 }
 
 func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
-	// fmt.Printf("MCaseList  Match: %T: %v \n", arg, arg)
 	// min := 0
 	// max := 0
 	// noMin := false
@@ -190,8 +189,11 @@ func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
 	// vid := 0 // vals index
 	subs := mc.Subs
 	slen := len(subs)
+	// vlen := len(vals)
+	// fmt.Printf("MCaseList  Match: %T: %v len: %d \n", arg, arg, slen)
 	sid := 0 // subs index
 	for _, v := range vals {
+		// fmt.Printf(" --- LC: i=%d, v=%v, sid=%d\n", i, v, sid)
 		if sid >= slen {
 			return false, nil
 		}
@@ -216,6 +218,7 @@ func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
 			}
 			sid++
 		case *MCaseUnder:
+			sid++
 		case *MCaseStar:
 			// noMax = true
 		case *MCaseQMark:
@@ -223,6 +226,9 @@ func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
 		default:
 			// noMin = true
 		}
+	}
+	if sid < slen {
+		return false, nil
 	}
 	// fmt.Printf("MCaseList  Match: arg= %v :: vr = %v \n", arg, vr)
 	return true, nil

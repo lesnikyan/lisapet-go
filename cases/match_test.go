@@ -14,7 +14,7 @@ func TestMatchList(t *testing.T) {
 		r = 0
 		match x
 			[4, 5, a, b]
-				r = 1000 + a * 10 +b 
+				r = 1000 + a * 10 +b
 		`, "r", int64(1067)},
 		// one val
 		{`
@@ -22,9 +22,9 @@ func TestMatchList(t *testing.T) {
 		r = 0
 		match x
 			[4]
-				r = 14 
+				r = 14
 			_
-				r = 99 
+				r = 99
 		`, "r", int64(14)},
 		// one var
 		{`
@@ -32,11 +32,11 @@ func TestMatchList(t *testing.T) {
 		r = 0
 		match x
 			[4]
-				r = 14 
+				r = 14
 			[a]
-				r = 100 + a 
+				r = 100 + a
 			_
-				r = 99 
+				r = 99
 		`, "r", int64(117)},
 		// empty list
 		{`
@@ -55,20 +55,39 @@ func TestMatchList(t *testing.T) {
 		for x <- nn
 			match x
 				[2]
-					r <- 222 
+					r <- 222
 				[a]
-					r <- 100 + a 
+					r <- 100 + a
 				[a, b]
-					r <- 1000 * a + b 
+					r <- 1000 * a + b
+				_
+					r <- 99
+		`, "r", Anis(101, 222, 103, 99, 99, 4005, 99)},
+		// underscore sub pattern
+		{`
+		nn = [[1], [2,3], [5, 1, 11], [7, 2, 21]]
+		r = []
+		for x <- nn
+			match x
+				[a, _]
+					r <- 100 + a
+				[7, a, b]
+					r <- a * 100 + b
+				[a, _, b]
+					r <- a * 100 + b
 				_
 					r <- 99 
-		`, "r", Anis(101, 222, 103, 99, 99, 4005, 99)},
+		`, "r", Anis(99, 102, 511, 221)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
 
+// #[5, _, a]
+// #	r <- 200 + a
+// #:: list
+// #	r <- 98
 func TestMatchMultitype(t *testing.T) {
 	tdata := []struct {
 		src   string

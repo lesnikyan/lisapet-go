@@ -158,11 +158,12 @@ next - by dates...
 - --10 Added _MP by type with assigning variable: `name :: string`  
     Added _MP multi-type: `x :: (int | float)`, `y :: int | glif | string`  
 - --14 Added list pattern to match cases: empty, with vals, vars: `[1, 'a', a, b]`.  
+- --15 Added underscore as a sub element of list pattern: `['Bob', _, _ ]`   
 
 
 #### next TODO:  
 - match patterns:   
-- _MP list. elements: spec subpatterns: _underscore, ?QM, *star.   
+- _MP list. elements: spec subpatterns:  ?QM, *star.   
 - _MP tuple. same elements.  
 - _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    
 - _MP maybe: `some(12)`, `none`  
@@ -189,13 +190,17 @@ BUGS:
 - math plus: `r <- 200. + 3.2` // dot after 200 breaks expression.  
 
 
-Naming fun )))  
-dev names:  
-    folxt: functional-object language of executable tree
+Naming fun )))    
+dev names:   
+    FoxCat: functional-object executable contextual algorithmic tree  
+    Ofelia: object-functional embedded language interpreter of algorithm  
+    folxt: functional-object language of executable tree  
     foxet: functional-object executable tree  
     foxcot: functional-object executable and contextual tree  
     foxen: functional-object executable nodes  
     folixen: functional-object language interpreter of executable nodes  
     foxilt: functional-object extensible interpreter of lexical tree   
+    ofelies: object-function embedded language interpreter of executable struct  
+    fails: functional algorithmic interpreter language script  :)))  
 
 
