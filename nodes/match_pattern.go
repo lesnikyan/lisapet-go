@@ -162,9 +162,171 @@ func (mc *MCaseQMark) Match(cx base.Context, arg any) (bool, error) {
 
 // ====
 
+// [1, 2, 3, 4]
+// [1, 2, 4]
+// [1, 2, ?, 4]
+
+func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error) {
+	slen := len(subs)
+	vlen := len(vals)
+	// fmt.Printf("MCaseList  Match: %T: %v len: %d \n", arg, arg, slen)
+	// sid := 0 // subs index
+	vid := 0 // index of val element
+	varp := 0
+	// skip := 0
+	opts := 0 // counter of optional by question mark
+	sed := -1 // sid was iterated
+	ved := -1 // vid was iterated
+	for sid, sp := range subs {
+		// fmt.Printf(" --- LC: vid=%d, sid=%d, ptt: %T\n", vid, sid, sp)
+		sed = sid
+		switch sp.(type) {
+		case *MCaseQMark:
+			// TODO: optimization: list-pattern without ?, * can be ckecked by: slen == vlen
+			opts += 1
+			continue
+		case *MCaseStar:
+			// noMax = true
+			continue
+		default:
+			if vid >= vlen {
+				return false, nil
+			}
+		}
+		ved = vid
+		v := vals[vid]
+		// fmt.Printf(" --- LC: vid=%d, v=%v, sid=%d, ptt: %T\n", vid, v, sid, sp)
+		// fmt.Printf("    #2: opts: %d, varp: %d \n", opts, varp)
+		// if sid >= slen {
+		// 	return false, nil
+		// }
+		// sp := subs[sid]
+		switch mp := sp.(type) {
+		// TODO: implement any sub cases with strikt condition like MCaseVal
+		// ::type, var@sub, regexp, [], (), {}, N{}, some(),
+		case *MCaseVal:
+			if opts > 0 {
+				vback := opts // vals for search valid value
+				if varp > 0 {
+					vback -= varp
+				}
+				curVal := -1
+				// fmt.Printf("    == : opts: %d, varp: %d \n", opts, varp)
+				finId := vid + vback + 1
+				if finId > vlen {
+					finId = vlen
+				}
+				for ti, tv := range vals[vid:finId] {
+					ok, err := mp.Match(cx, tv)
+					// fmt.Printf("    #4: ti: %d (%d), tv:%v, mp: %v, ok:%v, err: %v \n", ti, ti+vid, tv, mp.Val, ok, err)
+					if err != nil {
+						return false, err
+					}
+					if ok {
+						// found 1st valid value
+						curVal = ti + vid
+					}
+				}
+				if curVal == -1 {
+					// valid value not found
+					return false, nil
+				}
+				vid = curVal
+				ved = vid
+				// resolve accumulated vars, underscores
+				if varp > 0 {
+					tvid := curVal - varp
+					for ti, tv := range vals[tvid:curVal] {
+						tsp := subs[sid-varp+ti]
+						tsp.Match(cx, tv)
+						// tsid++
+					}
+					varp = 0
+				}
+				opts = 0
+				continue
+			}
+			// regular check
+			ok, err := mp.Match(cx, v)
+			if err != nil {
+				return false, err
+			}
+			// fmt.Printf("    #3: ok=%v, err: %v \n", ok, err)
+			if !ok {
+				return false, nil
+			}
+			vid++
+		case *MCaseVar:
+			// TODO: to group non-matching cases: var, under,  (@-with-non-matched ... thinking)
+			// do we need case: a @ _ ?
+			// examp: [1, a@_, 2] the same [1, a, 2] - no need
+			// case a @ ? or a @ * - doesn't make sense
+			// conclusion: @-case - for matching right-part only, so @ is a matching case
+			if opts > 0 {
+				varp++
+				continue
+			}
+			ok, err := mp.Match(cx, v)
+			if err != nil {
+				return false, err
+			}
+			if !ok {
+				// can't happen in normal situation
+				return false, nil
+			}
+			vid++
+		case *MCaseUnder:
+			if opts > 0 {
+				varp++
+				continue
+			}
+			// fmt.Printf("case _ \n")
+			vid++
+		// case *MCaseQMark:
+		// 	// TODO: optimization: list-pattern without ?, * can be ckecked by: slen == vlen
+		// 	opts += 1
+		// case *MCaseStar:
+		// 	// noMax = true
+		default:
+			// noMin = true
+		}
+	}
+	// fmt.Printf("  MCaseList  fin:  ved: %d, vlen-1:%d, opts:%d, sed:%d  \n", ved, vlen-1, opts, sed)
+	// post proicess:
+	// if vars in the end after ?
+	if varp > 0 {
+		// resolve ending vars
+	}
+
+	// if ? in the end
+	// di := 1 + opts
+	// if star in the end
+
+	// if opts > 0 {
+
+	// }
+	// if vid < vlen-di {
+	// if opts > 0 && vlen-1-vid > opts {
+	if vlen-1-ved > opts {
+		return false, nil
+	}
+	// fmt.Printf("  MCaseList  Match.End: sed = %v , slen-1 = %v, fail: %v \n", sed, slen-1, sed < slen-1)
+	if sed < slen-1 {
+		return false, nil
+	}
+	// if vid < vlen-1 {
+	// 	return false, nil
+	// }
+	// fmt.Printf("  MCaseList  Match.End: slen = %v , vlen = %v \n", slen, vlen)
+	return true, nil
+}
+
+// ====
+
 type MCaseList struct {
 	Subs []MatchPattern
 
+	// optimization fields
 	minLen int
 	maxLen int
 }
@@ -188,50 +350,8 @@ func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
 	vals := arglist.Elems
 	// vid := 0 // vals index
 	subs := mc.Subs
-	slen := len(subs)
-	// vlen := len(vals)
-	// fmt.Printf("MCaseList  Match: %T: %v len: %d \n", arg, arg, slen)
-	sid := 0 // subs index
-	for _, v := range vals {
-		// fmt.Printf(" --- LC: i=%d, v=%v, sid=%d\n", i, v, sid)
-		if sid >= slen {
-			return false, nil
-		}
-		sp := subs[sid]
-		switch mp := sp.(type) {
-		case *MCaseVal:
-			ok, err := mp.Match(cx, v)
-			if err != nil {
-				return false, err
-			}
-			if !ok {
-				return false, nil
-			}
-			sid++
-		case *MCaseVar:
-			ok, err := mp.Match(cx, v)
-			if err != nil {
-				return false, err
-			}
-			if !ok {
-				return false, nil
-			}
-			sid++
-		case *MCaseUnder:
-			sid++
-		case *MCaseStar:
-			// noMax = true
-		case *MCaseQMark:
+	return mpMatchList(cx, vals, subs)
 
-		default:
-			// noMin = true
-		}
-	}
-	if sid < slen {
-		return false, nil
-	}
-	// fmt.Printf("MCaseList  Match: arg= %v :: vr = %v \n", arg, vr)
-	return true, nil
 }
 
 func NewMCaseList(subs []MatchPattern) *MCaseList {

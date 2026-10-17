@@ -146,6 +146,8 @@ func MPList(node *OperNode) (nodes.MatchPattern, error) {
 	switch subNode.oper {
 	case "?":
 		//  optional
+		// fmt.Printf("QM elem ? \n")
+		return nodes.NewMCaseList([]nodes.MatchPattern{&nodes.MCaseQMark{}}), nil
 	case "*":
 		// any num of optional
 	case ",":
@@ -214,6 +216,11 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 			varPtr = vpt
 		}
 		return &nodes.MCaseType{TypeExp: expr, Var: varPtr}, nil
+
+	case "?":
+		//  optional
+		// fmt.Printf("QM ? \n")
+		return &nodes.MCaseQMark{}, nil
 	case "@":
 		// val assign
 	case ":?":

@@ -159,11 +159,12 @@ next - by dates...
     Added _MP multi-type: `x :: (int | float)`, `y :: int | glif | string`  
 - --14 Added list pattern to match cases: empty, with vals, vars: `[1, 'a', a, b]`.  
 - --15 Added underscore as a sub element of list pattern: `['Bob', _, _ ]`   
+- --17 Added optional element for list m-pattern: `[1, 2, ?, ?, 10, ?]`
 
 
 #### next TODO:  
 - match patterns:   
-- _MP list. elements: spec subpatterns:  ?QM, *star.   
+- _MP list. elements: spec subpatterns:  *star.   
 - _MP tuple. same elements.  
 - _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    
 - _MP maybe: `some(12)`, `none`  

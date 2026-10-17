@@ -50,7 +50,7 @@ func (mt *MatchNode) Do(cx base.Context) error {
 	arg := GetExprVal(mt.ArgExp, nil)
 
 	for i, cs := range mt.Cases {
-		inCx := cx.SubContext()
+		inCx := cx.SubContext() // new sub context for each case
 		// fmt.Printf(" MtNode.Do.for %d: %T >> %T: %v\n", i, cs, arg, arg)
 		ptok, err := cs.Pattern.Match(inCx, arg)
 		if err != nil {

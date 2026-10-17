@@ -2,6 +2,142 @@ package cases
 
 import "testing"
 
+func _TestMatchListStar(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// simple ?
+		{`
+		x = [11]
+		r = 0
+		match x
+			[*]
+				r = 111
+		`, "r", int64(111)},
+
+		// // simple *
+		// //
+		// {`
+		// nn = [[1], [2,3], [5, 1, 11], [7, 2, 21]]
+		// r = []
+		// for x <- nn
+		// 	match x
+		// 		[a, *]
+		// 		_
+		// 			r <- 99
+		// `, "r", Anis(1)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestMatchListOptional(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// simple ?
+		{`
+		x = [11]
+		r = 0
+		match x
+			[?]
+				r = 111
+		`, "r", int64(111)},
+		{`
+		x = []
+		r = 0
+		match x
+			[?]
+				r = 110
+		`, "r", int64(110)},
+		{`
+		x = [1,2]
+		r = 0
+		match x
+			[?]
+				r = 110
+			[?,?]
+				r = 120
+		`, "r", int64(120)},
+		{`
+		x = [4, 5, 6]
+		r = 0
+		match x
+			[4, 5, ?]
+				r = 114
+		`, "r", int64(114)},
+		{`
+		x = [4, 5, 6]
+		r = 0
+		match x
+			[4, ?, 6]
+				r = 115
+		`, "r", int64(115)},
+		{`
+		x = [4, 5, 6]
+		r = 0
+		match x
+			[?, 5, ?]
+				r = 116
+		`, "r", int64(116)},
+		{`
+		x = [4, 5, 6, 7, 8, 9]
+		r = 0
+		match x
+			[?, 5, ?, ?, ?, ?]
+				r = 117
+		`, "r", int64(117)},
+		{`
+		x = [4, 5]
+		r = 0
+		match x
+			[?, 5, ?, ?, ?, ?]
+				r = 118
+		`, "r", int64(118)},
+		{`
+		#nn = [[1,2,3,4], [1,2,4], [1,3,4], [1,4,5,6,7], [1,4,8]]
+		nn = [[4], [1,4], [1,2,3,4],  [1,2,4], [1,3,4],[1,4,5,6,7], [1,4,8], [1,1,1,4,4,4,4], [1,1,1,4,4,4,4,5]]
+		r = []
+		for i, x <- nn
+			match x
+				[1, ?, ?, 4, ?, ?, ?]
+					r <- 1000*i + len(x)
+				[?,4,?]
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(98, 1002, 2004, 3003, 4003, 5005, 6003, 7007, 99)},
+		{`
+		nn = [[], [1], [1,2], [1,2,3], [1,2,3,4], [1,2,3,4,5], [1,2,3,4,5,6], [1 .. 10]]
+		r = []
+		for i, x <- nn
+			match x
+				[?]
+					r <- 11
+				[?,?]
+					r <- 12
+				[?,?,?]
+					r <- 13
+				[?,?,?,?]
+					r <- 14
+				[?,?,?,?,?,?,?,?]
+					r <- 15
+				:: list
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(11, 11, 12, 13, 14, 15, 15, 98)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchList(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -84,10 +220,6 @@ func TestMatchList(t *testing.T) {
 	}
 }
 
-// #[5, _, a]
-// #	r <- 200 + a
-// #:: list
-// #	r <- 98
 func TestMatchMultitype(t *testing.T) {
 	tdata := []struct {
 		src   string
