@@ -170,13 +170,66 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 	slen := len(subs)
 	vlen := len(vals)
 	// fmt.Printf("MCaseList  Match: %T: %v len: %d \n", arg, arg, slen)
-	// sid := 0 // subs index
 	vid := 0 // index of val element
 	varp := 0
-	// skip := 0
 	opts := 0 // counter of optional by question mark
 	sed := -1 // sid was iterated
 	ved := -1 // vid was iterated
+	vmax := vlen - 1
+
+	// doVal := func(sid int, mp MatchPattern) (bool, error) {
+	// 	vback := opts // vals for search valid value
+	// 	if varp > 0 {
+	// 		vback -= varp
+	// 	}
+	// 	curVal := -1
+	// 	fmt.Printf("    >> : opts: %d, varp: %d , vid:%d, sid: %d \n", opts, varp, vid, sid)
+	// 	finId := vid + vback + 1
+	// 	if finId > vlen {
+	// 		finId = vlen
+	// 	}
+	// 	// mp == nil if ending call
+	// 	if mp != nil {
+	// 		for ti, tv := range vals[vid:finId] {
+	// 			ok, err := mp.Match(cx, tv)
+	// 			// fmt.Printf("    #4: ti: %d (%d), tv:%v, mp: %v, ok:%v, err: %v \n", ti, ti+vid, tv, mp.Val, ok, err)
+	// 			if err != nil {
+	// 				return false, err
+	// 			}
+	// 			if ok {
+	// 				// found 1st valid value
+	// 				curVal = ti + vid
+	// 			}
+	// 		}
+	// 		if curVal == -1 {
+	// 			// valid value not found
+	// 			return false, nil
+	// 		}
+	// 	} else {
+	// 		if varp > vlen {
+	// 			return false, nil
+	// 		}
+	// 		curVal = vlen - varp
+	// 	}
+	// 	vid = curVal
+	// 	ved = vid
+	// 	if varp > 0 {
+	// 		// resolve accumulated vars, underscores
+	// 		if varp > 0 {
+	// 			tvid := curVal - varp
+	// 			fmt.Printf("    >> : curVal: %d, tvid: %d , vid:%d, sid: %d \n", curVal, tvid, vid, sid)
+	// 			for ti, tv := range vals[tvid:curVal] {
+	// 				tsp := subs[sid-varp+ti]
+	// 				tsp.Match(cx, tv)
+	// 				// tsid++
+	// 			}
+	// 			varp = 0
+	// 		}
+	// 	}
+	// 	opts = 0
+	// 	return true, nil
+	// }
+
 	for sid, sp := range subs {
 		// fmt.Printf(" --- LC: vid=%d, sid=%d, ptt: %T\n", vid, sid, sp)
 		sed = sid
@@ -187,23 +240,21 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 			continue
 		case *MCaseStar:
 			// noMax = true
+			opts += vlen - ved
 			continue
 		default:
-			if vid >= vlen {
+			// vals has ended
+			if vid > vmax {
 				return false, nil
 			}
 		}
 		ved = vid
 		v := vals[vid]
-		// fmt.Printf(" --- LC: vid=%d, v=%v, sid=%d, ptt: %T\n", vid, v, sid, sp)
+		// fmt.Printf(" --- Lc: vid=%d, v=%v, sid=%d, ptt: %T\n", vid, v, sid, sp)
 		// fmt.Printf("    #2: opts: %d, varp: %d \n", opts, varp)
-		// if sid >= slen {
-		// 	return false, nil
-		// }
-		// sp := subs[sid]
 		switch mp := sp.(type) {
 		// TODO: implement any sub cases with strikt condition like MCaseVal
-		// ::type, var@sub, regexp, [], (), {}, N{}, some(),
+		// ::type, var@sub, re'gexp', [], (), {}, N{}, _{}, some(),
 		case *MCaseVal:
 			if opts > 0 {
 				vback := opts // vals for search valid value
@@ -218,13 +269,14 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 				}
 				for ti, tv := range vals[vid:finId] {
 					ok, err := mp.Match(cx, tv)
-					// fmt.Printf("    #4: ti: %d (%d), tv:%v, mp: %v, ok:%v, err: %v \n", ti, ti+vid, tv, mp.Val, ok, err)
+					// fmt.Printf("    . #4: ti: %d (%d), tv:%v, mp: %v, ok:%v, err: %v \n", ti, ti+vid, tv, mp.Val, ok, err)
 					if err != nil {
 						return false, err
 					}
 					if ok {
 						// found 1st valid value
 						curVal = ti + vid
+						break
 					}
 				}
 				if curVal == -1 {
@@ -244,6 +296,7 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 					varp = 0
 				}
 				opts = 0
+				vid++
 				continue
 			}
 			// regular check
@@ -276,47 +329,55 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 			}
 			vid++
 		case *MCaseUnder:
+			// fmt.Printf("case _ \n")
 			if opts > 0 {
 				varp++
 				continue
 			}
-			// fmt.Printf("case _ \n")
 			vid++
-		// case *MCaseQMark:
-		// 	// TODO: optimization: list-pattern without ?, * can be ckecked by: slen == vlen
-		// 	opts += 1
-		// case *MCaseStar:
-		// 	// noMax = true
 		default:
 			// noMin = true
 		}
 	}
-	// fmt.Printf("  MCaseList  fin:  ved: %d, vlen-1:%d, opts:%d, sed:%d  \n", ved, vlen-1, opts, sed)
+	// fmt.Printf("  MCaseList  fin:  ved: %d, vlen-1:%d, opts:%d, sed:%d, varp: %d  \n", ved, vlen-1, opts, sed, varp)
 	// post proicess:
 	// if vars in the end after ?
 	if varp > 0 {
+		if varp+ved+opts < vlen {
+			return false, nil
+		}
+		tvid := vlen - varp
+		tss := slen - varp
+		// fmt.Printf("    >> : vlen: %d, tvid: %d , vid:%d, sid: %d \n", vlen, tvid, vid, sed)
+		for ti, tv := range vals[tvid:vlen] {
+			tsp := subs[tss+ti]
+			// fmt.Printf("    -== : ti: %d, tv: %v , tsp: %T\n", ti, tv, tsp)
+			tsp.Match(cx, tv)
+			ved = tvid + ti
+			sed = tss + ti
+			// tsid++
+		}
+		varp = 0
+		opts = 0
+	}
+	if opts > 0 {
 		// resolve ending vars
+		// ok, err := doVal(sed, nil)
+		// fmt.Printf("  MCaseList  fin Do:  ok: %v, err: %v  \n", ok, err)
 	}
 
-	// if ? in the end
-	// di := 1 + opts
 	// if star in the end
 
-	// if opts > 0 {
-
-	// }
-	// if vid < vlen-di {
-	// if opts > 0 && vlen-1-vid > opts {
-	if vlen-1-ved > opts {
+	// if ? in the end
+	// fmt.Printf("    opts? : vlen: %d, ved: %d , vmax:%d, opts: %d \n", vlen, ved, vmax, opts)
+	if vmax-ved > opts {
 		return false, nil
 	}
 	// fmt.Printf("  MCaseList  Match.End: sed = %v , slen-1 = %v, fail: %v \n", sed, slen-1, sed < slen-1)
 	if sed < slen-1 {
 		return false, nil
 	}
-	// if vid < vlen-1 {
-	// 	return false, nil
-	// }
+
 	// fmt.Printf("  MCaseList  Match.End: slen = %v , vlen = %v \n", slen, vlen)
 	return true, nil
 }
