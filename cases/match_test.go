@@ -2,6 +2,194 @@ package cases
 
 import "testing"
 
+func TestMatchTupleOptional(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [(1,), (2,), (2,3), (4,5), (5,6,7), (4,5,6,7), (4,5,6,7,88), (4,5,6,7,8,9), 5, null]
+		r = []
+		for x <- nn
+			match x
+				(2,?)
+					r <- 222
+				(a,?)
+					r <- 100 + a
+				(?,?,b)
+					r <- 200 + b
+				(a,?,?,?, b)
+					r <- 1000 * a + b
+				(?)
+					r <- 333
+				::tuple
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(101, 222, 222, 104, 207, 4007, 4088, 98, 99, 99)},
+		{`
+		x = (4, 5)
+		r = 0
+		match x
+			(*)
+				r = 544
+		`, "r", int64(544)},
+		{`
+		nn = [(1,), (1,2,3,4,5), (2,), (2,3), (4,5), (4,5,6), (4,4,4,4,4,4,4,4,5,66), (5,6,7), (4,5,6,7), (1,3,1,3,1,7), (4,5,6,7,8,9), 5, null]
+		r = []
+		for x <- nn
+			match x
+				(1,*)
+					r <- 111
+				(*,2)
+					r <- 222
+				(*,5,a)
+					r <- 5000 + a
+				(*,3,*,3,*,a)
+					r <- 3000 + a
+				(a,*,7,*,b)
+					r <- 70000 + a*1000 + b
+				(*,_,a)
+					r <- 8000 + a
+				(*)
+					r <- 999
+				_
+					r <- 99
+		`, "r", Anis(111, 111, 222, 8003, 8005, 5006, (5066), 8007, 8007, 111, 74009, 99, 99)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestMatchTuple(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// simple and basic case: vals, vars
+		{`
+		x = (4, 5)
+		r = 0
+		match x
+			(4, 5)
+				r = 555
+		`, "r", int64(555)},
+		{`
+		x = (4, 5)
+		r = 0
+		match x
+			(4, a)
+				r = 500 + a
+		`, "r", int64(505)},
+		// one val
+		{`
+		x = (4,)
+		r = 0
+		match x
+			(4,)
+				r = 14
+			_
+				r = 99
+		`, "r", int64(14)},
+		// one var
+		{`
+		x = (17,)
+		r = 0
+		match x
+			(4,)
+				r = 14
+			(a,)
+				r = 100 + a
+			_
+				r = 99
+		`, "r", int64(117)},
+		// empty
+		{`
+		x = (,)
+		r = 0
+		match x
+			(,)
+				r = 100
+			_
+				r = 99
+		`, "r", int64(100)},
+		{`
+		# empty tuple mp, no comma
+		x = (,)
+		r = 0
+		match x
+			()
+				r = 1000
+			_
+				r = 99
+		`, "r", int64(1000)},
+		// vars
+		{`
+		nn = [(1,), (2,), tuple([3]), 5, null, (4,5), (5,6,7)]
+		r = []
+		for x <- nn
+			match x
+				(2,)
+					r <- 222
+				(a,)
+					r <- 100 + a
+				(a, b)
+					r <- 1000 * a + b
+				_
+					r <- 99
+		`, "r", Anis(101, 222, 103, 99, 99, 4005, 99)},
+		// underscore sub pattern
+		{`
+		# empty tuple mp, no comma
+		x = (4,)
+		r = 0
+		match x
+			(1,)
+				r = 100
+			(_)
+				r = 222
+			_
+				r = 99
+		`, "r", int64(222)},
+		{`
+		nn = [(1), (2,3), (5, 1, 12), (7, 2, 21)]
+		r = []
+		for x <- nn
+			match x
+				(a, _)
+					r <- 100 + a
+				(7, a, b)
+					r <- a * 100 + b
+				(a, _, b)
+					r <- a * 100 + b
+				_
+					r <- 99
+		`, "r", Anis(99, 102, 512, 221)},
+		{`
+		nn = [(1), (2,3), (5, 1, 12), (7, 2, 21), (4,5,6,7)]
+		r = []
+		for x <- nn
+			match x
+				(a, _)
+					r <- 100 + a
+				(7, a, b)
+					r <- a * 100 + b
+				(a, _, b)
+					r <- a * 100 + b
+				(_, _, a, b)
+					r <- a * 1000 + b
+				_
+					r <- 99
+		`, "r", Anis(99, 102, 512, 221, 6007)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchListStar(t *testing.T) {
 	tdata := []struct {
 		src   string

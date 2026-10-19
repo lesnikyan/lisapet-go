@@ -416,23 +416,38 @@ func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
 }
 
 func NewMCaseList(subs []MatchPattern) *MCaseList {
-	// min := 0
-	// max := 0
-	// noMin := false
-	// noMax := false
-	// for i, sp := range subs {
-	// 	switch mp := sp.(type) {
-	// 	case *MCaseVal:
-	// 	case *MCaseVar:
-	// 	case *MCaseUnder:
-	// 	case *MCaseStar:
-	// 		noMax = true
-	// 	case *MCaseQMark:
-
-	// 	default:
-	// 		noMin = true
-	// 	}
-	// }
-
 	return &MCaseList{Subs: subs}
+}
+
+// ====
+
+type MCaseTuple struct {
+	Subs []MatchPattern
+
+	// optimization fields
+	minLen int
+	maxLen int
+}
+
+func (mc *MCaseTuple) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseTuple) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseTuple) Match(cx base.Context, arg any) (bool, error) {
+	arglist, ok := arg.(*objects.TupleVal)
+	if !ok {
+		return false, nil
+	}
+	vals := arglist.Elems
+	// vid := 0 // vals index
+	subs := mc.Subs
+	return mpMatchList(cx, vals, subs)
+
+}
+
+func NewMCaseTuple(subs []MatchPattern) *MCaseTuple {
+	return &MCaseTuple{Subs: subs}
 }

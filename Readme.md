@@ -157,16 +157,17 @@ next - by dates...
     Added match pattern (_MP) by type: `:: int`  
 - --10 Added _MP by type with assigning variable: `name :: string`  
     Added _MP multi-type: `x :: (int | float)`, `y :: int | glif | string`  
-- --14 Added list pattern to match cases: empty, with vals, vars: `[1, 'a', a, b]`.  
+- --14 Added `list` pattern to match cases: empty, with vals, vars: `[1, 'a', a, b]`.  
 - --15 Added underscore as a sub element of list pattern: `['Bob', _, _ ]`   
 - --17 Added optional element for list m-pattern: `[1, 2, ?, ?, 10, ?]`
 - --18 Added floating optional element star `*` : `[1, *, 5]`
+- --19 Added matching pattern `tuple` with all subcases that `list` pattern has. 
+
 
 
 #### next TODO:  
 - match patterns:   
 - _MP list: subpatterns: other patterns: list, tuple, dict, type, @, re'', A{},    
-- _MP tuple. same elements.  
 - _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    
 - _MP maybe: `some(12)`, `none`  
 - _MP combined: `pattern1 | pattern2`  
