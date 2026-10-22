@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -140,6 +141,40 @@ func (mc *MCaseStar) Get() *base.Val {
 }
 
 func (mc *MCaseStar) Match(cx base.Context, arg any) (bool, error) {
+	return true, nil
+}
+
+// ====
+
+// re” TODO
+type MCaseRegexp struct {
+}
+
+func (mc *MCaseRegexp) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseRegexp) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseRegexp) Match(cx base.Context, arg any) (bool, error) {
+	return true, nil
+}
+
+// ====
+
+// @ TODO
+type MCaseAt struct {
+}
+
+func (mc *MCaseAt) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseAt) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseAt) Match(cx base.Context, arg any) (bool, error) {
 	return true, nil
 }
 
@@ -450,4 +485,278 @@ func (mc *MCaseTuple) Match(cx base.Context, arg any) (bool, error) {
 
 func NewMCaseTuple(subs []MatchPattern) *MCaseTuple {
 	return &MCaseTuple{Subs: subs}
+}
+
+// ====
+
+// key : val
+type MCaseKeyVal struct {
+	Key MatchPattern
+	Val MatchPattern
+}
+
+func (mc *MCaseKeyVal) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseKeyVal) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseKeyVal) Match(cx base.Context, arg any) (bool, error) {
+	// argDc, ok := arg.(*objects.DictVal)
+	// if !ok {
+	// 	return false, nil
+	// }
+	// vals := argDc.Vmap
+	// var found any
+	// // check key pattern
+	// switch kp := mc.Key.(type) {
+	// case *MCaseVal:
+	// 	k := kp.Val
+	// 	v, ok := vals[k]
+	// 	if !ok {
+	// 		return false, nil
+	// 	}
+	// 	found = v
+	// case *MCaseVar:
+	// 	// var nextKey any
+	// 	// vals[nextKey]
+	// 	// kp.Match(cx, )
+	// default:
+
+	// }
+
+	// //check val
+	// switch vp := mc.Key.(type) {
+	// case *MCaseVal:
+	// 	return vp.Match(cx, found)
+	// case *MCaseVar:
+	// 	return vp.Match(cx, found)
+	// default:
+	// 	return vp.Match(cx, found)
+	// }
+
+	return false, nil
+}
+
+func NewMCaseKeyVal(key MatchPattern, val MatchPattern) *MCaseKeyVal {
+	return &MCaseKeyVal{Key: key, Val: val}
+}
+
+// ====
+
+// {sub:Elems,...}
+type MCaseDict struct {
+	Subs []MatchPattern // *MCaseDictSub or optional elems: *, ?
+}
+
+func (mc *MCaseDict) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseDict) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseDict) Match(cx base.Context, arg any) (bool, error) {
+	argDc, ok := arg.(*objects.DictVal)
+	if !ok {
+		return false, nil
+	}
+	vals := argDc.Vmap
+	// vid := 0 // vals index
+	// fmt.Printf(" lenV=%d lenS=%d \n", len(vals), len(mc.Subs))
+	if len(mc.Subs) == 0 {
+		if len(vals) == 0 {
+			return true, nil
+		}
+		return false, nil
+	}
+	subs := mc.Subs
+	skip := map[any]any{}
+	opt := 0
+	star := false
+	for _, sb := range subs {
+		// fmt.Printf("  MDP sub %T\n", sb)
+		switch pair := sb.(type) {
+		case *MCaseKeyVal:
+			// fmt.Printf(" D:Pair K:%T, V:%T \n", pair.Key, pair.Val)
+			if len(skip) >= len(vals) {
+				// too small count of pairs of arg
+				return false, nil
+			}
+			switch kk := pair.Key.(type) {
+			case *MCaseVal:
+				// if constant key-pattern we can check key in arg dict
+
+				v, ok := vals[kk.Val]
+				// fmt.Printf(" DKc-CaseVal k:%v, ok:%v \n", kk.Val, ok)
+				if !ok {
+					return false, nil
+				}
+				vok, err := pair.Val.Match(cx, v)
+				if err != nil {
+					return false, err
+				}
+				// fmt.Printf(" DV@1 v:%v, err:%v \n", vok, err)
+				if !vok {
+					// here key has matched, but val has not
+					return false, nil
+				}
+				skip[kk.Val] = true
+			default:
+				for k, v := range vals {
+					// think about optimization
+					// fmt.Printf(" DKa-CaseVal k:%v, ok:%v \n", k, v)
+					if _, ok := skip[k]; ok {
+						// skip previously found key
+						continue
+					}
+					// first check key-pattern
+					kok, err := pair.Key.Match(cx, k)
+					if err != nil {
+						return false, err
+					}
+					if !kok {
+						continue
+					}
+					// check value-pattern
+					vok, err := pair.Val.Match(cx, v)
+					if err != nil {
+						return false, err
+					}
+					if vok {
+						// found pair
+						skip[k] = true
+						break
+					}
+				}
+			}
+		case *MCaseQMark:
+			opt++
+		case *MCaseStar:
+			star = true
+		default:
+			return false, fmt.Errorf("dict mp-case: incorrect subcase of dict: %T", sb)
+		}
+	}
+	// after all subcases we should hav `skip` filled by keys of found pairs
+	if star {
+		return true, nil
+	}
+	// fmt.Printf(" DKa-fin lskip:%v, lvals:%v \n", len(skip), len(vals))
+	return len(skip)+opt >= len(vals), nil
+	// return false, nil
+}
+
+// sized slice
+type SzSl struct {
+	Vals []any
+	size int
+	Id   int
+}
+
+func (sz *SzSl) Add(v any) {
+	if sz.Id >= sz.size {
+		panic("sized slice is out of range")
+	}
+	sz.Vals[sz.Id] = v
+	sz.Id++
+}
+
+func NewSz(size int) *SzSl {
+	vv := make([]any, size)
+	return &SzSl{Vals: vv, size: size, Id: 0}
+}
+
+const (
+	KVal   = 0
+	KType  = 1
+	VVal   = 2
+	VType  = 3
+	KVar   = 4
+	KUnd   = 5
+	MTQmk  = 6
+	MTStar = 7
+)
+
+func NewMCaseDict(subs []MatchPattern) *MCaseDict {
+	slen := len(subs)
+	mps := make([]MatchPattern, slen) // sub patterns: pair | * | ?
+	/*
+		// kc + tk + _v + tv + vrr + _k + qm + stars
+			0 key: MCval, regexp
+			1 - type
+			2 - K var
+			3 val: MCVal, regexp
+			4 - type
+			5 - K _
+			6 ?
+			7 *
+			// - V var
+			// - V _
+	*/
+	order := make([]int, slen*8)
+	nums := make([]int, 8)
+	mid := -1
+	for i, pair := range subs {
+		mid = -1
+		switch ppt := pair.(type) {
+		case *MCaseKeyVal:
+			mk := ppt.Key
+			mv := ppt.Val
+			// fmt.Printf(" NewMCD i:%d k:%T, v:%T \n", i, mk, mv)
+			// Key can be: num, bool, string, null
+			switch mk.(type) {
+			case *MCaseVal, *MCaseRegexp:
+				mid = KVal
+			case *MCaseType:
+				mid = KType
+			case *MCaseVar:
+				switch mv.(type) {
+				case *MCaseVal, *MCaseRegexp:
+					mid = VVal
+				case *MCaseType:
+					mid = VType
+				default:
+					mid = KVar
+				}
+			case *MCaseUnder:
+				switch mv.(type) {
+				case *MCaseVal, *MCaseRegexp:
+					mid = VVal
+				case *MCaseType:
+					mid = VType
+				default:
+					mid = KUnd
+				}
+			}
+		case *MCaseQMark:
+			mid = MTQmk
+		case *MCaseStar:
+			mid = MTStar
+		}
+		// println(" // mid:", mid)
+		nx := nums[mid]
+		order[slen*mid+nx] = i
+		nums[mid]++
+	}
+	id := 0
+	// println("-- nums:", parr(vals2anis(nums)))
+	for i := range len(nums) {
+		n := nums[i]
+		// println("-- -- :", i, n)
+		for j := range n {
+			mps[id] = subs[order[slen*i+j]]
+			id++
+		}
+	}
+	return &MCaseDict{Subs: mps}
+}
+
+func parr(vv []any) string {
+	ss := make([]string, len(vv))
+	for i, v := range vv {
+		ss[i] = fmt.Sprintf("%v", v)
+	}
+	return strings.Join(ss, ", ")
 }

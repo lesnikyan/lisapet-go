@@ -131,44 +131,21 @@ func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
 	return elems, nil
 }
 
-// func __MPList(node *OperNode) (nodes.MatchPattern, error) {
-// 	subNode := node.rightNode
-// 	elems := node.rightElems
-// 	if subNode == nil {
-// 		if len(elems) == 0 {
-// 			// no subs
-// 			return nodes.NewMCaseList(nil), nil
-// 		}
-// 		// 1 sub: val, var, _, ?, *
-// 		expr, ok := OperSub(nil, elems)
-// 		if !ok {
-// 			return nil, fmt.Errorf("Bad sequnce elem in matching pattern: `%s`", FPrintElems(elems))
-// 		}
-// 		subOne, err := SimplePattern(expr)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return nodes.NewMCaseList([]nodes.MatchPattern{subOne}), nil
-// 	}
-// 	// next if sub oper not empty
-// 	switch subNode.oper {
-// 	case "?":
-// 		//  optional
-// 		// fmt.Printf("QM elem ? \n")
-// 		return nodes.NewMCaseList([]nodes.MatchPattern{&nodes.MCaseQMark{}}), nil
-// 	case "*":
-// 		// any num of optional
-// 		return nodes.NewMCaseList([]nodes.MatchPattern{&nodes.MCaseStar{}}), nil
-// 	case ",":
-// 		// regular case: several elements
-// 		subs, err := MPSeqSubs(subNode)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return nodes.NewMCaseList(subs), nil
-// 	}
-// 	panic("list match pattern: case not found")
-// }
+func NoLeft(node *OperNode) bool {
+	return len(node.leftElems) == 0 && node.leftNode == nil
+}
+
+func KVPairSub(subNode *OperNode) (nodes.MatchPattern, error) {
+	rt, err := ProcMatchPattern(subNode.rightNode, subNode.rightElems)
+	if err != nil {
+		return nil, err
+	}
+	kt, err := ProcMatchPattern(subNode.leftNode, subNode.leftElems)
+	if err != nil {
+		return nil, err
+	}
+	return nodes.NewMCaseKeyVal(kt, rt), nil
+}
 
 func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern, error) {
 	if subNode == nil {
@@ -196,6 +173,14 @@ func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern
 	case "*":
 		// any num of optional
 		return []nodes.MatchPattern{&nodes.MCaseStar{}}, nil
+	case ":":
+		// dict sub element
+		sub, err := KVPairSub(subNode)
+		if err != nil {
+			return nil, err
+		}
+		// fmt.Printf(" Sub `:` %T \n", sub)
+		return []nodes.MatchPattern{sub}, nil
 	case ",":
 		// regular case: several elements
 		subs, err := MPSeqSubs(subNode)
@@ -205,6 +190,17 @@ func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern
 		return subs, nil
 	}
 	return nil, fmt.Errorf("sequence match pattern: case not found")
+}
+
+func MPDict(node *OperNode) (nodes.MatchPattern, error) {
+	subNode := node.rightNode
+	elems := node.rightElems
+	subs, err := SeqPatternSubs(subNode, elems)
+	// fmt.Printf("MPDc1 %v \n", len(subs))
+	if err != nil {
+		return nil, errors.Join(fmt.Errorf("bad subs of list match-pattern"), err)
+	}
+	return nodes.NewMCaseDict(subs), nil
 }
 
 func MPList(node *OperNode) (nodes.MatchPattern, error) {
@@ -280,7 +276,7 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		// (*), (?), (_) - tuple
 		// (5), (null), ([1,2]), ('hello') - not a tuple
 		// (int|list), (a::int) - not a tuple
-		if len(rNode.leftElems) == 0 && rNode.leftNode == nil {
+		if NoLeft(rNode) {
 			// tuple pattern
 			mpt, err := MPTuple(rNode)
 			if err != nil {
@@ -291,6 +287,17 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		// other cases with parentheses
 	case "{":
 		// dict | Struct{} | _{}
+		if NoLeft(rNode) {
+			// dict case
+			return MPDict(rNode)
+		}
+	case ":":
+		// dict sub element
+		sub, err := KVPairSub(rNode)
+		if err != nil {
+			return nil, err
+		}
+		return sub, nil
 	case "|":
 		// multicase
 	case "::":

@@ -2,6 +2,190 @@ package cases
 
 import "testing"
 
+func _TestMatchDictOption(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = {}
+		r = 0
+		match x
+			{*}
+				r = 80
+		`, "r", int64(80)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestMatchDict(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = {}
+		r = 0
+		match x
+			{}
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = {'a': 111}
+		r = 0
+		match x
+			{'a':v}
+				r = v
+		`, "r", int64(111)},
+		{`
+		x = {'a': 111}
+		r = 0
+		match x
+			{'a':111}
+				r = 101
+		`, "r", int64(101)},
+		{`
+		x = {'a': 112}
+		r = 0
+		match x
+			{:: string: v}
+				r = v
+		`, "r", int64(112)},
+		{`
+		x = {'a': 112}
+		r = 0
+		match x
+			{'a' : 11}
+				r = 11
+			{'a': v}
+				r = v
+		`, "r", int64(112)},
+		{`
+		x = {'a': 113}
+		r = 0
+		match x
+			{'a' : ::string}
+				r = 12
+			{'a': v :: int}
+				r = v
+		`, "r", int64(113)},
+		{`
+		x = {'a': 113}
+		r = 0
+		match x
+			{'a' : ::string}
+				r = 12
+			{_: v :: int}
+				r = v
+		`, "r", int64(113)},
+		{`
+		x = {'a': 113}
+		r = 0
+		match x
+			{'a' : ::string}
+				r = 12
+			{_: _}
+				r = 114
+		`, "r", int64(114)},
+		{`
+		x = {'a': 115, 22: 222}
+		r = 0
+		match x
+			{_: _, 'a': v}
+				r = v
+		`, "r", int64(115)},
+		{`
+		x = {'a': 115, 22: 222}
+		r = 0
+		match x
+			{'a': v, _: _ }
+				r = v
+		`, "r", int64(115)},
+		{`
+		x = {'a': 115, 'q': 116, 22: 222}
+		r = 0
+		match x
+			{k :: string : v, 'a': 115, _: _ }
+				r = v
+		`, "r", int64(116)},
+		{`
+		x = {'a': 115, 'q': 116, 22: 222}
+		r = 0
+		match x
+			{'a': 115, k :: string : v,  _: _ }
+				r = v
+		`, "r", int64(116)},
+		{`
+		x = {'a': 115, 22: 117, '22': 222}
+		r = 0
+		match x
+			{'a': 115, k :: int : v,  _: _ }
+				r = v
+		`, "r", int64(117)},
+		{`
+		x = {'a': 115, true: 118, 22: 222}
+		r = 0
+		match x
+			{'a': 115, k :: bool : v,  _: _ }
+				r = v
+		`, "r", int64(118)},
+		{`
+		x = {'a': 115, 00x11: 119, 22: 222}
+		r = 0
+		match x
+			{'a': 115, k :: byte : v,  _: _ }
+				r = v
+		`, "r", int64(119)},
+		{`
+		x = {'a': 115, 00x11: 120, 22: [222]}
+		r = 0
+		match x
+			{'a': 115, k :: byte : v,  k2 :: int : :: list }
+				r = v + k2
+		`, "r", int64(142)},
+		{`
+		x = {1111:2222}
+		r = 0
+		match x
+			{k:v, a:b}
+				r = 111
+			{k:v}
+				r = 222
+		`, "r", int64(222)},
+		{`
+		nn = [{}, {11:'', 22:''}, {22:'', 33:''}, {11:111, 22:222, 33:333}, {11:1, 22:2, 33:3, 44:4},
+			{1:11, 2:22, 3:33, 4:44, 5:55}, {1111:2222}, 5, null]
+		r = []
+		for x <- nn
+			match x
+				{}
+					r <- 100
+				{11:v, 22:b}
+					r <- 112
+				{k:v, a:b}
+					r <- 122
+				{a:b, c:d, e:f}
+					# free order of elements
+					r <- 131
+				{a:b, c:d, 33:_, 44:_}
+					r <- 132
+				{1:a, 2:b, 3:c, 4:d, 5:e}
+					r <- 151
+				:: dict
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(100, 112, 122, 131, 132, 151, 98, 99, 99)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchTupleOptional(t *testing.T) {
 	tdata := []struct {
 		src   string

@@ -162,13 +162,13 @@ next - by dates...
 - --17 Added optional element for list m-pattern: `[1, 2, ?, ?, 10, ?]`
 - --18 Added floating optional element star `*` : `[1, *, 5]`
 - --19 Added matching pattern `tuple` with all subcases that `list` pattern has. 
-
+- --22 Added matching pattern `dict` - pairs `key : value: `{'abc' : v::int}`.
 
 
 #### next TODO:  
 - match patterns:   
 - _MP list: subpatterns: other patterns: list, tuple, dict, type, @, re'', A{},    
-- _MP dict: `key_pattern: value_pattern`, `_:_`, `*`    
+- _MP dict:  `?`, `*`    
 - _MP maybe: `some(12)`, `none`  
 - _MP combined: `pattern1 | pattern2`  
 - _MP struct: `Type{field: val, }`,  `_{}`   
