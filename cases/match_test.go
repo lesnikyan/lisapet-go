@@ -2,7 +2,7 @@ package cases
 
 import "testing"
 
-func _TestMatchDictOption(t *testing.T) {
+func TestMatchDictStar(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -15,6 +15,64 @@ func _TestMatchDictOption(t *testing.T) {
 			{*}
 				r = 80
 		`, "r", int64(80)},
+		{`
+		nn = [{}, {11:1}, {22:2, 33:3}, {'a':'', 'b':'',}, {'a':'', 'b':'', 'c':'', },
+		{'1':'', '2':'', '3':'', '4':'', '5':'', },
+		{'0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'', '7':'', '8':'', '9':'', }]
+		r = []
+		for i, x <- nn
+			match x
+				{*}
+					r <- i * 1000 + 81
+				_
+					r <- 99
+		`, "r", Anis(81, 1081, 2081, 3081, 4081, 5081, 6081)},
+		{`
+		x = {1:11}
+		r = 0
+		match x
+			{_:_, *}
+				r = 82
+		`, "r", int64(82)},
+		{`
+		x = {'qq':11, 2:22, 3:33}
+		r = 0
+		match x
+			{a:11, *}
+				r = 83
+		`, "r", int64(83)},
+		// star + strict cases
+		{`
+		x =  {'a2':'a22', 'b':'x', 'c':'',}
+		r = 0
+		match x
+			{k: 'd', *}
+				r = 87
+			{k: ::string, *}
+				r = 88
+			_
+				r = 99
+		`, "r", int64(88)},
+		{`
+		nn = [{}, {11:1}, {22:2, 33:3}, {'a1':'a11', 'b':'',}, {'a1':'a111', 'b':'', 'c':'', },
+		{'1':'a', '2':'s', '3':'d', '4':'f', '5':'g', }, {'a2':'a22', 'b':'d', 'c':'', }, {'a2':'a22', 'b':'dx', 'c':'',}, {'a2':22, 'b':3, 'c':4, },
+		{'0':'h', '1':'j', '2':'k', '3':'l', '4':'z', '5':'x', '6':'c', '7':'v', '8':'b', '9':'n', }]
+		r = []
+		for i, x <- nn
+			match x
+				{'a1': a, *}
+					r <- '%v:%v' << (i, a)
+				{k: 'd', *} # should be only 1 value = 'd'
+					r <- '%v:d' << k
+				{k: ::string, *}
+					r <- 88000 + len(x)
+				{k: _, *}
+					r <- 89
+				{*}
+					r <- 98000 + len(x)
+				_
+					r <- 99
+		`, "r", Anis(98000, 89, 89, "3:a11", "4:a111", "3:d", "b:d", 88003, 89, 88010)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

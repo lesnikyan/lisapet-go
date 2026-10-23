@@ -575,6 +575,7 @@ func (mc *MCaseDict) Match(cx base.Context, arg any) (bool, error) {
 	skip := map[any]any{}
 	opt := 0
 	star := false
+	// need := 0
 	for _, sb := range subs {
 		// fmt.Printf("  MDP sub %T\n", sb)
 		switch pair := sb.(type) {
@@ -587,7 +588,6 @@ func (mc *MCaseDict) Match(cx base.Context, arg any) (bool, error) {
 			switch kk := pair.Key.(type) {
 			case *MCaseVal:
 				// if constant key-pattern we can check key in arg dict
-
 				v, ok := vals[kk.Val]
 				// fmt.Printf(" DKc-CaseVal k:%v, ok:%v \n", kk.Val, ok)
 				if !ok {
@@ -604,6 +604,8 @@ func (mc *MCaseDict) Match(cx base.Context, arg any) (bool, error) {
 				}
 				skip[kk.Val] = true
 			default:
+				need := 0
+				got := 0
 				for k, v := range vals {
 					// think about optimization
 					// fmt.Printf(" DKa-CaseVal k:%v, ok:%v \n", k, v)
@@ -611,23 +613,79 @@ func (mc *MCaseDict) Match(cx base.Context, arg any) (bool, error) {
 						// skip previously found key
 						continue
 					}
-					// first check key-pattern
-					kok, err := pair.Key.Match(cx, k)
-					if err != nil {
-						return false, err
+					// first check more strict pattern
+					// order: val|regexp|container, type, var|underscore
+					// TODO: @-pattern will need some fix
+					// mp1 := pair.Key
+					// mp2 := pair.Val
+					kfirst := true
+					switch pair.Key.(type) {
+					case *MCaseVar, *MCaseUnder:
+						switch pair.Val.(type) {
+						case *MCaseType:
+							kfirst = false
+							need++
+						case *MCaseVal, *MCaseRegexp:
+							kfirst = false
+							need++
+						}
+					case *MCaseType:
+						switch pair.Val.(type) {
+						case *MCaseVal, *MCaseRegexp:
+							kfirst = false
+							need++
+						}
+					default:
+
 					}
-					if !kok {
-						continue
+
+					// fmt.Printf(" DKa-CaseVal, k-1st:%v \n", kfirst)
+					// TODO: think about code optimization
+					if kfirst {
+						// first check key-pattern
+						kok, err := pair.Key.Match(cx, k)
+						if err != nil {
+							return false, err
+						}
+						if !kok {
+							continue
+						}
+						// check value-pattern
+						vok, err := pair.Val.Match(cx, v)
+						if err != nil {
+							return false, err
+						}
+						if vok {
+							// found pair
+							skip[k] = true
+							got++
+							break
+						}
+					} else {
+						// first check value-pattern
+						vok, err := pair.Val.Match(cx, v)
+						// fmt.Printf(" -- DKv1st#1:,ok:%v, err:%v \n", vok, err)
+						if err != nil {
+							return false, err
+						}
+						if !vok {
+							continue
+						}
+						kok, err := pair.Key.Match(cx, k)
+						// fmt.Printf(" -- DKv1st#2:,ok:%v, err:%v \n", kok, err)
+						if err != nil {
+							return false, err
+						}
+						if kok {
+							skip[k] = true
+							got++
+							break
+						}
 					}
-					// check value-pattern
-					vok, err := pair.Val.Match(cx, v)
-					if err != nil {
-						return false, err
-					}
-					if vok {
-						// found pair
-						skip[k] = true
-						break
+				}
+				if need > 0 {
+					if got < 1 {
+						return false, nil
 					}
 				}
 			}
@@ -640,10 +698,10 @@ func (mc *MCaseDict) Match(cx base.Context, arg any) (bool, error) {
 		}
 	}
 	// after all subcases we should hav `skip` filled by keys of found pairs
+	// fmt.Printf(" == Dc-fin lskip:%v, lvals:%v  \n", len(skip), len(vals))
 	if star {
 		return true, nil
 	}
-	// fmt.Printf(" DKa-fin lskip:%v, lvals:%v \n", len(skip), len(vals))
 	return len(skip)+opt >= len(vals), nil
 	// return false, nil
 }
