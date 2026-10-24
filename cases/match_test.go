@@ -2,6 +2,78 @@ package cases
 
 import "testing"
 
+func TestMatchDictOption(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = {}
+		r = 0
+		match x
+			{?}
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = {1:11}
+		r = 0
+		match x
+			{?}
+				r = 81
+		`, "r", int64(81)},
+		{`
+		x = {'a':21}
+		r = 0
+		match x
+			{'a':v, ?}
+				r = v
+		`, "r", int64(21)},
+		{`
+		x = {'a':21, 22:2}
+		r = 0
+		match x
+			{'a':v, ?}
+				r = v
+		`, "r", int64(21)},
+		{`
+		nn = [{'a':21}, {'a':22, 22:2}, {'a':23, 22:2, 33:3}, {'a':24, 22:2, 33:3, 44:4}, {'a':25, 22:2, 33:3, 44:4, 55:5}, 
+			{1:11},  {1:11, 2:22}, {1:11, 2:22, 3:3}, {}]
+		r = []
+		for x <- nn
+			match x
+				{'a':v, ?,?,?,?,?}
+					r <- v
+				{?}
+					r <- 97
+				{?, ?}
+					r <- 98
+				{*}
+					r <- 99
+		`, "r", Anis(21, 22, 23, 24, 25, 97, 98, 99, 97)},
+		{`
+		nn = [{'a':21}, {'a':22, 22:2}, {'a':23, 22:2, 33:3}, {'a':24, 22:2, 33:3, 44:4}, {'a':25, 22:2, 33:3, 44:4, 55:5}, 
+			{1:11},  {21:11, 2:22}, {31:11, 2:22, 3:3}, {}]
+		r = []
+		for x <- nn
+			match x
+				{'a':v, ?, k:3, ?,?}
+					r <- v * 100 + k
+				{k:22, n:11, ?}
+					r <- k * 1000 + n
+				{?}
+					r <- 97
+				{?, ?}
+					r <- 98
+				{*}
+					r <- 99
+		`, "r", Anis(97, 98, 2333, 2433, 2533, 97, 2021, 2031, 97)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchDictStar(t *testing.T) {
 	tdata := []struct {
 		src   string

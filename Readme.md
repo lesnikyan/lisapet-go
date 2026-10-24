@@ -164,16 +164,17 @@ next - by dates...
 - --19 Added matching pattern `tuple` with all subcases that `list` pattern has.   
 - --22 Added matching pattern `dict` - pairs `key : value: `{'abc' : v::int}`.  
 - --23 Added `dict` subpattern star `*`: `{'a': v, *}`  
+- --24 Added tests for optional subpattern of `dict`: `{'a':v, ?,?}`  
 
 
 #### next TODO:  
 - match patterns:   
-- _MP list: subpatterns: other patterns: list, tuple, dict, type, @, re'', A{},    
-- _MP dict:  `?`, `*`    
+- _MP list,tuple: subpatterns: other patterns: list, tuple, dict, type, @, re'', A{},    
+- _MP dict: other subpatterns: list, tuple, maybe, .. etc   
+- _MP regepx : `re'A[a-z]+' `  
 - _MP maybe: `some(12)`, `none`  
 - _MP combined: `pattern1 | pattern2`  
 - _MP struct: `Type{field: val, }`,  `_{}`   
-- _MP regepx : `re'A[a-z]+' `
 - _MP assing subpattern via `@`: `[name @ re'A.+', _, last @ _]`  
 - _MP inline matching case: `patt /: expr`  
 - _MP with guard: `ptrn ?: x > 0 /: expr`  
@@ -190,6 +191,7 @@ next - by dates...
 - enum  
 - _MP Enum: `colors.red`  
 - grup  
+  
 BUGS:  
 - math plus: `r <- 200. + 3.2` // dot after 200 breaks expression.  
 
