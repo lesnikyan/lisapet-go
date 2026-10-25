@@ -146,8 +146,8 @@ func (mc *MCaseStar) Match(cx base.Context, arg any) (bool, error) {
 
 // ====
 
-// re” TODO
 type MCaseRegexp struct {
+	Regexp *objects.Regexp
 }
 
 func (mc *MCaseRegexp) Do(cx base.Context) error {
@@ -158,24 +158,12 @@ func (mc *MCaseRegexp) Get() *base.Val {
 }
 
 func (mc *MCaseRegexp) Match(cx base.Context, arg any) (bool, error) {
-	return true, nil
-}
-
-// ====
-
-// @ TODO
-type MCaseAt struct {
-}
-
-func (mc *MCaseAt) Do(cx base.Context) error {
-	return nil
-}
-func (mc *MCaseAt) Get() *base.Val {
-	return nil
-}
-
-func (mc *MCaseAt) Match(cx base.Context, arg any) (bool, error) {
-	return true, nil
+	s, ok := arg.(string)
+	if !ok {
+		return false, nil
+	}
+	// fmt.Printf("MCaseRegexp.Match#0 src: `%s`, arg: '%s' \n", mc.Regexp.Src, s)
+	return mc.Regexp.Match(s), nil
 }
 
 // ====
@@ -817,4 +805,21 @@ func parr(vv []any) string {
 		ss[i] = fmt.Sprintf("%v", v)
 	}
 	return strings.Join(ss, ", ")
+}
+
+// ====
+
+// @ TODO
+type MCaseAt struct {
+}
+
+func (mc *MCaseAt) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseAt) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseAt) Match(cx base.Context, arg any) (bool, error) {
+	return true, nil
 }

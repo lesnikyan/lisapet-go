@@ -165,13 +165,13 @@ next - by dates...
 - --22 Added matching pattern `dict` - pairs `key : value: `{'abc' : v::int}`.  
 - --23 Added `dict` subpattern star `*`: `{'a': v, *}`  
 - --24 Added tests for optional subpattern of `dict`: `{'a':v, ?,?}`  
+- --25 Added match patter regepx : `re'A[a-z]+' ` 
 
 
 #### next TODO:  
 - match patterns:   
 - _MP list,tuple: subpatterns: other patterns: list, tuple, dict, type, @, re'', A{},    
-- _MP dict: other subpatterns: list, tuple, maybe, .. etc   
-- _MP regepx : `re'A[a-z]+' `  
+- _MP dict: other subpatterns: list, tuple, maybe, .. etc    
 - _MP maybe: `some(12)`, `none`  
 - _MP combined: `pattern1 | pattern2`  
 - _MP struct: `Type{field: val, }`,  `_{}`   

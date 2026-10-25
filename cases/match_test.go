@@ -1,6 +1,61 @@
 package cases
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+func TestMatchRegexp(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 'Abc'
+		r = 0
+		match x
+			re'[a-z]+'
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = '123'
+		r = 0
+		match x
+			re@@[a-z]+@@
+				r = 80
+			re@@[0-9]+@@
+				r = 81
+		`, "r", int64(81)},
+		{`
+		nn = ['Hello!', ' Hello?', '123-qwerty', ' yo!', 'aaffee5', '@mail.net', 'aa bb cc', '1', 'q', ' ', '@ @', ' #', ]
+		r = []
+		for x <- nn
+			match x
+				re'^\\d.+'
+					r <- 'd:%s' << x
+				re'^[a-z][a-z\\s]+[!\\?\\.]?'i
+					r <- 'w:%s' << x
+				re'^\\s.*'
+					r <- 's:%s' << x
+				re'^@'
+					r <- '@:%s' << x
+				re@@^\w$@@
+					r <- '1:%s' << x
+				::string
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(
+			"w:Hello!", "s: Hello?", "d:123-qwerty", "s: yo!", "w:aaffee5",
+			"@:@mail.net", "w:aa bb cc", "1:1", "1:q", "s: ", "@:@ @", "s: #")},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "$%$", "```")
+		tt.src = strings.ReplaceAll(tt.src, "@@", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestMatchDictOption(t *testing.T) {
 	tdata := []struct {

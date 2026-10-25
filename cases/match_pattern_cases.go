@@ -9,12 +9,20 @@ import (
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
 	"github.com/lesnikyan/lisapet-go/nodes"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 func SimplePattern(exp base.Expression) (nodes.MatchPattern, error) {
+	// fmt.Printf("SimpleMP#0 %T \n", exp)
 	switch tex := exp.(type) {
 	case *nodes.ValExpr:
-		return &nodes.MCaseVal{Val: nodes.GetExprVal(tex, nil)}, nil
+		vv := nodes.GetExprVal(tex, nil)
+		switch inv := vv.(type) {
+		case *objects.Regexp:
+			return &nodes.MCaseRegexp{Regexp: inv}, nil
+		default:
+			return &nodes.MCaseVal{Val: inv}, nil
+		}
 	case *nodes.VarExpr:
 		// sub pattern: var
 		vname := tex.GetName()
@@ -75,28 +83,6 @@ func ValOperPattern(expr base.Expression) (nodes.MatchPattern, error) {
 func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
 	return nil, nil
 }
-
-var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
-
-// func subMPElemSimple(node *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-// 	if len(elems) != 1 {
-// 		return nil, fmt.Errorf("m-pattern: sub elem more 1 lexem: not found")
-// 	}
-// 	switch elems[0].Type {
-// 	case Lt.Oper:
-// 		// *, ?
-// 	case Lt.Word:
-// 		// var
-// 		switch
-// 	default:
-// 		// values
-
-// 	}
-// }
-
-// func subMPElem(node *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-
-// }
 
 func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
 	node := rNode
@@ -237,6 +223,8 @@ func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
 	return nodes.NewMCaseTuple(subs), nil
 }
 
+var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
+
 func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
 	// fmt.Println("ProcMPT", FPrintElems(elems), "node:")
 	// PrintONode(rNode, 0)
@@ -246,6 +234,7 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 			return nil, fmt.Errorf("No elems or nodes for matching pattern case")
 		}
 		expr, ok := OperSub(nil, elems)
+		// fmt.Printf("ProcMPT#2 %T :%v \n", expr, ok)
 		if !ok {
 			return nil, fmt.Errorf("Bad elem set for matching pattern: `%s`", FPrintElems(elems))
 		}
