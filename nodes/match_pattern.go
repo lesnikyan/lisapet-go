@@ -8,6 +8,14 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
+func parr(vv []any) string {
+	ss := make([]string, len(vv))
+	for i, v := range vv {
+		ss[i] = fmt.Sprintf("%v", v)
+	}
+	return strings.Join(ss, ", ")
+}
+
 type MatchPattern interface {
 	// should return bool
 	// set local vars
@@ -799,12 +807,94 @@ func NewMCaseDict(subs []MatchPattern) *MCaseDict {
 	return &MCaseDict{Subs: mps}
 }
 
-func parr(vv []any) string {
-	ss := make([]string, len(vv))
-	for i, v := range vv {
-		ss[i] = fmt.Sprintf("%v", v)
+// ====
+
+// A{}, _{}
+type MCaseStruct struct {
+	Type MatchPattern // | MatchPattern ?
+	TDef *objects.StructDef
+	Subs []MatchPattern
+}
+
+func (mc *MCaseStruct) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseStruct) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseStruct) Match(cx base.Context, arg any) (bool, error) {
+	inst, ok := arg.(*objects.StructInst)
+	if !ok {
+		// not struct instance in arg
+		return false, nil
 	}
-	return strings.Join(ss, ", ")
+
+	switch typeVar := mc.Type.(type) {
+	case *MCaseUnder:
+		// universal | noname type
+		// universal | noname type
+	case *MCaseVar:
+		// concrete type
+		typeName := typeVar.Expr.GetName()
+		tpv := cx.GetType(typeName) // type val
+		if tpv == nil {
+			// type not found
+			return false, fmt.Errorf("match struct: type `%s` not found", typeName)
+		}
+		ok, err := CheckTypeEqual(arg, tpv)
+		if err != nil {
+			return false, err
+		}
+		tdef := tpv.Def
+		sdef := tdef.(*objects.StructDef)
+		if !ok {
+			// correct negative result
+			return false, nil
+		}
+		subs := mc.Subs
+		if len(subs) == 0 {
+			// no fields defined in pattern
+			return true, nil
+		}
+		for _, sub := range subs {
+			// fmt.Printf("Str.fld ptr: %T \n", sub)
+			switch fld := sub.(type) {
+			case *MCaseKeyVal:
+				// main case: field : value
+				// Key should be VarExpr
+				fnameMP, ok := fld.Key.(*MCaseVar)
+				if !ok {
+					return false, fmt.Errorf("bad pattern of struct field %T", fld.Key)
+				}
+				fname := fnameMP.Expr.GetName()
+				if _, ok := sdef.Fields[fname]; !ok {
+					// no such field
+					return false, fmt.Errorf("struct `%s` doesn't have field `%s`", typeName, fname)
+				}
+				fval := inst.Get(fname)
+				if fval == nil {
+					return false, fmt.Errorf("struct doesnt have any value if field `%s`", fname)
+				}
+				res, err := fld.Val.Match(cx, fval.V)
+				// fmt.Printf("Str.fld Val: %T fval:%v ;; >> %v, %v \n", fld.Val, fval, res, err)
+				if err != nil {
+					return false, err
+				}
+				if !res {
+					return false, nil
+				}
+			}
+		}
+
+	default:
+		return false, fmt.Errorf("match struct: incorrect empty type name")
+	}
+	return true, nil
+}
+
+func NewMCaseStruct(stype MatchPattern, subs []MatchPattern) *MCaseStruct {
+	return &MCaseStruct{Type: stype, Subs: subs}
 }
 
 // ====

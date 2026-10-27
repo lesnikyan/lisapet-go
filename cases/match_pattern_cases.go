@@ -223,7 +223,39 @@ func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
 	return nodes.NewMCaseTuple(subs), nil
 }
 
+func MPStruct(node *OperNode) (nodes.MatchPattern, error) {
+	// fmt.Printf("MPStruct#0 :%v \n", node.oper)
+	typeVar, err := NoOperMP(node.leftElems)
+	if err != nil {
+		return nil, err
+	}
+	var typeCase nodes.MatchPattern
+	switch mpVar := typeVar.(type) {
+	case *nodes.MCaseVar, *nodes.MCaseUnder:
+		// type name, or _
+		typeCase = mpVar
+	default:
+		return nil, fmt.Errorf("struct m-pattern: bad type expression %T", typeVar)
+	}
+	// fmt.Printf("MPStruct#1 var:%T  \n", typeCase)
+	subs, err := SeqPatternSubs(node.rightNode, node.rightElems)
+	// fmt.Printf("MPStruct#2 subs:%T , err:%v \n", subs, err)
+	if err != nil {
+		return nil, err
+	}
+	return nodes.NewMCaseStruct(typeCase, subs), nil
+}
+
 var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
+
+func NoOperMP(elems []*lang.Elem) (nodes.MatchPattern, error) {
+	expr, ok := OperSub(nil, elems)
+	// fmt.Printf("NoOper#2 %T :%v \n", expr, ok)
+	if !ok {
+		return nil, fmt.Errorf("Bad elem set for matching pattern: `%s`", FPrintElems(elems))
+	}
+	return SimplePattern(expr)
+}
 
 func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
 	// fmt.Println("ProcMPT", FPrintElems(elems), "node:")
@@ -280,6 +312,8 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 			// dict case
 			return MPDict(rNode)
 		}
+		// waitnig struct pattern
+		return MPStruct(rNode)
 	case ":":
 		// dict sub element
 		sub, err := KVPairSub(rNode)

@@ -166,6 +166,8 @@ next - by dates...
 - --23 Added `dict` subpattern star `*`: `{'a': v, *}`  
 - --24 Added tests for optional subpattern of `dict`: `{'a':v, ?,?}`  
 - --25 Added match patter regepx : `re'A[a-z]+' ` 
+- --28 Added matching pattern `struct` and unnamed (any) struct: `Type{field: val, }`,  `_{}`   
+
 
 
 #### next TODO:  
@@ -174,7 +176,6 @@ next - by dates...
 - _MP dict: other subpatterns: list, tuple, maybe, .. etc    
 - _MP maybe: `some(12)`, `none`  
 - _MP combined: `pattern1 | pattern2`  
-- _MP struct: `Type{field: val, }`,  `_{}`   
 - _MP assing subpattern via `@`: `[name @ re'A.+', _, last @ _]`  
 - _MP inline matching case: `patt /: expr`  
 - _MP with guard: `ptrn ?: x > 0 /: expr`  

@@ -5,6 +5,108 @@ import (
 	"testing"
 )
 
+func TestMatchStruct(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a:int
+		x = A{a:1}
+		r = 0
+		match x
+			A{}
+				r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int
+		x = A{a:1}
+		r = 0
+		match x
+			A{a:1}
+				r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int, b:string
+		x = A{a:1, b:'qwerty'}
+		r = 0
+		match x
+			A{a:1, b:'qwerty'}
+				r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int, b:string
+		x = A{a:1}
+		r = 11
+		match x
+			A{a:1, b:'qwerty'}
+				r = 80
+			A{a:1}
+				r = 82
+		`, "r", int64(82)},
+		// inheritance
+		{`
+		struct A a:int, b:string
+		struct B(A) bb: int
+		x = B{a:1}
+		r = 11
+		match x
+			A{a:1}
+				r = 83
+		`, "r", int64(83)},
+		// var
+		{`
+		struct A a:int, b:int
+		x = A{a:1, b:15}
+		r = 11
+		match x
+			A{a:1, b:bv}
+				r = bv
+			A{a:1}
+				r = 82
+		`, "r", int64(15)},
+		{`
+		struct A a:int, b:string
+		struct B(A) bb: int
+		x = B{a:1}
+		r = 11
+		match x
+			_{}
+				r = 85
+		`, "r", int64(85)},
+		{`
+		struct A a:int, b:int
+		struct B(A) bb: string
+		struct C c: int
+		struct D d: int
+		nn = [A{a:11}, B{b:10}, B{bb:'Anna'}, B{a:11}, C{c:22}, C{c:33}, D{}, null, 14]
+		r = []
+		for x <- nn
+			match x
+				B{b: 10}
+					r <- 31
+				B{bb: re'^[A-Z].+'}
+					r <- x.bb
+				A{a:11}
+					r <- 61
+				C{c:22}
+					r <- 72
+				C{}
+					r <- 71
+				_{}
+					r <- 88
+				::null
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(61, 31, "Anna", 61, 72, 71, 88, 98, 99)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchRegexp(t *testing.T) {
 	tdata := []struct {
 		src   string
