@@ -8,6 +8,7 @@ import (
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
+	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 	"github.com/lesnikyan/lisapet-go/nodes"
 	"github.com/lesnikyan/lisapet-go/objects"
 )
@@ -80,9 +81,9 @@ func ValOperPattern(expr base.Expression) (nodes.MatchPattern, error) {
 	return nil, nil
 }
 
-func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-	return nil, nil
-}
+// func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
+// 	return nil, nil
+// }
 
 func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
 	node := rNode
@@ -119,6 +120,10 @@ func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
 
 func NoLeft(node *OperNode) bool {
 	return len(node.leftElems) == 0 && node.leftNode == nil
+}
+
+func NoRight(node *OperNode) bool {
+	return len(node.rightElems) == 0 && node.rightNode == nil
 }
 
 func KVPairSub(subNode *OperNode) (nodes.MatchPattern, error) {
@@ -165,7 +170,6 @@ func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern
 		if err != nil {
 			return nil, err
 		}
-		// fmt.Printf(" Sub `:` %T \n", sub)
 		return []nodes.MatchPattern{sub}, nil
 	case ",":
 		// regular case: several elements
@@ -174,8 +178,14 @@ func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern
 			return nil, err
 		}
 		return subs, nil
+	default:
+		sub, err := ProcMatchPattern(subNode, elems)
+		if err != nil {
+			return nil, err
+		}
+		return []nodes.MatchPattern{sub}, nil
 	}
-	return nil, fmt.Errorf("sequence match pattern: case not found")
+	// return nil, fmt.Errorf("sequence match pattern: case not found")
 }
 
 func MPDict(node *OperNode) (nodes.MatchPattern, error) {
@@ -306,6 +316,18 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 			return mpt, nil
 		}
 		// other cases with parentheses
+		if rNode.leftElems[0].Type == Lt.Word && rNode.leftElems[0].Text == "some" {
+			// maybe, not none
+			if NoRight(rNode) {
+				// some() without arg pattern, means - any some
+				return &nodes.MCaseSome{}, nil
+			}
+			sub, err := ProcMatchPattern(rNode.rightNode, rNode.rightElems)
+			if err != nil {
+				return nil, err
+			}
+			return &nodes.MCaseSome{Sub: sub}, nil
+		}
 	case "{":
 		// dict | Struct{} | _{}
 		if NoLeft(rNode) {

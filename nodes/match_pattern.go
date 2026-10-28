@@ -899,6 +899,39 @@ func NewMCaseStruct(stype MatchPattern, subs []MatchPattern) *MCaseStruct {
 
 // ====
 
+// some()
+type MCaseSome struct {
+	Sub MatchPattern
+}
+
+func (mc *MCaseSome) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseSome) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseSome) Match(cx base.Context, arg any) (bool, error) {
+	val, ok := arg.(*objects.Maybe)
+	if !ok {
+		return false, nil
+	}
+	if val.None {
+		return false, nil
+	}
+	if mc.Sub == nil {
+		// any value is matched
+		return true, nil
+	}
+	ok, err := mc.Sub.Match(cx, val.Val)
+	if err != nil {
+		return false, err
+	}
+	return ok, nil
+}
+
+// ====
+
 // @ TODO
 type MCaseAt struct {
 }

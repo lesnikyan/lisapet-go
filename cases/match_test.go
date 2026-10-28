@@ -5,6 +5,125 @@ import (
 	"testing"
 )
 
+func TestMatchMaybe(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		struct A a:int
+		x = none
+		r = 0
+		match x
+			none
+				r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int
+		x = some(11)
+		r = 0
+		match x
+			none
+				r = 80
+		`, "r", int64(0)},
+		{`
+		struct A a:int
+		x = some(11)
+		r = 0
+		match x
+			some()
+				r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int
+		x = some(11)
+		r = 0
+		match x
+			some(11)
+				r = 81
+		`, "r", int64(81)},
+		{`
+		struct A a:int
+		x = some(11)
+		r = 0
+		match x
+			some(0)
+				r = 800
+		`, "r", int64(0)},
+		// conflict with generators syntax, need fix
+		{`
+		struct A a:int
+		x = some(11)
+		r = 0
+		match x
+			some( ::int)
+				r = 82
+		`, "r", int64(82)},
+		{`
+		struct A a:int
+		x = some([1])
+		r = 0
+		match x
+			some([1])
+				r = 83
+		`, "r", int64(83)},
+		// sub > list > sub-pattern
+		{`
+		struct A a:int
+		x = some([1])
+		r = 0
+		match x
+			some([::int])
+				r = 84
+		`, "r", int64(84)},
+		{`
+		struct A a:int, b:int
+		nn = [some(1), some(12), some('Anna'), some('Any'), some('Some'), some('Rom'), 
+			some(1.5), some([1,2]), some((1,2,3)), some({4:44}), some(00xf0), 
+			some(true), some(false), some(A{}), some(some(1)), 
+			null, 14]
+		r = []
+		for x <- nn
+			match x
+				some(1)
+					r <- 1
+			match x
+				some( a::int)
+					r <- a
+				some(re'A.*')
+					r <- 'A:%s' << x.get()
+				some(s::string)
+					r <- 's:%s' << s
+				some(b::byte)
+					r <- 's:%x' << b
+				some(f::float)
+					r <- 1000 + f
+				some(true)
+					r <- 11111
+				some((*,))
+					r <- 91
+				some([*])
+					r <- 92
+				some({*})
+					r <- 93
+				some(_{})
+					r <- 94
+				some(m :: maybe)
+					r <- 95
+				none
+					r <- 97
+				::null
+					r <- 98
+				_
+					r <- 99
+		`, "r", Anis(1, 1, 12, "A:Anna", "A:Any", "s:Some", "s:Rom", 1001.5, 92, 91, 93, "s:f0", 11111, 99, 94, 95, 98, 99)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchStruct(t *testing.T) {
 	tdata := []struct {
 		src   string

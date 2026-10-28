@@ -172,11 +172,10 @@ next - by dates...
 
 #### next TODO:  
 - match patterns:   
-- _MP list,tuple: subpatterns: other patterns: list, tuple, dict, type, @, re'', A{},    
-- _MP dict: other subpatterns: list, tuple, maybe, .. etc    
 - _MP maybe: `some(12)`, `none`  
-- _MP combined: `pattern1 | pattern2`  
 - _MP assing subpattern via `@`: `[name @ re'A.+', _, last @ _]`  
+- _MP container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},    
+- _MP combined: `pattern1 | pattern2`  
 - _MP inline matching case: `patt /: expr`  
 - _MP with guard: `ptrn ?: x > 0 /: expr`  
 - fix inline blocks after  `:?`  
@@ -184,7 +183,10 @@ next - by dates...
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     
-    regexp operators [ split: `/~`-  thinking]    
+    add pre-parsing in parser if (`~` Lt.Oper) before Lt.Text, store as ExtString{} object.  
+    not sure we need real `~` operator for apply it on any string value.
+    semantically ~"" strings it's a syntax sugar of concatenation strings from any sources: var, func call, sub-elems etc.   
+- regexp operators [ split: `/~`-  thinking]    
 - CLI: lp file.et  
 - `const`  
 - func overload  
@@ -192,10 +194,25 @@ next - by dates...
 - enum  
 - _MP Enum: `colors.red`  
 - grup  
-  
+
+
+TO think:  
+- serialize context for next usage  
+- serialize tree for next run  
+- serialize running tree with pre-computed context, for next run from stopped point  
+(own binary format (sounds bad), json, protobuf (maybe both))
+
+
 BUGS:  
 - math plus: `r <- 200. + 3.2` // dot after 200 breaks expression.  
-
+-  `::` after `(` in m-pattr: (::int,) ; some(::int)
+    tmp solution: use space `( ::type)`
+    thought sof solutions:
+    1) in parser: append all operator chars into one block, after reach of end of operators - split from right.
+        '(::' >> '(' '::', `:::` >> ':', '::' ;; ',...,' >> ',' '...' ',' ;; ',)|(::' >> ',' ')' '|' '(', '::'
+        '=(:-' >> '=' '(:' '-'
+    2) add intermid operator-sequences, then split on real operators:  
+        '(::' >> '(' '::' /// `:::` >> ':', '::' 
 
 Naming fun )))    
 dev names:   
