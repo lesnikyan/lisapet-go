@@ -8,13 +8,22 @@ import (
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
+	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 	"github.com/lesnikyan/lisapet-go/nodes"
+	"github.com/lesnikyan/lisapet-go/objects"
 )
 
 func SimplePattern(exp base.Expression) (nodes.MatchPattern, error) {
+	// fmt.Printf("SimpleMP#0 %T \n", exp)
 	switch tex := exp.(type) {
 	case *nodes.ValExpr:
-		return &nodes.MCaseVal{Val: nodes.GetExprVal(tex, nil)}, nil
+		vv := nodes.GetExprVal(tex, nil)
+		switch inv := vv.(type) {
+		case *objects.Regexp:
+			return &nodes.MCaseRegexp{Regexp: inv}, nil
+		default:
+			return &nodes.MCaseVal{Val: inv}, nil
+		}
 	case *nodes.VarExpr:
 		// sub pattern: var
 		vname := tex.GetName()
@@ -72,30 +81,8 @@ func ValOperPattern(expr base.Expression) (nodes.MatchPattern, error) {
 	return nil, nil
 }
 
-func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-	return nil, nil
-}
-
-var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
-
-// func subMPElemSimple(node *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-// 	if len(elems) != 1 {
-// 		return nil, fmt.Errorf("m-pattern: sub elem more 1 lexem: not found")
-// 	}
-// 	switch elems[0].Type {
-// 	case Lt.Oper:
-// 		// *, ?
-// 	case Lt.Word:
-// 		// var
-// 		switch
-// 	default:
-// 		// values
-
-// 	}
-// }
-
-// func subMPElem(node *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
-
+// func ProcSubPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
+// 	return nil, nil
 // }
 
 func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
@@ -133,6 +120,10 @@ func MPSeqSubs(rNode *OperNode) ([]nodes.MatchPattern, error) {
 
 func NoLeft(node *OperNode) bool {
 	return len(node.leftElems) == 0 && node.leftNode == nil
+}
+
+func NoRight(node *OperNode) bool {
+	return len(node.rightElems) == 0 && node.rightNode == nil
 }
 
 func KVPairSub(subNode *OperNode) (nodes.MatchPattern, error) {
@@ -179,7 +170,6 @@ func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern
 		if err != nil {
 			return nil, err
 		}
-		// fmt.Printf(" Sub `:` %T \n", sub)
 		return []nodes.MatchPattern{sub}, nil
 	case ",":
 		// regular case: several elements
@@ -188,8 +178,14 @@ func SeqPatternSubs(subNode *OperNode, elems []*lang.Elem) ([]nodes.MatchPattern
 			return nil, err
 		}
 		return subs, nil
+	default:
+		sub, err := ProcMatchPattern(subNode, elems)
+		if err != nil {
+			return nil, err
+		}
+		return []nodes.MatchPattern{sub}, nil
 	}
-	return nil, fmt.Errorf("sequence match pattern: case not found")
+	// return nil, fmt.Errorf("sequence match pattern: case not found")
 }
 
 func MPDict(node *OperNode) (nodes.MatchPattern, error) {
@@ -237,6 +233,40 @@ func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
 	return nodes.NewMCaseTuple(subs), nil
 }
 
+func MPStruct(node *OperNode) (nodes.MatchPattern, error) {
+	// fmt.Printf("MPStruct#0 :%v \n", node.oper)
+	typeVar, err := NoOperMP(node.leftElems)
+	if err != nil {
+		return nil, err
+	}
+	var typeCase nodes.MatchPattern
+	switch mpVar := typeVar.(type) {
+	case *nodes.MCaseVar, *nodes.MCaseUnder:
+		// type name, or _
+		typeCase = mpVar
+	default:
+		return nil, fmt.Errorf("struct m-pattern: bad type expression %T", typeVar)
+	}
+	// fmt.Printf("MPStruct#1 var:%T  \n", typeCase)
+	subs, err := SeqPatternSubs(node.rightNode, node.rightElems)
+	// fmt.Printf("MPStruct#2 subs:%T , err:%v \n", subs, err)
+	if err != nil {
+		return nil, err
+	}
+	return nodes.NewMCaseStruct(typeCase, subs), nil
+}
+
+var _mtPatOps = strings.Split(". -", " ") // matching pattern operators of single value: negative, float
+
+func NoOperMP(elems []*lang.Elem) (nodes.MatchPattern, error) {
+	expr, ok := OperSub(nil, elems)
+	// fmt.Printf("NoOper#2 %T :%v \n", expr, ok)
+	if !ok {
+		return nil, fmt.Errorf("Bad elem set for matching pattern: `%s`", FPrintElems(elems))
+	}
+	return SimplePattern(expr)
+}
+
 func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, error) {
 	// fmt.Println("ProcMPT", FPrintElems(elems), "node:")
 	// PrintONode(rNode, 0)
@@ -246,6 +276,7 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 			return nil, fmt.Errorf("No elems or nodes for matching pattern case")
 		}
 		expr, ok := OperSub(nil, elems)
+		// fmt.Printf("ProcMPT#2 %T :%v \n", expr, ok)
 		if !ok {
 			return nil, fmt.Errorf("Bad elem set for matching pattern: `%s`", FPrintElems(elems))
 		}
@@ -285,12 +316,26 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 			return mpt, nil
 		}
 		// other cases with parentheses
+		if rNode.leftElems[0].Type == Lt.Word && rNode.leftElems[0].Text == "some" {
+			// maybe, not none
+			if NoRight(rNode) {
+				// some() without arg pattern, means - any some
+				return &nodes.MCaseSome{}, nil
+			}
+			sub, err := ProcMatchPattern(rNode.rightNode, rNode.rightElems)
+			if err != nil {
+				return nil, err
+			}
+			return &nodes.MCaseSome{Sub: sub}, nil
+		}
 	case "{":
 		// dict | Struct{} | _{}
 		if NoLeft(rNode) {
 			// dict case
 			return MPDict(rNode)
 		}
+		// waitnig struct pattern
+		return MPStruct(rNode)
 	case ":":
 		// dict sub element
 		sub, err := KVPairSub(rNode)
