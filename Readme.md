@@ -165,18 +165,18 @@ next - by dates...
 - --22 Added matching pattern `dict` - pairs `key : value: `{'abc' : v::int}`.  
 - --23 Added `dict` subpattern star `*`: `{'a': v, *}`  
 - --24 Added tests for optional subpattern of `dict`: `{'a':v, ?,?}`  
-- --25 Added match patter regepx : `re'A[a-z]+' ` 
+- --25 Added match patter regepx : `re'A[a-z]+' `   
 - --28 Added matching pattern `struct` and unnamed (any) struct: `Type{field: val, }`,  `_{}`   
+- --29 Added m-pattern `some`, tested `none`: `some(12)`, `none`  
+- --30 Implement inline block syntax for matching cases: `"pattern" /: expr`  
 
 
 
 #### next TODO:  
 - match patterns:   
-- _MP maybe: `some(12)`, `none`  
 - _MP assing subpattern via `@`: `[name @ re'A.+', _, last @ _]`  
 - _MP container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},    
 - _MP combined: `pattern1 | pattern2`  
-- _MP inline matching case: `patt /: expr`  
 - _MP with guard: `ptrn ?: x > 0 /: expr`  
 - fix inline blocks after  `:?`  
 

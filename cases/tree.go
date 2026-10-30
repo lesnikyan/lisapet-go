@@ -138,17 +138,32 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 			return &SplitState{Done: false, LTree: res}, nil
 		}
 		ltree := res.Tree
-		// fmt.Println("L2E2>", cline.Src, res, err, "::", ltree, ":~", ltree.rightNode, "; matchCase:", matchCase)
-		// fmt.Println("L2E2>", cline.Src, "; matchCase:", matchCase)
-		// PrintONode(ltree, 0)
 		operTree := ltree.rightNode
+		operElems := ltree.rightElems
+		// fmt.Println("L2E2>", cline.Src, res, err, "::", ltree, ":~", ltree.rightNode, "; matchCase:", matchCase)
+		// fmt.Println("L2E2>", cline.Src, "; matchCase:", matchCase, "/oper:", operTree.oper)
+		// PrintONode(ltree, 0)
 		if matchCase {
-			ptr, err := ProcMatchPattern(operTree, ltree.rightElems)
+			var lineTree *OperNode
+			if operTree != nil && operTree.oper == "/:" {
+				// inline case
+				lineTree = operTree
+				operTree = lineTree.leftNode
+				operElems = lineTree.leftElems
+			}
+			ptr, err := ProcMatchPattern(operTree, operElems)
 			if err != nil {
 				return nil, err
 			}
-			expr = nodes.NewMatchCase(ptr)
-			return &SplitState{Expr: expr, Done: true}, nil
+			cexpr := nodes.NewMatchCase(ptr)
+			if lineTree != nil {
+				// expetc inline sub expr
+				if subx, ok := OperSub(lineTree.rightNode, lineTree.rightElems); ok {
+					// have right expr
+					cexpr.Add(subx)
+				}
+			}
+			return &SplitState{Expr: cexpr, Done: true}, nil
 		}
 		if operTree == nil {
 			if len(ltree.rightElems) > 0 {

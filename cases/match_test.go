@@ -5,6 +5,62 @@ import (
 	"testing"
 )
 
+func TestMatchInline(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 1
+		r = 0
+		match x
+			1 /: r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int
+		x = [1]
+		r = 0
+		match x
+			[1] /: r = 80
+		`, "r", int64(80)},
+		{`
+		struct A a:int
+		x = A(11)
+		r = 0
+		match x
+			A{} /: r = 80
+		`, "r", int64(80)},
+		{`
+		x = 12
+		r = 0
+		match x
+			11 /: r = 80
+			_ /: r = 82
+		`, "r", int64(82)},
+		{`
+		struct A a:int, b:int
+		nn = [null, 1, 4, A{}, [11], {2:22}, (33,), some(22)]
+		r = []
+		for i, x <- nn
+			match x
+				1 /: r <- -1
+				a :: int /: r <- 0 - a
+				[*] /: r <- 'list: %d' << i
+				(*,) /: r <- 'tuple: %d' << i
+				{*} /: r <- 'dict: %d' << i
+				some(a) /: r <- 'some:%v' << a
+				_{} /: r <- 97
+				none /:  r <- 97
+				::null /:  r <- 98
+				_  /: r <- 99
+		`, "r", Anis(98, -1, -4, 97, "list: 4", "dict: 5", "tuple: 6", "some:22")},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchMaybe(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -88,7 +144,6 @@ func TestMatchMaybe(t *testing.T) {
 			match x
 				some(1)
 					r <- 1
-			match x
 				some( a::int)
 					r <- a
 				some(re'A.*')
@@ -117,7 +172,7 @@ func TestMatchMaybe(t *testing.T) {
 					r <- 98
 				_
 					r <- 99
-		`, "r", Anis(1, 1, 12, "A:Anna", "A:Any", "s:Some", "s:Rom", 1001.5, 92, 91, 93, "s:f0", 11111, 99, 94, 95, 98, 99)},
+		`, "r", Anis(1, 12, "A:Anna", "A:Any", "s:Some", "s:Rom", 1001.5, 92, 91, 93, "s:f0", 11111, 99, 94, 95, 98, 99)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
