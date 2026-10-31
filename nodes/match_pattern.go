@@ -928,3 +928,34 @@ func (mc *MCaseAt) Match(cx base.Context, arg any) (bool, error) {
 	}
 	return false, fmt.Errorf("pattern @ : strange left: %T", mc.Sub)
 }
+
+// a | b
+type MCaseMulti struct {
+	Left  MatchPattern // Var | _Under
+	Right MatchPattern
+}
+
+func (mc *MCaseMulti) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseMulti) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseMulti) Match(cx base.Context, arg any) (bool, error) {
+	ok, err := mc.Left.Match(cx, arg)
+	if err != nil {
+		return false, err
+	}
+	if ok {
+		return true, nil
+	}
+	ok, err = mc.Right.Match(cx, arg)
+	if err != nil {
+		return false, err
+	}
+	if ok {
+		return true, nil
+	}
+	return false, nil
+}

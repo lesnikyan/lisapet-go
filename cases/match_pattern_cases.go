@@ -209,11 +209,19 @@ func MPList(node *OperNode) (nodes.MatchPattern, error) {
 	return nodes.NewMCaseList(subs), nil
 }
 
+var tupleOpers = []string{",", "?", "*"}
+
 func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
 	subNode := node.rightNode
 	elems := node.rightElems
-	if subNode == nil && len(elems) != 0 {
-		// exceptions of single sub in parentheses
+	if subNode == nil && len(elems) == 0 {
+		// empty brackets = empty tupe
+		return nodes.NewMCaseTuple([]nodes.MatchPattern{}), nil
+	}
+	// fmt.Printf("MPTuple subs: %s \n", node.oper)
+	if (subNode == nil && len(elems) != 0) || !slices.Contains(tupleOpers, subNode.oper) {
+		// exceptions of single sub in parentheses, without comma.
+		// not a tuple, except (_)
 		mp, err := ProcMatchPattern(subNode, elems)
 		if err != nil {
 			return nil, err
@@ -222,6 +230,7 @@ func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
 		case *nodes.MCaseUnder:
 			return nodes.NewMCaseTuple([]nodes.MatchPattern{pp}), nil
 		default:
+			// fmt.Printf("MPTuple subs: :%T \n", mp)
 			return mp, nil
 		}
 		// return nodes.NewMCaseTuple([]nodes.MatchPattern{mp}), nil
@@ -230,6 +239,7 @@ func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("bad subs of tuple match-pattern"), err)
 	}
+
 	return nodes.NewMCaseTuple(subs), nil
 }
 
@@ -345,6 +355,16 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		return sub, nil
 	case "|":
 		// multicase
+
+		left, err := ProcMatchPattern(rNode.leftNode, rNode.leftElems)
+		if err != nil {
+			return nil, err
+		}
+		right, err := ProcMatchPattern(rNode.rightNode, rNode.rightElems)
+		if err != nil {
+			return nil, err
+		}
+		return &nodes.MCaseMulti{Left: left, Right: right}, nil
 	case "::":
 		// typed val
 		// println("oper ::")

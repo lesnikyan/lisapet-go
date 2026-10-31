@@ -122,7 +122,7 @@ next - by dates...
 ```
 - --19 Added `@defined(var)` - check if var, func, type, etc was defined.  
 - --20 Added **delete operator** `@!`. It deletes variables, element of list, dict.  
-- --21 Added check **type operator** `::`, `null :: null` is `true`, parent struct type is `true`   
+- --21 Added check **check-type operator** `::`, `null :: null` is `true`, parent struct type is `true`   
 - --22 implemented **multitype** vars: `x : int|float|byte = 1`  
     Implemented mulityped args: `foo(x: int|float)`  
     Implemented multityped fields of struct: `struct Abc a: int|float, b: list|dict`  
@@ -170,16 +170,18 @@ next - by dates...
 - --29 Added m-pattern `some`, tested `none`: `some(12)`, `none`  
 - --30 Implemented inline block syntax for matching cases: `"pattern" /: expr`  
 - --31 Added assing-subpattern via `@`: `name @ re'A.+'` ;; `[x @ A{}, y @ {*}]`  
-        Fixed empty and commented lines after inline block like inline-case `/:` in `match` block. 
+        Fixed empty and commented lines after inline block like inline-case `/:` in `match` block.  
+    Added combo-pattern `a | b` ; `(a::int) | (b::bool)`  
+    Fixed parentheses withous commas inside: subpattern in brackets, empty tuple, etc.  
 
 
 
 #### next TODO:  
-- match patterns:   
+- match patterns:  
 - _MP container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},    
-- _MP combined: `pattern1 | pattern2`  
 - _MP with guard: `ptrn ?: x > 0 /: expr`  
 - fix inline blocks after  `:?`  
+- _MP type multi: `a :: A|B`; `a::(A|B)`  
 
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  

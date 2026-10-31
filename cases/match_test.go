@@ -5,6 +5,82 @@ import (
 	"testing"
 )
 
+func TestMatchCombo(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 1
+		r = 0
+		match x
+			1 | 2
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 2
+		r = 0
+		match x
+			1 | 2
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 3
+		r = 0
+		match x
+			1 | 2 | 3
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 4
+		r = 0
+		match x
+			1 | 2 | 3 | 4
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 5
+		r = 0
+		match x
+			1 | 2 | 3 | 5
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 51
+		r = 10
+		match x
+			1 | 2 | 3 | 5
+				r = 80
+		`, "r", int64(10)},
+		{`
+		x = [1,2,3]
+		r = "2"
+		match x
+			(a::list) | (a::tuple) /: r = 'nn:%d' << len(a)
+		`, "r", "nn:3"},
+		{`
+			struct A a:int, b:int
+			struct B b: int
+			nn = [null, 1, 4, 5, 'Anna', 'Uno', A{b:111}, B{b:222}, [22, 33, 44], {3:33}, (44,), some(22)]
+			r = []
+			for i, x <- nn
+				match x
+					1 | 2 /: r <- x + 100
+					4 | 5 /: r <- x + 200
+					A{} | B{} /: r <- 3000 + x.b
+					'Anna' | 'Uno' /: r <- 's:%s' << x
+					(a::list) | (a::tuple) /: r <- 'nn:%d' << len(a)
+					{3:a} | some(a) /:  r <- 500 + a
+					none | null /:  r <- 98
+					_  /: r <- 99
+			`, "r", Anis(98, 101, 204, 205, "s:Anna", "s:Uno", 3111, 3222, "nn:3", 533, "nn:1", 522)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchAt(t *testing.T) {
 	tdata := []struct {
 		src   string
