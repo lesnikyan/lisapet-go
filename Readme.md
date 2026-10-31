@@ -168,13 +168,14 @@ next - by dates...
 - --25 Added match patter regepx : `re'A[a-z]+' `   
 - --28 Added matching pattern `struct` and unnamed (any) struct: `Type{field: val, }`,  `_{}`   
 - --29 Added m-pattern `some`, tested `none`: `some(12)`, `none`  
-- --30 Implement inline block syntax for matching cases: `"pattern" /: expr`  
+- --30 Implemented inline block syntax for matching cases: `"pattern" /: expr`  
+- --31 Added assing-subpattern via `@`: `name @ re'A.+'` ;; `[x @ A{}, y @ {*}]`  
+        Fixed empty and commented lines after inline block like inline-case `/:` in `match` block. 
 
 
 
 #### next TODO:  
 - match patterns:   
-- _MP assing subpattern via `@`: `[name @ re'A.+', _, last @ _]`  
 - _MP container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},    
 - _MP combined: `pattern1 | pattern2`  
 - _MP with guard: `ptrn ?: x > 0 /: expr`  
@@ -194,6 +195,7 @@ next - by dates...
 - enum  
 - _MP Enum: `colors.red`  
 - grup  
+- glif by x-code, u-code: `g'x41'`, `g'u03b3'`  
 
 
 TO think:  

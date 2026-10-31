@@ -200,6 +200,29 @@ type ExprLink struct {
 	indent int
 }
 
+func LineIsComment(elems []*lang.Elem) bool {
+	for _, el := range elems {
+		if el.Type == Lt.Space {
+			continue
+		}
+		if el.Type == Lt.Comm || el.Type == Lt.Mtcomm {
+			return true
+		}
+		return false
+	}
+	return false
+}
+
+func LineIsEmpty(elems []*lang.Elem) bool {
+	if len(elems) == 0 {
+		return true
+	}
+	if len(elems) == 1 {
+		return elems[0].Type == Lt.Space
+	}
+	return false
+}
+
 // make executable block of expressions by parsed lines
 func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 	top := nodes.NewEmptyBlock()
@@ -214,7 +237,13 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 	var prevExpr *ExprLink
 	var nExpr *ExprLink
 	for _, cline := range clines {
-		if cline == nil || len(cline.Elems) == 0 {
+		if cline == nil {
+			continue
+		}
+		if LineIsEmpty(cline.Elems) {
+			continue
+		}
+		if LineIsComment(cline.Elems) {
 			continue
 		}
 		if firstIndent == -1 {
@@ -233,8 +262,10 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		elseInd := false // if expr is `else`
 		elseInd = cline.Elems[0].Type == Lt.Word && cline.Elems[0].Text == "else"
 
+		// fmt.Println(">>>>", cline.Src, "Elems:", FPrintElems(cline.Elems))
 		// fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
 		if cind <= nblock.indent {
+			// fmt.Println(" << back indent")
 			// end of prev block
 			// if _, ok := expr.(*nodes.ElseNode); ok {
 			// 	elseInd = true
@@ -257,8 +288,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				}
 			}
 		}
-		// fmt.Println(">>>>", cline.Src, "Elems:", FPrintElems(cline.Elems))
-		// fmt.Println(">>>>", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind, "L-inden:", cline.Indent)
+		// fmt.Println("  -- >", cline.Src, "bLen:", len(parents), fmt.Sprintf("nBlock: %T", nblock.elem), "indent:", cind, "L-inden:", cline.Indent)
 		if _, ok := nblock.elem.(*nodes.MatchNode); ok {
 			cline.Special = lang.SpecMatch
 		}

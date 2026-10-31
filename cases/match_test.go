@@ -5,6 +5,69 @@ import (
 	"testing"
 )
 
+func TestMatchAt(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 175
+		r = 0
+		match x
+			a @ ::int
+				r = 8000 + a
+		`, "r", int64(8175)},
+		{`
+		x = 'Hello'
+		r = 0
+		match x
+			a @ re'H.+'
+				r = 's:%s' << a
+		`, "r", "s:Hello"},
+		{`
+		x = [12]
+		r = ''
+		match x
+			[a @ ::int]
+				r = '[int]: %d' << a
+		`, "r", "[int]: 12"},
+		{`
+		struct A a:int, b:int
+		x = [A{a:12}, [1,2,3]]
+		r = ''
+		match x
+			[a1 @ A{}, nn @ [*]]
+				r = 'A: %d, L:%d' << (a1.a, len(nn))
+		`, "r", "A: 12, L:3"},
+		{`
+		struct A a:int, b:int
+		nn = [null, 1, 4, 'Anna', A{a:11}, [A{a:11}], [22], {3:33}, (44,), some(22), [A{a:12}, [1,2,3,4]]]
+		r = []
+		for i, x <- nn
+			match x
+				a @ 1 /: r <- a
+				a @ :: int /: r <- 1000 + a
+				a @ re'A.+' /: r <- a
+				[a @ ::int] /: r <- 'list: %d' << a
+				(a @ ::int,) /: r <- 'tuple: %d' << a
+				{_: a @ ::int} /: r <- 'dict: %d' << a
+				some(a @ ::int) /: r <- 'some:%v' << a
+				aa @ A{} /: r <- 'A %d, %d' << (aa.a, aa.b)
+				[aa @ A{}]
+					r <- '[A]:%d' << aa.a
+				[m @ A{}, n @ [*]]
+					r <- '[A: %d, %d ; L:%d]' << (m.a, m.b, len(n))
+				none /:  r <- 97
+				::null /:  r <- 98
+				_  /: r <- 99
+		`, "r", Anis(98, 1, 1004, "Anna", "A 11, 0", "[A]:11", "list: 22", "dict: 33", "tuple: 44", "some:22", "[A: 12, 0 ; L:4]")},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchInline(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -60,7 +123,6 @@ func TestMatchInline(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
-
 func TestMatchMaybe(t *testing.T) {
 	tdata := []struct {
 		src   string

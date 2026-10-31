@@ -286,7 +286,35 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 		switch mp := sp.(type) {
 		// TODO: implement any sub cases with strikt condition like MCaseVal
 		// ::type, var@sub, re'gexp', [], (), {}, N{}, _{}, some(),
-		case *MCaseVal:
+		// case *MCaseVal:
+		case *MCaseVar:
+			// TODO: to group non-matching cases: var, under,  (@-with-non-matched ... thinking)
+			// do we need case: a @ _ ?
+			// examp: [1, a@_, 2] the same [1, a, 2] - no need
+			// case a @ ? or a @ * - doesn't make sense
+			// conclusion: @-case - for matching right-part only, so @ is a matching case
+			if opts > 0 {
+				varp++
+				continue
+			}
+			ok, err := mp.Match(cx, v)
+			if err != nil {
+				return false, err
+			}
+			if !ok {
+				// can't happen in normal situation
+				return false, nil
+			}
+			vid++
+		case *MCaseUnder:
+			// fmt.Printf("case _ \n")
+			if opts > 0 {
+				varp++
+				continue
+			}
+			vid++
+		default:
+			// all cases which need to be strictly matched: Val, containers, type, etc
 			if opts > 0 {
 				vback := opts // vals for search valid value
 				if varp > 0 {
@@ -340,34 +368,6 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 				return false, nil
 			}
 			vid++
-		case *MCaseVar:
-			// TODO: to group non-matching cases: var, under,  (@-with-non-matched ... thinking)
-			// do we need case: a @ _ ?
-			// examp: [1, a@_, 2] the same [1, a, 2] - no need
-			// case a @ ? or a @ * - doesn't make sense
-			// conclusion: @-case - for matching right-part only, so @ is a matching case
-			if opts > 0 {
-				varp++
-				continue
-			}
-			ok, err := mp.Match(cx, v)
-			if err != nil {
-				return false, err
-			}
-			if !ok {
-				// can't happen in normal situation
-				return false, nil
-			}
-			vid++
-		case *MCaseUnder:
-			// fmt.Printf("case _ \n")
-			if opts > 0 {
-				varp++
-				continue
-			}
-			vid++
-		default:
-			// noMin = true
 		}
 	}
 	// fmt.Printf("  MCaseList  fin:  ved: %d, vlen-1:%d, opts:%d, sed:%d, varp: %d  \n", ved, vlen-1, opts, sed, varp)
@@ -391,11 +391,11 @@ func mpMatchList(cx base.Context, vals []any, subs []MatchPattern) (bool, error)
 		varp = 0
 		opts = 0
 	}
-	if opts > 0 {
-		// resolve ending vars
-		// ok, err := doVal(sed, nil)
-		// fmt.Printf("  MCaseList  fin Do:  ok: %v, err: %v  \n", ok, err)
-	}
+	// if opts > 0 {
+	// 	// resolve ending vars
+	// 	// ok, err := doVal(sed, nil)
+	// 	// fmt.Printf("  MCaseList  fin Do:  ok: %v, err: %v  \n", ok, err)
+	// }
 
 	// if star in the end
 
@@ -431,10 +431,6 @@ func (mc *MCaseList) Get() *base.Val {
 }
 
 func (mc *MCaseList) Match(cx base.Context, arg any) (bool, error) {
-	// min := 0
-	// max := 0
-	// noMin := false
-	// noMax := false
 	arglist, ok := arg.(*objects.ListVal)
 	if !ok {
 		return false, nil
@@ -499,39 +495,6 @@ func (mc *MCaseKeyVal) Get() *base.Val {
 }
 
 func (mc *MCaseKeyVal) Match(cx base.Context, arg any) (bool, error) {
-	// argDc, ok := arg.(*objects.DictVal)
-	// if !ok {
-	// 	return false, nil
-	// }
-	// vals := argDc.Vmap
-	// var found any
-	// // check key pattern
-	// switch kp := mc.Key.(type) {
-	// case *MCaseVal:
-	// 	k := kp.Val
-	// 	v, ok := vals[k]
-	// 	if !ok {
-	// 		return false, nil
-	// 	}
-	// 	found = v
-	// case *MCaseVar:
-	// 	// var nextKey any
-	// 	// vals[nextKey]
-	// 	// kp.Match(cx, )
-	// default:
-
-	// }
-
-	// //check val
-	// switch vp := mc.Key.(type) {
-	// case *MCaseVal:
-	// 	return vp.Match(cx, found)
-	// case *MCaseVar:
-	// 	return vp.Match(cx, found)
-	// default:
-	// 	return vp.Match(cx, found)
-	// }
-
 	return false, nil
 }
 
@@ -932,8 +895,10 @@ func (mc *MCaseSome) Match(cx base.Context, arg any) (bool, error) {
 
 // ====
 
-// @ TODO
+// @
 type MCaseAt struct {
+	Var MatchPattern // Var | _Under
+	Sub MatchPattern
 }
 
 func (mc *MCaseAt) Do(cx base.Context) error {
@@ -944,5 +909,22 @@ func (mc *MCaseAt) Get() *base.Val {
 }
 
 func (mc *MCaseAt) Match(cx base.Context, arg any) (bool, error) {
-	return true, nil
+	ok, err := mc.Sub.Match(cx, arg)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+	switch sub := mc.Var.(type) {
+	case *MCaseVar:
+		ok, err := sub.Match(cx, arg)
+		if err != nil {
+			return false, err
+		}
+		return ok, nil
+	case *MCaseUnder:
+		return true, nil
+	}
+	return false, fmt.Errorf("pattern @ : strange left: %T", mc.Sub)
 }

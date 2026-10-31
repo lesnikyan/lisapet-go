@@ -373,6 +373,15 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		return &nodes.MCaseStar{}, nil
 	case "@":
 		// val assign
+		left, err := ProcMatchPattern(rNode.leftNode, rNode.leftElems)
+		if err != nil {
+			return nil, err
+		}
+		right, err := ProcMatchPattern(rNode.rightNode, rNode.rightElems)
+		if err != nil {
+			return nil, err
+		}
+		return &nodes.MCaseAt{Var: left, Sub: right}, nil
 	case ":?":
 		// extra guard
 
