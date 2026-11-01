@@ -5,6 +5,234 @@ import (
 	"testing"
 )
 
+func TestMatchGuard(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 1
+		r = 0
+		match x
+			a :: int :? a > 0
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = -1
+		r = 2
+		match x
+			a :: int :? a > 0
+				r = 80
+		`, "r", int64(2)},
+		{`
+		x = [1,2,3]
+		r = 3
+		match x
+			[*] :? len(x) > 1
+				r = 81
+		`, "r", int64(81)},
+		{`
+		x = [1,2,3]
+		r = 3
+		match x
+			[*] :? len(x) > 3
+				r = 81
+		`, "r", int64(3)},
+		{`
+		x = 'Hello string val!'
+		r = 4
+		match x
+			s :: string :? len(s) > 8
+				r = 82
+		`, "r", int64(82)},
+		{`
+		x = [1,2,3]
+		r = 4
+		match x
+			[a,b,c] :? a :: int && b > 0
+				r = 83
+		`, "r", int64(83)},
+		{`
+		x = 'Hello'
+		r = 4
+		match x
+			s :: string :? len(s) > 8
+				r = 82
+			_ /: r = 5
+		`, "r", int64(5)},
+		{`
+		x = 'Hello'
+		r = 4
+		match x
+			s :: string :? len(s) > 8 /: r = 81
+			s @ re'h[a-z]+'i :? len(s) < 10 /: r = 83
+			_ /: r = 5
+		`, "r", int64(83)},
+		{`
+			struct A a:int, b:int
+			struct B b: int
+			nn = [null, 1, 2, 5, 10, -10, 100, 1.0, 10.0, -22.0, 9, 00x1e, 00xf1, A{b:100}, B{b:200}]
+			r = []
+			for i, x <- nn
+				match x
+					a :: int :? a > 9 /: r <- 1000 + a
+					a :: int :? a < 0 /: r <- -2000 + a
+					a :: int :? a %2 == 0 /: r <- 3000 + a
+					a :: float :? a != float(int(a)) /: r <- 4000.0 + a
+					a :: float :? a > 0 /: r <- 5000.0 + a
+					(a :: int) | (a :: float) :? a != 0 /: r <- 6000 + a
+					b :: byte :? b < 0x88 /: r <- 'b1:%x' << b
+					b :: byte :? b >= 0x88 /: r <- 'b2:%x' << b
+					aa :: A|B :? aa.b > 99 /: r <- 7000 + aa.b
+					_  /: r <- 99
+			`, "r", Anis(99, 6001, 3002, 6005, 1010, -2010, 1100, 5001., 5010., 5978., 6009,
+			"b1:1e", "b2:f1", 7100, 7200)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestMatchCombo(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 1
+		r = 0
+		match x
+			1 | 2
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 2
+		r = 0
+		match x
+			1 | 2
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 3
+		r = 0
+		match x
+			1 | 2 | 3
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 4
+		r = 0
+		match x
+			1 | 2 | 3 | 4
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 5
+		r = 0
+		match x
+			1 | 2 | 3 | 5
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = 51
+		r = 10
+		match x
+			1 | 2 | 3 | 5
+				r = 80
+		`, "r", int64(10)},
+		{`
+		x = [1,2,3]
+		r = "2"
+		match x
+			(a::list) | (a::tuple) /: r = 'nn:%d' << len(a)
+		`, "r", "nn:3"},
+		{`
+			struct A a:int, b:int
+			struct B b: int
+			nn = [null, 1, 4, 5, 'Anna', 'Uno', A{b:111}, B{b:222}, [22, 33, 44], {3:33}, (44,), some(22)]
+			r = []
+			for i, x <- nn
+				match x
+					1 | 2 /: r <- x + 100
+					4 | 5 /: r <- x + 200
+					A{} | B{} /: r <- 3000 + x.b
+					'Anna' | 'Uno' /: r <- 's:%s' << x
+					(a::list) | (a::tuple) /: r <- 'nn:%d' << len(a)
+					{3:a} | some(a) /:  r <- 500 + a
+					none | null /:  r <- 98
+					_  /: r <- 99
+			`, "r", Anis(98, 101, 204, 205, "s:Anna", "s:Uno", 3111, 3222, "nn:3", 533, "nn:1", 522)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestMatchAt(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 175
+		r = 0
+		match x
+			a @ ::int
+				r = 8000 + a
+		`, "r", int64(8175)},
+		{`
+		x = 'Hello'
+		r = 0
+		match x
+			a @ re'H.+'
+				r = 's:%s' << a
+		`, "r", "s:Hello"},
+		{`
+		x = [12]
+		r = ''
+		match x
+			[a @ ::int]
+				r = '[int]: %d' << a
+		`, "r", "[int]: 12"},
+		{`
+		struct A a:int, b:int
+		x = [A{a:12}, [1,2,3]]
+		r = ''
+		match x
+			[a1 @ A{}, nn @ [*]]
+				r = 'A: %d, L:%d' << (a1.a, len(nn))
+		`, "r", "A: 12, L:3"},
+		{`
+		struct A a:int, b:int
+		nn = [null, 1, 4, 'Anna', A{a:11}, [A{a:11}], [22], {3:33}, (44,), some(22), [A{a:12}, [1,2,3,4]]]
+		r = []
+		for i, x <- nn
+			match x
+				a @ 1 /: r <- a
+				a @ :: int /: r <- 1000 + a
+				a @ re'A.+' /: r <- a
+				[a @ ::int] /: r <- 'list: %d' << a
+				(a @ ::int,) /: r <- 'tuple: %d' << a
+				{_: a @ ::int} /: r <- 'dict: %d' << a
+				some(a @ ::int) /: r <- 'some:%v' << a
+				aa @ A{} /: r <- 'A %d, %d' << (aa.a, aa.b)
+				[aa @ A{}]
+					r <- '[A]:%d' << aa.a
+				[m @ A{}, n @ [*]]
+					r <- '[A: %d, %d ; L:%d]' << (m.a, m.b, len(n))
+				none /:  r <- 97
+				::null /:  r <- 98
+				_  /: r <- 99
+		`, "r", Anis(98, 1, 1004, "Anna", "A 11, 0", "[A]:11", "list: 22", "dict: 33", "tuple: 44", "some:22", "[A: 12, 0 ; L:4]")},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchInline(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -60,7 +288,6 @@ func TestMatchInline(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
-
 func TestMatchMaybe(t *testing.T) {
 	tdata := []struct {
 		src   string
