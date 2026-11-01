@@ -5,6 +5,77 @@ import (
 	"testing"
 )
 
+func TestMatchSubpatterns(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		nn = [
+			[(2,3), [1], {4:44}],
+			[(3,33,333), [12,3,4], {4:44, 5:55}],
+			[(4,), [2,2,2], {'':''}],
+		]
+		r = []
+		for i, x <- nn
+			match x
+				[(2,*), [*], {*}]
+					r <- 100 + i
+				[(*), [2,*], {*}]
+					r <- 200 + i
+				[(*), [*], {4:_,*}]
+					r <- 300 + i
+		`, "r", Anis(100, 301, 202)},
+		{`
+		x = [[[[2,3,4]]]]
+		r = 0
+		match x
+			[[[[2,*]]]]
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = [([(12,)],)]
+		r = 0
+		match x
+			[([( ::int,)],)]
+				r = 80
+		`, "r", int64(80)},
+		{`
+		x = {'a':[{'b':[1,2,3]}]}
+		r = 0
+		match x
+			{'a':[{'b':[a,*]}]}
+				r = 100 + a
+		`, "r", int64(101)},
+		{`
+		x = [(some(33),)]
+		r = 0
+		match x
+			[(some(a::int),)]
+				r = 100 + a
+		`, "r", int64(133)},
+		{`
+		x = [(some('Bober'),)]
+		r = ''
+		match x
+			[(some(a @ re''i),)]
+				r = 'who: %s' << a
+		`, "r", "who: Bober"},
+		{`
+		struct A name: string
+		x = [(A{name: 'Viva'},)]
+		r = ''
+		match x
+			[( aa @ A{name: re'[A-Z]+'i},)]
+				r = 'wwo: %s' << aa.name
+		`, "r", "wwo: Viva"},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchGuard(t *testing.T) {
 	tdata := []struct {
 		src   string
