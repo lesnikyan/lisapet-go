@@ -959,3 +959,39 @@ func (mc *MCaseMulti) Match(cx base.Context, arg any) (bool, error) {
 	}
 	return false, nil
 }
+
+// pattern :? cond
+type MCaseGuard struct {
+	Pattern MatchPattern // Var | _Under
+	Guard   base.Expression
+}
+
+func (mc *MCaseGuard) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseGuard) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseGuard) Match(cx base.Context, arg any) (bool, error) {
+	ok, err := mc.Pattern.Match(cx, arg)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+	err = mc.Guard.Do(cx)
+	if err != nil {
+		return false, err
+	}
+	gres := GetExprVal(mc.Guard, nil)
+	// fmt.Printf(" Guard (%T) .Res: %v \n", mc.Guard, gres)
+
+	switch gv := gres.(type) {
+	case bool:
+		return gv, nil
+	default:
+		return false, fmt.Errorf("matching guard returns not bool: %T", gv)
+	}
+}

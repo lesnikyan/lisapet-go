@@ -212,6 +212,11 @@ func MPList(node *OperNode) (nodes.MatchPattern, error) {
 var tupleOpers = []string{",", "?", "*"}
 
 func MPTuple(node *OperNode) (nodes.MatchPattern, error) {
+	// tuple | some() | expr in brackets
+	// () - tuple
+	// (*), (?), (_) - tuple
+	// (5), (null), ([1,2]), ('hello') - not a tuple
+	// (int|list), (a::int) - not a tuple
 	subNode := node.rightNode
 	elems := node.rightElems
 	if subNode == nil && len(elems) == 0 {
@@ -292,6 +297,7 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		}
 		return SimplePattern(expr)
 	}
+	// check valid single value operators: '.': float,  '-': negative
 	if slices.Contains(_mtPatOps, rNode.oper) {
 		// println("val oper: ", rNode.oper)
 		// PrintONode(rNode, 0)
@@ -312,11 +318,6 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 	case "(":
 		// println("oper ( ..")
 		// PrintONode(rNode, 0)
-		// tuple | some() | expr in brackets
-		// () - tuple
-		// (*), (?), (_) - tuple
-		// (5), (null), ([1,2]), ('hello') - not a tuple
-		// (int|list), (a::int) - not a tuple
 		if NoLeft(rNode) {
 			// tuple pattern
 			mpt, err := MPTuple(rNode)
@@ -404,10 +405,16 @@ func ProcMatchPattern(rNode *OperNode, elems []*lang.Elem) (nodes.MatchPattern, 
 		return &nodes.MCaseAt{Var: left, Sub: right}, nil
 	case ":?":
 		// extra guard
-
-		// case "_":
-		// most common pattern
-
+		left, err := ProcMatchPattern(rNode.leftNode, rNode.leftElems)
+		if err != nil {
+			return nil, err
+		}
+		guard, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		// fmt.Printf("PMC.Guard %T :%v \n", guard, ok)
+		if !ok {
+			return nil, fmt.Errorf("Bad elem set for matching pattern: `%s`", FPrintElems(elems))
+		}
+		return &nodes.MCaseGuard{Pattern: left, Guard: guard}, nil
 	}
 	return nil, fmt.Errorf("matching pattern not found %s", rNode.oper)
 }
