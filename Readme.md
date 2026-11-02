@@ -173,15 +173,12 @@ next - by dates...
         Fixed empty and commented lines after inline block like inline-case `/:` in `match` block.  
     Added combo-pattern `a | b` ; `(a::int) | (b::bool)`  
     Fixed parentheses withous commas inside: subpattern in brackets, empty tuple, etc.  
-- 2026.11.01 Added matching pattern with additional guard: `a::int ?: a > 0`  
+- 2026.11.01 Added matching pattern with additional **guard**   : `a::int :? a > 0`  
+- Done container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},  
 
 
 
-#### next TODO:  
-- match patterns:  
-- _MP container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},  
-- _MP type multi, looks like it works, to check : `a :: A|B`; `a::(A|B)`  
-
+#### next TODO:
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     
