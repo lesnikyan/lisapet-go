@@ -412,6 +412,7 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		mtTree, err := Line2tree(subElems[1:], kwRoot)
 		if err != nil {
 			// do smth
+			return nil, err
 		}
 		if !mtTree.Finished {
 			// unclosed expression, need continue on next line...
@@ -427,6 +428,9 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		exp := &nodes.MatchNode{ArgExp: subExp}
 		return &SplitState{Expr: exp, Done: true}, nil
 	case kEnum:
+		// enum expects 1-line expression in any cases
+		// long enum - block only
+		return CaseEnumDef(elems, kwRoot)
 	case kGrup:
 	case kStruct:
 		// struct StrName(Parent) a, b, c:int
@@ -436,4 +440,39 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 	case kRun:
 	}
 	return nil, errors.New("keyword not found")
+}
+
+func CaseEnumDef(elems []*lang.Elem, ltree *LineTree) (*SplitState, error) {
+	elems = SkipSpaces(elems)
+	eln := elems[1]
+	if eln.Type != Lt.Word {
+		return nil, fmt.Errorf("bad lexem of name of enum: %s: %s ", Lt.TName(eln.Type), eln.Text)
+	}
+	ltree.ExprContext = base.TypeEnum
+	name := eln.Text
+	subs := []base.Expression{} // if block enum subs can be empty
+	enTree, err := Line2tree(elems[2:], ltree)
+	if err != nil {
+		return nil, err
+	}
+	subNode := enTree.Tree
+	// PrintONode(subNode, 0)
+	if subNode.rightNode != nil || len(subNode.rightElems) > 0 {
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		// fmt.Printf(" enum subExp: %T , ok=%v\n", subExp, ok)
+		if !ok {
+			return nil, fmt.Errorf("enum: subs elems error")
+		}
+		switch sx := subExp.(type) {
+		case *nodes.SequenceComma:
+			// if more then 1 elem
+			subs = sx.Subs
+		case *nodes.VarExpr, *nodes.OperAssign:
+			// Var, Assign
+			subs = []base.Expression{sx}
+		}
+	}
+
+	expr := nodes.NewEnumDef(name, subs)
+	return &SplitState{Expr: expr, Done: true}, nil
 }

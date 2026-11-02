@@ -154,6 +154,31 @@ func None() *Maybe {
 
 // ****************************************
 
+// == Enum
+
 type Enum struct {
-	Elems []any
+	Name string
+	Vals map[string]int64
+}
+
+// StaticName:
+// GetElem(name string) *Val
+// HasElem(name string) bool
+// GetName() string
+
+func (en *Enum) GetElem(name string) *base.Val {
+	val, ok := en.Vals[name]
+	if !ok {
+		return nil
+	}
+	return base.NewVal(val)
+}
+
+func (en *Enum) HasElem(name string) bool {
+	_, ok := en.Vals[name]
+	return ok
+}
+
+func (en *Enum) GetName() string {
+	return en.Name
 }

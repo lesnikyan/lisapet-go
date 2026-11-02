@@ -29,6 +29,7 @@ type Context struct {
 	vars   map[string]*base.Var
 	funcs  map[string]base.FuncVal
 	types  map[string]*base.Type
+	conts  map[string]base.ConstName // enum, grup
 
 	typeNames map[string]*base.Type
 	typeIds   map[base.TypeId]*base.Type
@@ -45,6 +46,16 @@ func (cx *Context) GetRoot() base.Context {
 
 func (cx *Context) SubContext() base.Context {
 	return NewContext(cx)
+}
+
+// add: enum, grup, ?-const
+func (cx *Context) AddConst(name string, elem base.ConstName) error {
+	_, ok := cx.conts[name]
+	if ok {
+		return fmt.Errorf("context add: such const name already exist: %s", name)
+	}
+	cx.conts[name] = elem
+	return nil
 }
 
 func (cx *Context) AddType(tp *base.Type) {
@@ -125,6 +136,10 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 		if ok {
 			return NewCxElem(fn)
 		}
+		cnt, ok := curCx.conts[name]
+		if ok {
+			return NewCxElem(cnt)
+		}
 		curCx = curCx.parent
 	}
 	return nil
@@ -169,6 +184,7 @@ func NewContext(parent base.Context) *Context {
 	varMap := map[string]*base.Var{}
 	funMap := map[string]base.FuncVal{}
 	typeMap := map[string]*base.Type{}
-	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap}
+	conts := map[string]base.ConstName{}
+	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap, conts: conts}
 	return &c
 }

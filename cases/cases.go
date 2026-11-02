@@ -61,6 +61,7 @@ type LineTree struct {
 	Parents       []*OperNode // final chain of parent nodes - right branch of tree
 	BracketsCount int
 	InFuncBr      bool
+	ExprContext   int
 	ShiftOpers    map[string]string // what an oper : after what should be shifter
 }
 

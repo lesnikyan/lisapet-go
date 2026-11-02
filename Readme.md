@@ -175,10 +175,12 @@ next - by dates...
     Fixed parentheses withous commas inside: subpattern in brackets, empty tuple, etc.  
 - 2026.11.01 Added matching pattern with additional **guard**   : `a::int :? a > 0`  
 - Done container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},  
+- --02 Added entity **enum**, def: `enum Name elem1, elem2, ..`, usage: `Name.elem2`  
 
 
 
 #### next TODO:
+- _MP: enum  
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     
@@ -190,8 +192,6 @@ next - by dates...
 - `const`  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
-- enum  
-- _MP Enum: `colors.red`  
 - grup  
 - glif by x-code, u-code: `g'x41'`, `g'u03b3'`  
 

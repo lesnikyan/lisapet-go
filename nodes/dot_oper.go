@@ -28,6 +28,8 @@ func (op *OperDot) Get() *base.Val {
 		return mb.Get()
 	case *MFunc:
 		return base.NewVal(op.res)
+	case *base.Val:
+		return mb
 	}
 	return nil
 }
@@ -89,6 +91,13 @@ func (op *OperDot) Do(cx base.Context) error {
 		// fmt.Printf("OperDot: member `%s` in struct not found \n", mname)
 		return fmt.Errorf("OperDot: member `%s` in struct not found", mname)
 
+	case *objects.Enum:
+		val := obj.GetElem(mname)
+		if val == nil {
+			return fmt.Errorf("enum `%s` doesn't have name `%s` ", obj.GetName(), mname)
+		}
+		op.res = val
+		return nil
 	default:
 		tInf := objects.TypeByVal(obj)
 		if tInf.Id == base.TypeUndefined {

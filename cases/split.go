@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/lang"
 	Lt "github.com/lesnikyan/lisapet-go/lang/lt"
 )
@@ -246,6 +247,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 	var brCx *OperNode    // cur bracket context (node)
 	var cNode *OperNode   // curent node
 	opcx := 1
+	innerContext := 0
 	if prevTree != nil {
 		rNode = prevTree.Tree
 		parents = prevTree.Parents
@@ -262,11 +264,15 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		if len(brSt) > 0 {
 			brCx = brSt[len(brSt)-1]
 		}
+		// log.Printf("slice: cNode: %s excx: %v", cNode.oper, prevTree.ExprContext)
+		innerContext = prevTree.ExprContext
 	} else {
 		rNode = &OperNode{prior: 10000, oper: "ЩУ"} // root node
 		parents = []*OperNode{rNode}
 		cNode = rNode
 	}
+	// if prevTree.ExprContext == base.TypeEnum {
+	// }
 	curPart := []int{} // indexes of elements
 	var slashLambda bool = false
 
@@ -468,6 +474,11 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 				txex = "fun="
 			case ":":
 				txex = "fun:"
+			}
+		} else if innerContext == base.TypeEnum {
+			switch tx {
+			case "=":
+				txex = "fun="
 			}
 		}
 		curpri := getPrior(opris, txex)
