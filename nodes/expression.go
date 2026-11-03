@@ -255,8 +255,11 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 			return el
 		case *objects.Function, *NFunc:
 			return el
+		case *objects.Enum:
+			return el
+		default:
+			panic(fmt.Sprintf("Not a valid element found by word-lexem: %T", el))
 		}
-		panic(fmt.Sprintf("Not a valid element found by word-lexem: %T", v))
 	case *ValExpr:
 		eVal = vv.Get()
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)

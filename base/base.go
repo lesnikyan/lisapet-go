@@ -28,6 +28,7 @@ type Context interface {
 	DeleteElem(name string) error
 	SubContext() Context
 	GetRoot() Context
+	AddConst(name string, elem ConstName) error
 }
 
 type ContextElem struct {
@@ -82,4 +83,10 @@ type SequenceExpr interface {
 	Do(ctx Context) error
 	Add(elem Expression)
 	SetSubs([]Expression)
+}
+
+type ConstName interface {
+	HasElem(name string) bool
+	GetElem(name string) *Val
+	GetName() string
 }
