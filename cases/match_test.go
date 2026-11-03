@@ -5,6 +5,117 @@ import (
 	"testing"
 )
 
+func TestMatchEnum(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		enum Abc a=1, b, c, d, e
+		x = 3
+		r = 0
+		match x
+			Abc.c
+				r = 100 + x
+		`, "r", int64(103)},
+		{`
+		enum Abc a=1, b, c, d, e
+		x = 2
+		r = 11
+		match x
+			Abc.c
+				r = 100 + x
+		`, "r", int64(11)},
+		{`
+		enum Abc a=1, b, c, d, e
+		x = 3
+		r = 11
+		match x
+			y @ Abc.c
+				r = 100 + y
+		`, "r", int64(103)},
+		{`
+		enum Abc a=1, b, c, d, e
+		nn = [[1], [3], [3,2,1], [1,2], 10]
+		r = []
+		for x <- nn
+			match x
+				[Abc.c, *]
+					r <- 103
+				[*]
+					r <- 100
+				_ /: r <- 99
+		`, "r", Anis(100, 103, 103, 100, 99)},
+		{`
+		enum Abc a=1, b, c, d, e
+		nn = [[1], [3], [3,2,1], (3,4), (4,5), {3:33}, {'a':3}, {'a':33},  some(4), some(5), 10]
+		r = []
+		for x <- nn
+			match x
+				[Abc.c, *]
+					r <- 103
+				(Abc.d, *)
+					r <- 204
+				{Abc.c: v}
+					r <- 3000 + v
+				{k: Abc.c}
+					r <- k
+				some(Abc.e)
+					r <- 405
+				some()
+					r <- 400
+				[*]
+					r <- 100
+				(*)
+					r <- 200
+				{*}
+					r <- 300
+				_ /: r <- 99
+		`, "r", Anis(100, 103, 103, 200, 204, 3033, "a", 300, 400, 405, 99)},
+		{`
+		enum N a=1, b, c, d, e
+		struct A a: int
+		struct B b: int
+		struct C(A) c: int
+		x = C{c:4}
+		r = []
+		match x
+			_{b: N.b}
+				r <- 202
+			C{c: N.d}
+				r <- 304
+			_ /: r <- 99
+		`, "r", Anis(304)},
+		{`
+		enum N a=1, b, c, d, e
+		struct A a: int
+		struct B b: int
+		struct C(A) c: int
+		nn = [[1], A{a:1}, A{a:3}, B{b: 2}, C{a:3}, C{c:4}, some(A{a:5}), 10]
+		r = []
+		for x <- nn
+			match x
+				A{a: N.a}
+					r <- 101
+				A{a:N.c}
+					r <- 103
+				_{b: N.b}
+					r <- 202
+				C{c: N.d}
+					r <- 304
+				_{}
+					r <- 98
+				some(A{a: N.e})
+					r <- 1005
+				_ /: r <- 99
+		`, "r", Anis(99, 101, 103, 202, 103, 304, 1005, 99)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestMatchSubpatterns(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -538,6 +649,19 @@ func TestMatchStruct(t *testing.T) {
 			A{a:1}
 				r = 82
 		`, "r", int64(15)},
+		{`
+		struct A a: int
+		struct B b: int
+		struct C c: int
+		x = C{c:4}
+		r = []
+		match x
+			_{b: 2}
+				r <- 202
+			C{c: 4}
+				r <- 304
+			_ /: r <- 99
+		`, "r", Anis(304)},
 		{`
 		struct A a:int, b:string
 		struct B(A) bb: int

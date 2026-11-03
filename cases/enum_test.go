@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMatchEnum(t *testing.T) {
+func TestEnum(t *testing.T) {
 	tdata := []struct {
 		src   string
 		vname string
@@ -72,6 +72,12 @@ func TestMatchEnum(t *testing.T) {
 		r = x[Num.four]
 		`, "r", int64(50)},
 		{`
+		# counter afdter explicit val
+		enum A a, b, c=10, d, e
+		r = 0
+		r = [A.a, A.c, A.e]
+		`, "r", Anis(0, 10, 12)},
+		{`
 		enum Colors
 			red=0xff0000
 			green=0x00ff00
@@ -81,6 +87,12 @@ func TestMatchEnum(t *testing.T) {
 			orange=0xff8800
 		r = 'colors2: %06x, %06x, %06x' << (Colors.orange, Colors.white, Colors.red)
 		`, "r", "colors2: ff8800, ffffff, ff0000"},
+
+		{`
+		enum Num zero, one, two, three, four , five
+		enum N10 decim = 10, cent=100, mille=1000
+		r = [Num.two .. N10.decim]
+		`, "r", Anis(2, 3, 4, 5, 6, 7, 8, 9, 10)},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)

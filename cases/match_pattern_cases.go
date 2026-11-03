@@ -65,17 +65,14 @@ func ValOperPattern(expr base.Expression) (nodes.MatchPattern, error) {
 			// fmt.Println("raw val=", val)
 			return &nodes.MCaseVal{Val: val}, nil
 		}
+	case *nodes.OperDot:
+		// fmt.Printf("MP OperDot, V: %v\n", nodes.GetExprVal(pex, nil))
+		return &nodes.MCaseEnum{Elem: pex}, nil
 	case *nodes.OperBin:
 		switch pex.Oper.Id {
-		case nodes.OpDuoColon:
-			// type pattern
-		case nodes.OpBitOr:
-			// one | two
-			//
 
-			//  case nodes.OpDot:
-			// 	println("MtC oper dot")
-			// val := nodes.GetExprVal(pex, nil)
+		// 	println("MtC oper dot")
+		// val := nodes.GetExprVal(pex, nil)
 		}
 	}
 	return nil, nil

@@ -176,11 +176,11 @@ next - by dates...
 - 2026.11.01 Added matching pattern with additional **guard**   : `a::int :? a > 0`  
 - Done container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},  
 - --02 Added entity **enum**, def: `enum Name elem1, elem2, ..`, usage: `Name.elem2`  
+- -- 03 Added matching pattern `enum`: `EnumName.element`  
 
 
 
 #### next TODO:
-- _MP: enum  
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     

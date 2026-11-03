@@ -152,6 +152,7 @@ func Line2Expr(cline *lang.CLine, prevTree *LineTree) (*SplitState, error) {
 				operElems = lineTree.leftElems
 			}
 			ptr, err := ProcMatchPattern(operTree, operElems)
+			// fmt.Printf("tree. pattern: %T\n", ptr)
 			if err != nil {
 				return nil, err
 			}

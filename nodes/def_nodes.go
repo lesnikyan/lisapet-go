@@ -39,6 +39,7 @@ func (en *EnumDef) Do(cx base.Context) error {
 				return fmt.Errorf("enum def: bad number expr of sub elem %T", vex.Val)
 			}
 			enum.Vals[xname.GetName()] = vnum
+			counter = vnum + 1
 		}
 	}
 

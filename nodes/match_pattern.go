@@ -26,6 +26,14 @@ type MatchPattern interface {
 }
 
 // ====
+func ValCompare(exp any, arg any) bool {
+	if !SameType(exp, arg) {
+		return false
+	}
+	return EqualInternTypes(exp, arg)
+}
+
+// ====
 
 type MCaseVal struct {
 	Val any
@@ -40,10 +48,11 @@ func (mc *MCaseVal) Get() *base.Val {
 
 func (mc *MCaseVal) Match(cx base.Context, arg any) (bool, error) {
 	// fmt.Printf("MCaseVal (%v). Match: %T: %v \n", mc.Val, arg, arg)
-	if !SameType(mc.Val, arg) {
-		return false, nil
-	}
-	return EqualInternTypes(mc.Val, arg), nil
+	// if !SameType(mc.Val, arg) {
+	// 	return false, nil
+	// }
+	// return EqualInternTypes(mc.Val, arg), nil
+	return ValCompare(mc.Val, arg), nil
 }
 
 // ====
@@ -724,13 +733,13 @@ func NewMCaseDict(subs []MatchPattern) *MCaseDict {
 			// fmt.Printf(" NewMCD i:%d k:%T, v:%T \n", i, mk, mv)
 			// Key can be: num, bool, string, null
 			switch mk.(type) {
-			case *MCaseVal, *MCaseRegexp:
+			case *MCaseVal, *MCaseRegexp, *MCaseEnum:
 				mid = KVal
 			case *MCaseType:
 				mid = KType
 			case *MCaseVar:
 				switch mv.(type) {
-				case *MCaseVal, *MCaseRegexp:
+				case *MCaseVal, *MCaseRegexp, *MCaseEnum:
 					mid = VVal
 				case *MCaseType:
 					mid = VType
@@ -792,14 +801,16 @@ func (mc *MCaseStruct) Match(cx base.Context, arg any) (bool, error) {
 		// not struct instance in arg
 		return false, nil
 	}
+	var sdef *objects.StructDef
+	var typeName string
+	instDef := inst.Def
 
 	switch typeVar := mc.Type.(type) {
 	case *MCaseUnder:
 		// universal | noname type
-		// universal | noname type
 	case *MCaseVar:
 		// concrete type
-		typeName := typeVar.Expr.GetName()
+		typeName = typeVar.Expr.GetName()
 		tpv := cx.GetType(typeName) // type val
 		if tpv == nil {
 			// type not found
@@ -810,48 +821,57 @@ func (mc *MCaseStruct) Match(cx base.Context, arg any) (bool, error) {
 			return false, err
 		}
 		tdef := tpv.Def
-		sdef := tdef.(*objects.StructDef)
+		sdef = tdef.(*objects.StructDef)
 		if !ok {
 			// correct negative result
 			return false, nil
 		}
-		subs := mc.Subs
-		if len(subs) == 0 {
-			// no fields defined in pattern
-			return true, nil
-		}
-		for _, sub := range subs {
-			// fmt.Printf("Str.fld ptr: %T \n", sub)
-			switch fld := sub.(type) {
-			case *MCaseKeyVal:
-				// main case: field : value
-				// Key should be VarExpr
-				fnameMP, ok := fld.Key.(*MCaseVar)
-				if !ok {
-					return false, fmt.Errorf("bad pattern of struct field %T", fld.Key)
-				}
-				fname := fnameMP.Expr.GetName()
+
+	default:
+		return false, fmt.Errorf("match struct: incorrect empty type name")
+	}
+	// check fields
+
+	subs := mc.Subs
+	if len(subs) == 0 {
+		// no fields defined in pattern
+		return true, nil
+	}
+	for _, sub := range subs {
+		// fmt.Printf("Str.fld ptr: %T \n", sub)
+		switch fld := sub.(type) {
+		case *MCaseKeyVal:
+			// main case: field : value
+			// Key should be VarExpr
+			fnameMP, ok := fld.Key.(*MCaseVar)
+			if !ok {
+				return false, fmt.Errorf("bad pattern of struct field %T", fld.Key)
+			}
+			fname := fnameMP.Expr.GetName()
+			if sdef != nil {
 				if _, ok := sdef.Fields[fname]; !ok {
 					// no such field
 					return false, fmt.Errorf("struct `%s` doesn't have field `%s`", typeName, fname)
 				}
-				fval := inst.Get(fname)
-				if fval == nil {
-					return false, fmt.Errorf("struct doesnt have any value if field `%s`", fname)
-				}
-				res, err := fld.Val.Match(cx, fval.V)
-				// fmt.Printf("Str.fld Val: %T fval:%v ;; >> %v, %v \n", fld.Val, fval, res, err)
-				if err != nil {
-					return false, err
-				}
-				if !res {
+			} else {
+				// _{} case, check field in instance
+				if _, ok := instDef.Fields[fname]; !ok {
 					return false, nil
 				}
 			}
+			fval := inst.Get(fname)
+			if fval == nil {
+				return false, fmt.Errorf("struct doesnt have any value if field `%s`", fname)
+			}
+			res, err := fld.Val.Match(cx, fval.V)
+			// fmt.Printf("Str.fld Val: %T fval:%v ;; >> %v, %v \n", fld.Val, fval, res, err)
+			if err != nil {
+				return false, err
+			}
+			if !res {
+				return false, nil
+			}
 		}
-
-	default:
-		return false, fmt.Errorf("match struct: incorrect empty type name")
 	}
 	return true, nil
 }
@@ -994,4 +1014,41 @@ func (mc *MCaseGuard) Match(cx base.Context, arg any) (bool, error) {
 	default:
 		return false, fmt.Errorf("matching guard returns not bool: %T", gv)
 	}
+}
+
+// pattern :? cond
+type MCaseEnum struct {
+	Elem *OperDot
+}
+
+func (mc *MCaseEnum) Do(cx base.Context) error {
+	return nil
+}
+func (mc *MCaseEnum) Get() *base.Val {
+	return nil
+}
+
+func (mc *MCaseEnum) Match(cx base.Context, arg any) (bool, error) {
+	// has potential option to use struct.member, need check
+	left := mc.Elem.left
+	left.Do(cx)
+	obleft := GetExprVal(left, cx)
+	enum, ok := obleft.(*objects.Enum)
+	if !ok {
+		// not enum, forbidden case now
+		return false, fmt.Errorf("matching enum: not enum object in pattern %T", obleft)
+	}
+	namex, ok := mc.Elem.right.(*VarExpr)
+	if !ok {
+		return false, fmt.Errorf("matchintg enum: not a word in right expr: %t", mc.Elem.right)
+	}
+	name := namex.GetName()
+
+	v := enum.GetElem(name)
+	if v == nil {
+		return false, fmt.Errorf("match enum: no such elem in enum: `%s`", name)
+	}
+	vv := v.V
+	// fmt.Printf("mcEnum1: %T %v == %v ? >> %v \n", vv, vv, arg, ValCompare(vv, arg))
+	return ValCompare(vv, arg), nil
 }
