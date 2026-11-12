@@ -62,6 +62,8 @@ var _operPriorStr2 = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
 	` 1 @ 1 $ 1 ?: 1 : 1 ? 1 fun: 1 fun= 1 , 1 .. 1 <- 1 @! 1 = += -= *= /= %= 1 ;` +
 	` 1 if else for while match 1 !: :? => 1 /: `
 
+// var _fstrPrior = ` -+ 1 , 1 . 1 ^ < >`
+
 // spec: fun=
 
 // var _operPriorFBr = `1 . 1 ~> 1 ... 1 ** ^/ 1 * / % 1 + - 1` +
@@ -155,11 +157,12 @@ type OperNode struct {
 	bracketType  string // "(" | "[" | "{"
 	leftNode     *OperNode
 	rightNode    *OperNode
-	subNodes     []*OperNode // if sequence (,;) or keyword subs
+	subNodes     []*FNode // if sequence (,;) or keyword subs
 	// elems      []*lang.Elem // if other expr
 	// elems       []*lang.Elem // should be a left part in transfer to operator
 	leftElems  []*lang.Elem // left operand
 	rightElems []*lang.Elem //
+	subStr     string
 }
 
 /*
@@ -310,6 +313,27 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		curPart = append(curPart, i)
 		if etp != Lt.Oper {
 			// log.Println("AddRElem:", el.Text, Lt.TName(el.Type))
+			isFstr := cNode.oper == "~" && (el.Type == Lt.Text || el.Type == Lt.Mttext)
+			// if isFstr {
+			// } else if cNode.oper == "~str" {
+			// 	isFstr = true
+			// }
+
+			if isFstr {
+				// log.Println("F-string", el.Text, Lt.TName(el.Type))
+				fstr, err := SplitFString(el)
+				if err != nil {
+					return nil, err
+				}
+				cNode.oper = "~str"
+				// TODO: test possible attempt to add subNode into ~ oper after previoursly added string
+				fnodes := fstr.FNodes
+				if cNode.subNodes == nil {
+					cNode.subNodes = fnodes
+				} else {
+					cNode.subNodes = append(cNode.subNodes, fnodes...)
+				}
+			}
 			cNode.AddRElem(el)
 			continue
 		}

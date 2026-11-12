@@ -181,19 +181,19 @@ next - by dates...
 
 
 #### next TODO:
-- string-comprehension: `~[string|glif ; iter ; cond]`   
-- byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - formatting by expression include: `~"Hello {name}!"`     
     add pre-parsing in parser if (`~` Lt.Oper) before Lt.Text, store as ExtString{} object.  
     not sure we need real `~` operator for apply it on any string value.
     semantically ~"" strings it's a syntax sugar of concatenation strings from any sources: var, func call, sub-elems etc.   
+- string-comprehension: `~[string|glif ; iter ; cond]`   
+- byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - regexp operators [ split: `/~`-  thinking]    
 - CLI: lp file.et  
 - `const`  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
 - grup  
-- glif by x-code, u-code: `g'x41'`, `g'u03b3'`  
+- glif by x-code, u-code: `g'x41'`, `g'u03b3'` ??   
 
 
 TO think:  

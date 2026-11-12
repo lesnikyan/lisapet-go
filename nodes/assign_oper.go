@@ -201,7 +201,7 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 
 	err2 := op.right.Do(cx)
 	if err2 != nil {
-		fmt.Println("OperBinAssign.R error", err2)
+		// fmt.Println("OperBinAssign.R error", err2)
 		return err2
 	}
 	// rval := GetExprVal(op.right, cx)

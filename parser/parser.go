@@ -138,6 +138,7 @@ type SplitContext struct {
 	Ltype  Lt.Lt
 	strval string
 	elems  []*lang.Elem
+	extEls map[int][]*lang.Elem
 	prev   []rune
 	indent int
 }
@@ -392,6 +393,31 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 			// if ctype != Lt.Text && ctype != Lt.Mttext{
 			if !curStr {
 				cur = append(cur, c)
+			} else {
+				// check formatting mod ~""
+				// if len(res) > 1 {
+				// 	index := len(res) - 1
+				// 	prev := res[index-1]
+				// 	log.Printf(" ~? %s: %s == %v \n", Lt.TName(prev.Type), prev.Text, prev.Type == Lt.Oper && prev.Text == "~")
+				// 	if prev.Type == Lt.Oper && prev.Text == "~" {
+				// 		// if formatting string - parse it to extra Elems
+				// 		if ctx.extEls == nil {
+				// 			ctx.extEls = make(map[int][]*lang.Elem)
+				// 		}
+				// 		log.Printf(" substr index: %d, text: `%s`\n", index, res[index].Text)
+				// 		var vtx string
+				// 		sval := res[index].Text
+				// 		switch res[index].Type {
+				// 		case Lt.Text:
+				// 			// fmt.Println("ValExp: T:", val)
+				// 			vtx = base.CropStr(sval, 1, 1)
+				// 		case Lt.Mttext:
+				// 			// fmt.Println("ValExp:MT:", val.V
+				// 			vtx = base.CropStr(sval, 3, 3)
+				// 		}
+				// 		ctx.extEls[index+len(ctx.elems)] = SplitLine([]rune(vtx), &SplitContext{})
+				// 	}
+				// }
 			}
 			ctype = ntype
 			continue
@@ -486,6 +512,7 @@ func SplitCode(code string) []*lang.CLine {
 		lems := SplitLine(rline, ctx)
 		// lastEl := lems[len(lems)-1]
 		// fmt.Printf("pars.Line last: type: %s, tx: %s\n", Lt.TName(ctx.Ltype), string(ctx.prev))
+		// extEls := ctx.extEls
 		switch ctx.Ltype {
 		case Lt.Mttext:
 			// ctx.Ltype = lastEl.Type
@@ -499,7 +526,14 @@ func SplitCode(code string) []*lang.CLine {
 		if len(lems) == 0 {
 			continue
 		}
-
+		// fmt.Printf("",  lang.FPrintElems(lems))
+		// for ii, sss := range lems {
+		// 	fmt.Printf(" ppe: %d) %s: %s \n", ii, Lt.TName(sss.Type), sss.Text)
+		// }
+		// fmt.Printf(" ctx.Extra len: %d \n", len(extEls))
+		// for kk, eee := range extEls {
+		// 	fmt.Printf(" xxe: %d) %s \n", kk, lang.FPrintElems(eee))
+		// }
 		res[i] = &lang.CLine{Elems: lems, Src: line, Indent: curInd}
 	}
 	return res
