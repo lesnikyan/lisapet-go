@@ -12,44 +12,6 @@ import (
 	"github.com/lesnikyan/lisapet-go/objects"
 )
 
-// func val2Str1(val any, opt *SFormOptions) string {
-// 	var tstr string
-// 	switch v := val.(type) {
-// 	case string:
-// 		tstr = v
-// 	case int64:
-// 		if opt == nil {
-// 			return fmt.Sprintf("%d", v)
-// 		}
-// 		return "format not implemented"
-// 	case float64:
-// 		if opt == nil {
-// 			tstr = fmt.Sprintf("%f", v)
-// 		}
-// 		return "format not implemented"
-// 	case bool:
-// 		if v {
-// 			tstr = "true"
-// 		}
-// 		tstr = "false"
-// 	case *objects.Null:
-// 		tstr = "null"
-// 	case objects.Glif:
-// 		if opt == nil {
-// 			tstr = string(v)
-// 		}
-// 		// return fmt.Sprintf("%c", v)
-// 	case byte:
-// 		if opt == nil {
-// 			tstr = fmt.Sprintf("%x", v)
-// 		}
-// 	default:
-// 		return fmt.Sprintf("!{bad format type: %T}", val)
-
-// 	}
-// 	return tstr
-// }
-
 func IsLess(val any, arg float64) bool {
 	switch v := any(val).(type) {
 	case int:
@@ -116,14 +78,6 @@ func val2Str(val any, opt *SFormOptions) string {
 		default:
 			panic("template `%s` wait a string value")
 		}
-	case 'd':
-		switch d := val.(type) {
-		case int64, objects.Glif, byte:
-			tstr = fmt.Sprintf("%d", d)
-			if IsLess(d, 0) {
-				negative = true
-			}
-		}
 	case 'f':
 		switch val.(type) {
 		case int64, byte, float64, objects.Glif:
@@ -177,20 +131,56 @@ func val2Str(val any, opt *SFormOptions) string {
 		case int64:
 			tstr = string(c)
 		}
-	case 'x':
-		switch xx := val.(type) {
-		case int64:
-			tstr = fmt.Sprintf("%x", xx)
-		case byte:
-			tstr = fmt.Sprintf("%x", xx)
-		case objects.Glif:
-			tstr = fmt.Sprintf("%x", xx)
+	case 'd':
+		switch d := val.(type) {
+		case int64, objects.Glif, byte:
+			tstr = fmt.Sprintf("%d", d)
+		default:
+			panic(fmt.Sprintf("s-format cant represend %v as `d` type.", val))
 		}
+		// switch d := val.(type) {
+		// case int64, objects.Glif, byte:
+		// 	if IsLess(d, 0) {
+		// 		negative = true
+		// 	}
+		// }
+	case 'x':
+		switch d := val.(type) {
+		case int64, objects.Glif, byte:
+			tstr = fmt.Sprintf("%x", d)
+		default:
+			panic(fmt.Sprintf("s-format cant represend %v as `x` type.", val))
+		}
+		// switch xx := val.(type) {
+		// case int64:
+		// 	tstr = fmt.Sprintf("%x", xx)
+		// case byte:
+		// 	tstr = fmt.Sprintf("%x", xx)
+		// case objects.Glif:
+		// 	tstr = fmt.Sprintf("%x", xx)
+		// }
 	case 'b':
+		switch d := val.(type) {
+		case int64, objects.Glif, byte:
+			tstr = fmt.Sprintf("%b", d)
+		default:
+			panic(fmt.Sprintf("s-format cant represend %v as `b` type.", val))
+		}
+		// switch xx := val.(type) {
+		// case int64:
+		// 	tstr = fmt.Sprintf("%x", xx)
+		// case byte:
+		// 	tstr = fmt.Sprintf("%x", xx)
+		// case objects.Glif:
+		// 	tstr = fmt.Sprintf("%x", xx)
+		// }
 	}
+
+	// TODO: maybe not actual
 	if opt == nil {
 		return tstr
 	}
+
 	// sign
 	// sign := ""
 	switch xtype {
@@ -302,8 +292,12 @@ func val2Str(val any, opt *SFormOptions) string {
 	pref := ""
 	suff := ""
 	if opt.Size > 0 {
-		pref = strings.Repeat(fill, nLeft)
-		suff = strings.Repeat(fill, nRight)
+		if nLeft > 0 {
+			pref = strings.Repeat(fill, nLeft)
+		}
+		if nRight > 0 {
+			suff = strings.Repeat(fill, nRight)
+		}
 	}
 	return sig0 + pref + sigN + tstr + suff
 }
@@ -480,77 +474,18 @@ func FormOption(src string) (*SFormOptions, error) {
 	return opt, nil
 }
 
-func FormatVal(val any, pref string) {
-	// string: left indent
+// func FormatVal(val any, pref string) {
+// string: left indent
 
-	// num: sign, indent, zero lead,
+// num: sign, indent, zero lead,
 
-	// float: sign, indent, decimal part
+// float: sign, indent, decimal part
 
-	// hex: indent,  zero lead,
+// hex: indent,  zero lead,
 
-	// binary: zero lead
+// binary: zero lead
 
-	// octa: zero lead
+// octa: zero lead
 
-	// float E
-}
-
-// decim := false
-// point := 0
-// alignParts := arrRx.Split(src, 2)
-// if len(alignParts) > 1 {
-// 	// no align chars
-// 	align := arrRx.FindString(src)
-// 	alignNum := _alignMap[align]
-// 	opt.Align = alignNum
-// }
-// for i, c := range runes {
-// 	switch c {
-// 	case '+', '-':
-// 		if i == point {
-// 			opt.Sign = true
-// 			point++
-// 		}
-// 	case '<':
-// 		opt.Align = AlignLeft
-// 		point++
-// 	case '>':
-// 		opt.Align = AlignRight
-// 		point++
-// 	case '^':
-// 		opt.Align = AlignCenter
-// 		point++
-// 	case 'd', 'f', 's', 'e', 'b', 'x':
-// 		opt.Type = c
-// 		// continue
-// 	case '.':
-// 		//
-// 		decim = true
-// 	case '0':
-// 		if decim {
-// 			opt.DecimZero = true
-// 			continue
-// 		}
-// 		opt.Zero = true
-// 	default:
-// 		cstr := string(c)
-// 		if digitRx.MatchString(string(c)) {
-// 			// number of size or zeros
-// 			val, err := strconv.ParseInt(cstr, 10, 64)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			if decim {
-// 				opt.DecimSize = int(val)
-// 				continue
-// 			}
-// 			opt.Size = int(val)
-// 		}
-// 		if i == 0 {
-// 			// fill character {varname :=>20} / `=` - fill char
-
-// 		}
-
-// 	}
+// float E
 // }
