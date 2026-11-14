@@ -130,6 +130,8 @@ func val2Str(val any, opt *SFormOptions) string {
 			tstr = string(c)
 		case int64:
 			tstr = string(c)
+		case byte:
+			tstr = string(c)
 		}
 	case 'd':
 		switch d := val.(type) {
@@ -166,14 +168,13 @@ func val2Str(val any, opt *SFormOptions) string {
 		default:
 			panic(fmt.Sprintf("s-format cant represend %v as `b` type.", val))
 		}
-		// switch xx := val.(type) {
-		// case int64:
-		// 	tstr = fmt.Sprintf("%x", xx)
-		// case byte:
-		// 	tstr = fmt.Sprintf("%x", xx)
-		// case objects.Glif:
-		// 	tstr = fmt.Sprintf("%x", xx)
-		// }
+	case 'o':
+		switch d := val.(type) {
+		case int64, objects.Glif, byte:
+			tstr = fmt.Sprintf("%o", d)
+		default:
+			panic(fmt.Sprintf("s-format cant represend %v as `o` type.", val))
+		}
 	}
 
 	// TODO: maybe not actual
