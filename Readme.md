@@ -177,23 +177,36 @@ next - by dates...
 - Done container pattern (list, tuple, struct, dict, some) with subpatterns: list, tuple, dict, type, @, re'', A{},  
 - --02 Added entity **enum**, def: `enum Name elem1, elem2, ..`, usage: `Name.elem2`  
 - -- 03 Added matching pattern `enum`: `EnumName.element`  
-
+- -- 12 Added f-string formatting by `~` operator "overloaded" for string lexem.  
+        In this case is not real overloading because parsing of string is happened before execution of code block.  
+        semantically ~"" strings it's a syntax sugar of concatenation strings from any sources: var, func call, sub-elems etc.  
+        added pre-parsing in parser if (`~` Lt.Oper) before Lt.Text, store as ExtString{} object.  
+        Done: parsing of string, parsing of included expression and format-pattern.  
+        Done pattern elements:    
+            zero-leading on numbers, size of include: `08`   
+            shifting inside sized place: `<` `>` `^`.  
+            data types: `s`, `f`, `d`.  
+- -- 14 Done: f-string datatypes: `x`, `b`, `o`, `c`  
+- --14 f-string: Tested and fixed `f`-pattern in f-strings: `{num: >+10.3f}`  
+- --15 F-string: Added `e`- presentation for numric types: `{num: +10.5e}`  
 
 
 #### next TODO:
+- formatting by expression include: `~"Hello {name}!"`     
+    not sure we need real `~` operator for apply it on any string value.
+    - g
+    - = 
+    - _ ,
+
+- `const`  
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
-- formatting by expression include: `~"Hello {name}!"`     
-    add pre-parsing in parser if (`~` Lt.Oper) before Lt.Text, store as ExtString{} object.  
-    not sure we need real `~` operator for apply it on any string value.
-    semantically ~"" strings it's a syntax sugar of concatenation strings from any sources: var, func call, sub-elems etc.   
-- regexp operators [ split: `/~`-  thinking]    
-- CLI: lp file.et  
-- `const`  
+- CLI runner: lp file.et  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
 - grup  
-- glif by x-code, u-code: `g'x41'`, `g'u03b3'`  
+- regexp operators [ split: `/~`-  thinking]  ??   
+- glif by x-code, u-code: `g'x41'`, `g'u03b3'` ??   
 
 
 TO think:  

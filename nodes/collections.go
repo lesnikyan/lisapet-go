@@ -191,7 +191,8 @@ func (cc *ColElem) Get() *base.Val {
 		if !ok {
 			panic("incorrect type of index in collection-elem expr")
 		}
-		res := src[int(index)]
+		relem := []rune(src)[int(index)]
+		res := objects.Glif(relem)
 		return base.NewVal(res)
 
 	case *objects.DictVal:

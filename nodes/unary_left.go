@@ -142,6 +142,8 @@ func DelElem(cx base.Context, arg base.Expression) error {
 	return fmt.Errorf("operator @!: trying to delete incorrect type: %T", arg)
 }
 
+// ====
+
 type BackSlash struct {
 	Right base.Expression
 
@@ -161,5 +163,58 @@ func (op *BackSlash) Get() *base.Val {
 }
 
 func (op *BackSlash) Do(cx base.Context) error {
+	return nil
+}
+
+// ====
+
+type TextNode struct {
+	Text string
+}
+
+func (tn *TextNode) Get() *base.Val {
+	return base.NewVal(tn.Text)
+}
+
+func (tn *TextNode) Do(cx base.Context) error {
+	return nil
+}
+
+// ====
+
+type FormatElem struct {
+	Expr   base.Expression
+	Format *SFormOptions //
+
+	res string
+}
+
+func (op *FormatElem) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *FormatElem) Do(cx base.Context) error {
+	return nil
+}
+
+// ====
+
+type FStrNode struct {
+	Parts []*FormatElem
+
+	res string
+}
+
+func (op *FStrNode) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *FStrNode) Do(cx base.Context) error {
+	// fmt.Printf("FStrNode.Do#0 len parts = %d \n", len(op.Parts))
+	res, err := FPartsConcate(op.Parts, cx)
+	if err != nil {
+		return err
+	}
+	op.res = res
 	return nil
 }

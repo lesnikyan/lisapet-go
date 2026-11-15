@@ -102,6 +102,56 @@ func DotCaseNum(node *OperNode) *nodes.ValExpr {
 	return &nodes.ValExpr{Val: nval}
 }
 
+func StrFormNode(node *OperNode) (base.Expression, bool) {
+	// fmt.Printf("oper ~str: subNodes: %d \n", len(node.subNodes))
+	pps := make([]*nodes.FormatElem, len(node.subNodes))
+	var exp base.Expression
+	var fel *nodes.SFormOptions
+	var ok bool
+	// var err error
+	for i, fp := range node.subNodes {
+		p := fp.Node
+		fel = nil
+		// fmt.Printf(" -- -- : fstr-case-i:%d: op `%s` form: `%s` \n", i, p.oper, p.subStr)
+		// PrintONode(p, 0)
+		switch p.oper {
+		case "T":
+			// means just text part
+			if len(p.rightElems) == 0 {
+				continue
+			}
+			exp = &nodes.TextNode{Text: p.rightElems[0].Text}
+
+		default:
+			// if p.rightNode != nil {
+			// 	pnode := p.rightNode
+			// 	switch pnode.oper {
+			// 	case ":":
+			// 		// has formatting suffix
+			// 	case "=":
+			// 		// {varname = } // means: 'varname = value'
+			// 	}
+			// }
+			exp, ok = OperSub(p.rightNode, p.rightElems)
+			if !ok {
+				return nil, false
+			}
+			strForm := fp.Node.subStr
+			if len(strForm) > 0 {
+				form, err := nodes.FormOption(strForm)
+				if err != nil {
+					// fmt.Printf("!! sform case err: %v \n", err)
+					return nil, false
+				}
+				fel = form
+			}
+		}
+		formel := &nodes.FormatElem{Expr: exp, Format: fel}
+		pps[i] = formel
+	}
+	return &nodes.FStrNode{Parts: pps}, true
+}
+
 // func ProcOperTree(rNode *OperNode) (base.OperExpr, bool) {
 func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 	var expr base.OperExpr
@@ -125,6 +175,8 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.OperBinAssign{Oper: OperByStr(oper)}
 	case "=~", "?~", "/~":
 		expr = &nodes.OperBin{Oper: OperByStr(oper)} // Rx opers
+	case "~str":
+		return StrFormNode(rNode)
 	case "?>", "!?>":
 		expr = &nodes.OperIn{Oper: OperByStr(oper)} // Rx opers
 	case "..":
@@ -164,7 +216,7 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		}
 
 	}
-	// println("$$PROP#1=:", expr)
+	// fmt.Printf("$$PROP#1= %T\n", expr)
 	// fmt.Printf("POT#2 %v (%T: %v) \n", oper, expr, expr)
 	lArg, lok := OperSub(rNode.leftNode, rNode.leftElems)
 	if lok {
