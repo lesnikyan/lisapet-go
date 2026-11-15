@@ -187,26 +187,25 @@ next - by dates...
             shifting inside sized place: `<` `>` `^`.  
             data types: `s`, `f`, `d`.  
 - -- 14 Done: f-string datatypes: `x`, `b`, `o`, `c`  
-
+- --14 f-string: Tested and fixed `f`-pattern in f-strings: `{num: >+10.3f}`  
+- --15 F-string: Added `e`- presentation for numric types: `{num: +10.5e}`  
 
 
 #### next TODO:
 - formatting by expression include: `~"Hello {name}!"`     
     not sure we need real `~` operator for apply it on any string value.
-    - f
-    - e
     - g
     - = 
     - _ ,
 
+- `const`  
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
-- regexp operators [ split: `/~`-  thinking]    
-- CLI: lp file.et  
-- `const`  
+- CLI runner: lp file.et  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
 - grup  
+- regexp operators [ split: `/~`-  thinking]  ??   
 - glif by x-code, u-code: `g'x41'`, `g'u03b3'` ??   
 
 
