@@ -39,11 +39,9 @@ func (vex *ValExpr) Get() *base.Val {
 	switch val := v.(type) {
 	case string:
 		// fmt.Println("ValExp: T:", val)
-		// v = val[1 : len(val)-1]
 		v = base.CropStr(val, 1, 1)
 	case *MString:
 		// fmt.Println("ValExp:MT:", val.V
-		// v = val.V[3 : len(val.V)-3]
 		v = base.CropStr(val.V, 3, 3)
 	default:
 		v = val
@@ -212,7 +210,6 @@ func GetExprTarget(v base.Expression, cx base.Context) any {
 		vr := GetVar(vv, cx)
 		return vr
 	case *SequenceComma:
-		// subs := vv.Subs
 		r := make([]*base.Var, len(vv.Subs))
 		for i, vsub := range vv.Subs {
 			vrex, ok := vsub.(*VarExpr)
@@ -263,11 +260,9 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	case *ValExpr:
 		eVal = vv.Get()
 		// fmt.Printf("GetExprVal#Val: %T, %v\n", eVal.V, eVal.V)
-		// return eVal.V
 	case *ColElemExpr:
 		// fmt.Printf("GetExp.ColElem#Val: %T, %v\n", eVal, eVal)
 		eVal = vv.ColRes.Get()
-		// return eVal.V
 	case *FuncCall:
 		eVal := vv.Get()
 		if eVal == nil {

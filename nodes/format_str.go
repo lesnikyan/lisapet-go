@@ -93,61 +93,9 @@ func val2Str(val any, opt *SFormOptions) string {
 			panic("template `%s` wait a string value")
 		}
 	case 'f':
-		// switch val.(type) {
-		// case int64, byte, float64, objects.Glif:
-		// var fv float64
-		// switch f := val.(type) {
-		// case int64:
-		// 	fv = float64(f)
-		// case byte:
-		// 	fv = float64(f)
-		// case float64:
-		// 	fv = float64(f)
-		// case objects.Glif:
-		// 	fv = float64(f)
-		// }
-		// if opt.DecimSize > -1 {
-		// 	fds := math.Pow10(opt.DecimSize)
-		// 	fv = math.Round(fv*fds) / fds
-		// }
-		// tstr = fmt.Sprintf("%f", fv)
-		// // fmt.Printf(" #4: tstr: %s \n", tstr)
-		// if opt != nil {
-		// 	if opt.DecimSize > -1 {
-		// 		frun := []rune(tstr)
-		// 		dind := strings.IndexRune(tstr, '.')
-		// 		tv := frun[:dind+1]
-		// 		decv := frun[dind+1:]
-		// 		if len(decv) > opt.DecimSize {
-		// 			decv = decv[0:opt.DecimSize]
-		// 			tv = append(tv, decv...)
-		// 		}
-		// 		tstr = fmt.Sprintf("%s.%s", string(frun[0:dind]), string(decv))
-		// 	}
-		// }
-		// }
-		// if opt.DecimSize == -1 {
-		// 	opt.DecimSize = 6
-		// }
 		tstr = floatVal(fv, opt)
 	case 'e':
 		opt.Zero = false
-		// if opt.DecimSize == -1 {
-		// 	opt.DecimSize = 6
-		// }
-		// var vv float64
-		// switch d := val.(type) {
-		// case int64:
-		// 	vv = float64(d)
-		// case objects.Glif:
-		// 	vv = float64(d)
-		// case byte:
-		// 	vv = float64(d)
-		// case float64:
-		// 	vv = d
-		// default:
-		// 	panic(fmt.Sprintf("s-format cant represend %v as `e` type.", val))
-		// }
 		dsz := ""
 		dpoint := ""
 		// esig := ""
@@ -156,9 +104,6 @@ func val2Str(val any, opt *SFormOptions) string {
 			dpoint = "."
 			dsz = fmt.Sprintf("%d", opt.DecimSize)
 		}
-		// if opt.Sign != 0 {
-		// 	// esig
-		// }
 		ePatr := fmt.Sprintf("%%%s%se", dpoint, dsz)
 		tstr = fmt.Sprintf(ePatr, fv)
 		// println(" #2.0 tstr:", tstr)
@@ -230,37 +175,16 @@ func val2Str(val any, opt *SFormOptions) string {
 		if IsLess(val, 0) {
 			negative = true
 		}
-		// if opt.Sign != 0 {
-		// if negative {
-		// sign = "-"
-		// } else {
-		// if opt.Sign == '+' {
-		// 	sign = "+"
-		// }
-		// }
-		// }
 		if opt.Align == AlignDefault {
 			opt.Align = AlignDefNum
 		}
 	}
-
-	// if !negative && sign == "+" {
-	// 	tstr = sign + tstr
-	// }
-
 	// indent and align
 	tlen := utf8.RuneCountInString(tstr)
 	if opt.Sign == 0 && (opt.Size == 0 || tlen >= opt.Size) {
 		// no size and align
 		return tstr
 	}
-
-	// >>> f"{-12:>04d}"
-	// '0-12'
-	// >>> f"{-12:04d}"
-	// '-012'
-	// tstr = tstr
-
 	tsig := '~'
 	sglen := 0
 	// fmt.Printf(" #5-align: %d , negat: %v, Sign: %c, val: %v type: %c \n", opt.Align, negative, opt.Sign, val, xtype)
@@ -273,14 +197,6 @@ func val2Str(val any, opt *SFormOptions) string {
 			tlen--
 		}
 		sglen = 1
-		// switch opt.Align {
-		// case AlignDefNum:
-		// 	// sign first
-		// case AlignRight:
-		// 	// sign just before num
-
-		// }
-
 	}
 
 	fill := " "
@@ -363,9 +279,6 @@ func FPartsConcate(parts []*FormatElem, cx base.Context) (string, error) {
 		switch next := expr.(type) {
 		case *TextNode:
 			spart = next.Text
-		// case *ValExpr:
-		// 	pval = next.Val
-		// spart = val2Str(pval, form)
 		default:
 			err := next.Do(cx)
 			if err != nil {

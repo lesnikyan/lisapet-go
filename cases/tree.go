@@ -268,9 +268,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		if cind <= nblock.indent {
 			// fmt.Println(" << back indent")
 			// end of prev block
-			// if _, ok := expr.(*nodes.ElseNode); ok {
-			// 	elseInd = true
-			// }
 			pfound := false
 			for i := len(parents) - 1; i >= 0; i-- {
 				pfound = false
@@ -281,7 +278,6 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 				} else if parents[i].indent < cind {
 					pfound = true
 				}
-				// pfound = () || ()
 				if pfound {
 					nblock = parents[i]
 					parents = parents[:i+1]
@@ -318,38 +314,7 @@ func TreeBlock(clines []*lang.CLine) (*nodes.BlockExpr, error) {
 		prevExpr = nExpr
 		nExpr = &ExprLink{elem: expr, indent: cind}
 		// fmt.Println("tt2>", fmt.Sprintf("%T", expr), nodes.OperArgsInfo(expr))
-
-		// elseInd := false // if expr is `else`
-		// elseInd = cline.Elems[0].Type == Lt.Word && cline.Elems[0].Text == "else"
-
-		// // fmt.Println("Tree,Indent:", nblock.indent, cind, " back lvl:", cind <= nblock.indent, "pLen:", len(parents))
-		// if cind <= nblock.indent {
-		// 	// end of prev block
-		// 	if _, ok := expr.(*nodes.ElseNode); ok {
-		// 		elseInd = true
-		// 	}
-		// 	pfound := false
-		// 	for i := len(parents) - 1; i >= 0; i-- {
-		// 		pfound = false
-		// 		if elseInd {
-		// 			if parents[i].indent == cind {
-		// 				pfound = true
-		// 			}
-		// 		} else if parents[i].indent < cind {
-		// 			pfound = true
-		// 		}
-		// 		// pfound = () || ()
-		// 		if pfound {
-		// 			nblock = parents[i]
-		// 			parents = parents[:i+1]
-		// 			break
-		// 		}
-		// 	}
-		// }
-		// fmt.Println("Tree,Indent2:", "pLen:", len(parents))
-
 		// fmt.Printf("tree.Block3 %T: %v .line: (%T: %v)  \n", nblock.elem, nblock.elem, expr, expr)
-		// fmt.Printf("tree.Block3 %T .line: (%T)  \n", nblock.elem, expr)
 		switch texp := expr.(type) { // cur expr
 		case *nodes.ElseNode:
 			// nblock is: if | else if

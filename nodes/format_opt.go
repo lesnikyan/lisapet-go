@@ -85,7 +85,7 @@ func FormOption(src string) (*SFormOptions, error) {
 		// at least data type char
 		tp = runes[rlen-1]
 		if !strings.ContainsRune(_validType, tp) {
-			return nil, fmt.Errorf("format string: bad type of data symbol: %c", tp)
+			return nil, fmt.Errorf("format string: bad type of data symbol: %c in `%s`", tp, src)
 		}
 		opt.Type = tp
 	}
@@ -140,9 +140,6 @@ func FormOption(src string) (*SFormOptions, error) {
 				}
 			}
 		}
-		// if opt.DecimSize == 0 {
-		// 	opt.DecimSize = 6
-		// }
 	}
 	if strings.ContainsRune("dfegxob%", tp) {
 		// numeric value

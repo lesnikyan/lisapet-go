@@ -50,7 +50,7 @@ var opers2 = strings.Split(
 	` `)
 
 // # if i > 0 and el.text in ['-', '+', '!', '~'] and elems[i-1].type == Lt.oper and elems[i-1].text != ')'
-var unarOpers = `- + ! ~`
+// var unarOpers = `- + ! ~`
 
 //
 
@@ -101,9 +101,6 @@ func elemType(c rune, prev Lt.Lt) Lt.Lt {
 		if strings.ContainsRune(extNum, c) {
 			return Lt.Num
 		}
-		// if c == '.' {
-		// 	return prev
-		// }
 	case Lt.Word:
 		if strings.ContainsRune(c_nums, c) || has(charSet, c) {
 			return Lt.Word
@@ -127,11 +124,6 @@ func elemType(c rune, prev Lt.Lt) Lt.Lt {
 
 	return Lt.None
 }
-
-// func f() {
-// 	// lt.LtClose
-// 	fmt.Print(Lt.Block)
-// }
 
 // is string, comment, etc
 type SplitContext struct {
@@ -207,14 +199,7 @@ func finCond(cur []rune, next rune, curType Lt.Lt, prevType Lt.Lt) bool {
 		if curType != Lt.Quot {
 			return false
 		}
-		// TODO: need 1-st line of mttext to detect valid close sequence
-		// clen := len(cur)
-		// if clen < 5 {
-		// 	return false
-		// }
-		// if next == cur[clen-1] && next == cur[clen-2] {
-		// 	return true
-		// }
+
 		return closeMult(cur, closeMstr, next)
 
 	case Lt.Num:
@@ -245,7 +230,6 @@ func nextType(ntype Lt.Lt, c rune) Lt.Lt {
 
 type Er rune // escaped rune
 
-// var closeMstrEnd = []int{0, -3, -2}
 var closeMstr = []int{0, -2, -1}
 
 func closeMult(prev []rune, cc []int, last rune) bool {
@@ -253,7 +237,6 @@ func closeMult(prev []rune, cc []int, last rune) bool {
 	if clen < 5 {
 		return false
 	}
-	// last := prev[clen-1]
 	for _, c := range cc {
 		ci := c
 		if c < 0 {
@@ -266,7 +249,6 @@ func closeMult(prev []rune, cc []int, last rune) bool {
 		}
 	}
 	return true
-	// return cmp.Compare(cur[0:3], cur[clen-3:clen-1]) == 0
 }
 
 var endLine = '\n'
@@ -288,7 +270,6 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 
 	// log.Printf("SpLine#1:  , c<%s: %d> esc:%v  \"%s\" ", Lt.TName(ctype), ctype, esc, string(cur))
 	// log.Printf("SpLine#2:  \\\\%s//", string(runes))
-	// muq := '*'         // multiline string quote char
 	for _, c := range runes {
 		// cur = append(cur, c)
 
@@ -296,14 +277,6 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 		case Lt.Comm:
 			cur = append(cur, c)
 			continue
-			// case Lt.Mtcomm:
-			// 	// if not close
-			// 	cur = append(cur, c)
-			// 	continue
-			// case Lt.Mttext:
-			// 	// if not close
-			// 	cur = append(cur, c)
-			// 	continue
 		}
 
 		curStr := ctype == Lt.Text || ctype == Lt.Mttext // prev is text
@@ -326,8 +299,6 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 				// log.Printf("esc#2:  , c<%s>  _%s_ ", Lt.TName(xtype), string(c))
 				esc = false
 				if rep, ok := escMap[c]; ok {
-					// c = rep
-					// cur = cur[0 : len(cur)-2]
 					cur = append(cur, rep)
 					continue
 				} else {
@@ -346,14 +317,12 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 				lastEsc = -1
 			}
 			if len(res) > 0 && len(cur) == 0 {
-				// if prev == [quot, quot]
 				rlast := res[len(res)-1]
 				if rlast.Type == Lt.Text && len(rlast.Text) == 2 {
 					preRr := []rune(rlast.Text)
 					if c == preRr[0] {
 						// s = ''' '''
 						// start of multiline string
-						// muq = c
 						res = res[0 : len(res)-1]
 						cur = preRr
 						xtype = Lt.Mttext
@@ -390,34 +359,8 @@ func SplitLine(runes []rune, ctx *SplitContext) []*lang.Elem {
 			elem := &lang.Elem{Text: text, Type: ctype}
 			res = append(res, elem)
 			cur = []rune{}
-			// if ctype != Lt.Text && ctype != Lt.Mttext{
 			if !curStr {
 				cur = append(cur, c)
-			} else {
-				// check formatting mod ~""
-				// if len(res) > 1 {
-				// 	index := len(res) - 1
-				// 	prev := res[index-1]
-				// 	log.Printf(" ~? %s: %s == %v \n", Lt.TName(prev.Type), prev.Text, prev.Type == Lt.Oper && prev.Text == "~")
-				// 	if prev.Type == Lt.Oper && prev.Text == "~" {
-				// 		// if formatting string - parse it to extra Elems
-				// 		if ctx.extEls == nil {
-				// 			ctx.extEls = make(map[int][]*lang.Elem)
-				// 		}
-				// 		log.Printf(" substr index: %d, text: `%s`\n", index, res[index].Text)
-				// 		var vtx string
-				// 		sval := res[index].Text
-				// 		switch res[index].Type {
-				// 		case Lt.Text:
-				// 			// fmt.Println("ValExp: T:", val)
-				// 			vtx = base.CropStr(sval, 1, 1)
-				// 		case Lt.Mttext:
-				// 			// fmt.Println("ValExp:MT:", val.V
-				// 			vtx = base.CropStr(sval, 3, 3)
-				// 		}
-				// 		ctx.extEls[index+len(ctx.elems)] = SplitLine([]rune(vtx), &SplitContext{})
-				// 	}
-				// }
 			}
 			ctype = ntype
 			continue
@@ -453,7 +396,6 @@ var rrr = regexp.MustCompile(`\s`)
 var _spaces = " \t"
 
 func cutIndent(rline []rune, fixCut int) ([]rune, int) {
-	// cutSize := fixCut + 1
 	for i, r := range rline {
 		if i < fixCut && !strings.ContainsRune(_spaces, r) {
 			return rline[i:], i
@@ -482,7 +424,6 @@ func SplitCode(code string) []*lang.CLine {
 					BaseIndent = i - 1
 				}
 			}
-			// cutIndent(line)
 		}
 		break
 	}
@@ -510,12 +451,9 @@ func SplitCode(code string) []*lang.CLine {
 			curInd = size / indSize
 		}
 		lems := SplitLine(rline, ctx)
-		// lastEl := lems[len(lems)-1]
 		// fmt.Printf("pars.Line last: type: %s, tx: %s\n", Lt.TName(ctx.Ltype), string(ctx.prev))
-		// extEls := ctx.extEls
 		switch ctx.Ltype {
 		case Lt.Mttext:
-			// ctx.Ltype = lastEl.Type
 			ctx.elems = append(ctx.elems, lems...)
 			ctx.prev = append(ctx.prev, endLine)
 			ctx.indent = curInd
@@ -526,14 +464,6 @@ func SplitCode(code string) []*lang.CLine {
 		if len(lems) == 0 {
 			continue
 		}
-		// fmt.Printf("",  lang.FPrintElems(lems))
-		// for ii, sss := range lems {
-		// 	fmt.Printf(" ppe: %d) %s: %s \n", ii, Lt.TName(sss.Type), sss.Text)
-		// }
-		// fmt.Printf(" ctx.Extra len: %d \n", len(extEls))
-		// for kk, eee := range extEls {
-		// 	fmt.Printf(" xxe: %d) %s \n", kk, lang.FPrintElems(eee))
-		// }
 		res[i] = &lang.CLine{Elems: lems, Src: line, Indent: curInd}
 	}
 	return res
