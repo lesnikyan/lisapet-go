@@ -123,15 +123,7 @@ func StrFormNode(node *OperNode) (base.Expression, bool) {
 			exp = &nodes.TextNode{Text: p.rightElems[0].Text}
 
 		default:
-			// if p.rightNode != nil {
-			// 	pnode := p.rightNode
-			// 	switch pnode.oper {
-			// 	case ":":
-			// 		// has formatting suffix
-			// 	case "=":
-			// 		// {varname = } // means: 'varname = value'
-			// 	}
-			// }
+
 			exp, ok = OperSub(p.rightNode, p.rightElems)
 			if !ok {
 				return nil, false
@@ -141,7 +133,8 @@ func StrFormNode(node *OperNode) (base.Expression, bool) {
 				form, err := nodes.FormOption(strForm)
 				if err != nil {
 					// fmt.Printf("!! sform case err: %v \n", err)
-					return nil, false
+					panic(err.Error())
+					// return nil, false
 				}
 				fel = form
 			}

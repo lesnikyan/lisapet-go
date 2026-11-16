@@ -33,12 +33,15 @@ type FNode struct {
 }
 
 type FString struct {
-	Elems []*FPart
-	// Nodes []*OperNode
+	Elems  []*FPart
 	FNodes []*FNode
 }
 
 // ' a {a + b : <+05.4f} b'
+
+var _openBrs = "({["
+var _closeBrs = "}])"
+var _spaces = " \t"
 
 func SplitFString(elem *lang.Elem) (*FString, error) {
 	// fmt.Printf("SF-S. Text: `%v` \n", etext)
@@ -74,7 +77,6 @@ func SplitFString(elem *lang.Elem) (*FString, error) {
 				exp = true
 				next := string(cur[0:curLen])
 				// fmt.Printf("  fpartS %d): `%s`\n", i, next)
-				// res = append(res, &FPart{Text: next})
 				nelems := []*lang.Elem{&lang.Elem{Type: Lt.Text, Text: next}}
 				rnodes = append(rnodes, &FNode{Form: "", Node: &OperNode{oper: "T", rightElems: nelems}})
 				curLen = 0
@@ -86,9 +88,9 @@ func SplitFString(elem *lang.Elem) (*FString, error) {
 			cur[curLen] = c
 			curLen++
 		} else {
-			if strings.ContainsRune("({[", c) {
+			if strings.ContainsRune(_openBrs, c) {
 				inBr++
-			} else if strings.ContainsRune("}])", c) {
+			} else if strings.ContainsRune(_closeBrs, c) {
 				inBr--
 			}
 			if inBr > 0 {
@@ -103,17 +105,24 @@ func SplitFString(elem *lang.Elem) (*FString, error) {
 			if c == '}' {
 				exp = false
 				// close sub expr
-				// expText := subStr[0:subLen]
 				expText := runes[expStart : expStart+subLen]
 				form := ""
 				if formLen > 0 {
-					form = string(runes[expStart+subLen+1 : expStart+subLen+formLen])
+					rawrr := runes[expStart+subLen+1 : expStart+subLen+formLen]
+					rr := make([]rune, len(rawrr))
+					i := 0
+					for _, r := range rawrr {
+						if strings.ContainsRune(_spaces, r) {
+							continue
+						}
+						rr[i] = r
+						i++
+					}
+					form = string(rr[0:i])
 				}
 				// fmt.Printf("  fpartN: `%s`, form: `%s` \n", string(expText), form)
 				//...
 				elems := parser.SplitLine(expText, &parser.SplitContext{})
-				// rootNode := &OperNode{oper: "FS", leftElems: []*lang.Elem{elems[0]}, prior: 111}
-				// treeRoot := &LineTree{Tree: rootNode, Parents: []*OperNode{rootNode}}
 				tres, err := Line2tree(elems, nil)
 				if err != nil {
 					return nil, err
@@ -121,17 +130,10 @@ func SplitFString(elem *lang.Elem) (*FString, error) {
 				ltree := tres.Tree
 				// println("$== split format", ltree.oper)
 				// PrintONode(ltree, 0)
-				// operTree := ltree.rightNode
-				// operElems := ltree.rightElems
 				// +> as a special oper case
 				rnodes = append(rnodes, &FNode{Form: form, Node: &OperNode{
 					oper: "+>", rightNode: ltree.rightNode, rightElems: ltree.rightElems,
 					subStr: form}})
-				// subExp, ok := OperSub(ltree.rightNode, ltree.rightElems)
-				// if !ok {
-				// 	return nil, fmt.Errorf("format string: error in build oper tree from: `%s` ", string(expText))
-				// }
-				// res = append(res, &FPart{Node: subExp, Text: string(subStr[0:subLen])})
 				subLen = 0
 				continue
 			}

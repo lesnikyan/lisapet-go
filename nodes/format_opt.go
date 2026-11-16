@@ -69,6 +69,7 @@ type SFormOptions struct {
 var digRx = re.MustCompile("^[0-9]$")
 var digitsRx = re.MustCompile("^[0-9]+$")
 var arrRx = re.MustCompile(`[<>\^]`)
+var _validType = "dobxfesc%"
 
 func FormOption(src string) (*SFormOptions, error) {
 	// error if prefix is incorrect
@@ -83,6 +84,9 @@ func FormOption(src string) (*SFormOptions, error) {
 	if rlen > 0 {
 		// at least data type char
 		tp = runes[rlen-1]
+		if !strings.ContainsRune(_validType, tp) {
+			return nil, fmt.Errorf("format string: bad type of data symbol: %c in `%s`", tp, src)
+		}
 		opt.Type = tp
 	}
 	// println(" -- tp:", string(tp))
@@ -110,7 +114,7 @@ func FormOption(src string) (*SFormOptions, error) {
 		// just 1 char format {val : d}
 		return opt, nil
 	}
-	if strings.ContainsRune("feg", tp) {
+	if strings.ContainsRune("feg%", tp) {
 		// look for `.`
 		dind := strings.Index(src, ".")
 		// println("fe dind:", dind)
@@ -137,7 +141,7 @@ func FormOption(src string) (*SFormOptions, error) {
 			}
 		}
 	}
-	if strings.ContainsRune("dfegxob", tp) {
+	if strings.ContainsRune("dfegxob%", tp) {
 		// numeric value
 		if strings.ContainsRune("+-", runes[i1]) {
 			// signed
@@ -150,7 +154,7 @@ func FormOption(src string) (*SFormOptions, error) {
 		}
 		if i2 > 0 && runes[i2-1] == ',' {
 			// comma-block for numbers
-			// TODO
+			// TODO: postponed
 			i2--
 		}
 	}

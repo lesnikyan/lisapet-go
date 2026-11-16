@@ -33,11 +33,6 @@ func (op *OperAssign) SetRight(xp base.Expression) {
 	op.Right = xp
 }
 
-// func (op *OperAssign) IsParent() bool {
-// 	// don't used as Block by default
-// 	return false
-// }
-
 func (op *OperAssign) Get() *base.Val {
 	return base.NewVal(op.res) // make sense for last expression in the Block
 }
@@ -105,7 +100,6 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 
 func SetValTo(leftObj any, rval any) error {
 	// fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
-	// valTtype := objects.TypeByVal(rval)
 	switch target := leftObj.(type) {
 	// TODO: col[key] = val
 	case *ColElem:
@@ -133,7 +127,6 @@ func SetValTo(leftObj any, rval any) error {
 			return errors.New("oper assign: multi, incorrect count of vals")
 		}
 		for i, vr := range target {
-			// err := SetValTo(vr, valSet[i])
 			err := objects.SetVarVal(vr, valSet[i])
 			if err != nil {
 				return err
@@ -204,7 +197,6 @@ func (op *OperBinAssign) Do(cx base.Context) error {
 		// fmt.Println("OperBinAssign.R error", err2)
 		return err2
 	}
-	// rval := GetExprVal(op.right, cx)
 	lvv := GetExprVal(op.left, cx)
 	rvv := GetExprVal(op.right, cx)
 	if isOverloadedMasgn(lvv) {

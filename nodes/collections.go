@@ -37,7 +37,6 @@ func CollExprValues(src []base.Expression, num int) []any {
 		switch exv := ex.(type) {
 		case *TripleDots:
 			var subs []any
-			// for j, sub := range el.
 			val := GetExprVal(exv, nil)
 			switch coll := val.(type) {
 			case *objects.Maybe:
@@ -58,7 +57,6 @@ func CollExprValues(src []base.Expression, num int) []any {
 				i++
 			}
 		default:
-
 			// fmt.Printf(" = ColDo %T, (%T, %v) \n", ex, GetExprVal(exv, nil), GetExprVal(exv, nil))
 			elems[i] = GetExprVal(exv, nil)
 			i++
@@ -83,8 +81,6 @@ func DoSeq[T *ListExpr | *TupleExpr](ctx base.Context, col T) (int, []base.Expre
 	src := make([]base.Expression, len(seq.Subs))
 	copy(src, seq.Subs)
 	src = append(src, subs...)
-	// res := make([]any, len(src))
-	// fmt.Println("[] List Do:", len(src))
 	num := 0
 	for _, ex := range src {
 		ds := 1
@@ -244,9 +240,7 @@ func (cc *ColElemExpr) Do(ctx base.Context) error {
 		return err
 	}
 	kval := GetExprVal(cc.Key, ctx)
-	// cc.KVal = kval
 	sval := GetExprVal(cc.Col, ctx)
-	// cc.Src = sval
 	cc.ColRes = &ColElem{Src: sval, KVal: kval}
 	return nil
 }
@@ -536,20 +530,7 @@ func (bx *BytesExpr) Parse() error {
 		k = 10
 	}
 	switch sx := bx.Subs.(type) {
-	// case *NumField:
-	// 	fmt.Printf("BytesX.Parse NumField (%T, %v) %v \n", sx, sx, sx.V)
-	// 	nums, err := ParseBytes(sx.V, k)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	bx.res = nums
 	case *NumField:
-		// fmt.Printf("BytesX.Parse NumField (%T, %v) %v \n", sx, sx, sx.V)
-		// nums, err := ParseBytes(sx.V, k)
-		// if err != nil {
-		// 	return err
-		// }
-		// bx.res = nums
 		nums := []byte{}
 		for _, ss := range sx.V {
 			bb, err := ParseByteLine(ss, k)
@@ -570,10 +551,7 @@ func (bx *BytesExpr) Parse() error {
 			return err
 		}
 		bx.res = bb
-		// case *ValExpr:
 		// fmt.Printf("BytesX.Parse Val (%T, %v) %v \n", sx, sx, sx.Val)
-		// ParseByteLine(sx.Src, k)
-		// case *VarExpr:
 		// fmt.Printf("BytesX.Parse Var (%T, %v) %v \n", sx, sx, sx.GetName())
 	}
 	return nil
@@ -599,7 +577,6 @@ func (t *ByteLine) Get() *base.Val {
 }
 
 func NewByteLine(elems []*lang.Elem) *ByteLine {
-	// nn:= make([]string)
 	var val string
 	if len(elems) == 1 {
 		val = elems[0].Text

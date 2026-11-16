@@ -2,6 +2,7 @@ package cases
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/lesnikyan/lisapet-go/nodes"
@@ -18,16 +19,148 @@ o +
 f +
 . +
 e +
-g
-%
+g -
+% +
 0 +
-, _ |
+, _ | -
 + - | +
 < +
 > +
 ^ +
 
+question: do we need that: `g` `_` `,` ?
 */
+
+func TestFSFormatMultiline(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 0.21
+		y = 'Hello1'
+		r = ~'''x1: {x:6.2f}
+		{y:12s}'''
+		`, "r", "x1:   0.21\nHello1      "},
+		{`
+		x = 0.22
+		y = 'Hello2'
+		r = ~"""x1: {x:6.2f}
+		{y:12s}"""
+		`, "r", "x1:   0.22\nHello2      "},
+		{`
+		x = 0.22
+		y = 'Hello3'
+		r = ~^^^x1: {x:6.2f}
+		{y:12s}^^^
+		`, "r", "x1:   0.22\nHello3      "},
+		{`
+		x = 0.2345
+		y = 'Hello3'
+		nn = [1,2,3,4]
+		ss = ['aaa','bbb','ccc',]
+		func foo()
+			'f00_text'
+		func bar(x)
+			~"__{x}__"
+		
+		r = ~'''t5
+		x: {x}
+		y: {y}
+		f: {foo():10s}
+		b1: {bar(123):15s}
+		b2: {bar('HelloB'):15s}
+		n1: {nn[1]:+08d}
+		s1: {ss[1]:>8s}
+		'''
+		`, "r", "t5\nx: 0.234500\ny: Hello3\nf: f00_text  \nb1: __123__        \nb2: __HelloB__     \nn1: +0000002\ns1:      bbb\n"},
+	}
+	for i, tt := range tdata {
+		tt.src = strings.ReplaceAll(tt.src, "^", "`")
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestFSFormatPercent(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		x = 0.21
+		r = ~"x1: {x:%}"
+		`, "r", "x1: 21.000000%"},
+		{`
+		x = -0.211
+		r = ~"x1: {x:%}"
+		`, "r", "x1: -21.100000%"},
+		{`
+		x = -0.211
+		r = ~"x1: {x:.3%}"
+		`, "r", "x1: -21.100%"},
+		{`
+		x = -0.211
+		r = ~"x1: {x:.9%}"
+		`, "r", "x1: -21.100000000%"},
+		{`
+		x = 0.121234567890123456789
+		r = ~"x1: {x:.15%}"
+		`, "r", "x1: 12.123456789012346%"},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:15.5%}"
+		`, "r", "x1: 12.12346%      "},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:<15.5%}"
+		`, "r", "x1: 12.12346%      "},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:>15.5%}"
+		`, "r", "x1:       12.12346%"},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:^15.5%}"
+		`, "r", "x1:    12.12346%   "},
+		{`
+		x = -0.12123456789
+		r = ~"x1: {x:15.5%}"
+		`, "r", "x1: -12.12346%     "},
+		{`
+		x = -0.12123456789
+		r = ~"x1: {x:<15.5%}"
+		`, "r", "x1: -12.12346%     "},
+		{`
+		x = -0.12123456789
+		r = ~"x1: {x:>15.5%}"
+		`, "r", "x1:      -12.12346%"},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:^15.5%}"
+		`, "r", "x1:    12.12346%   "},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:15.5%}"
+		`, "r", "x1: 12.12346%      "},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:<+15.5%}"
+		`, "r", "x1: +12.12346%     "},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:>+15.5%}"
+		`, "r", "x1:      +12.12346%"},
+		{`
+		x = 0.12123456789
+		r = ~"x1: {x:^+15.5%}"
+		`, "r", "x1:   +12.12346%   "},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
 
 func TestFSFormatE(t *testing.T) {
 	tdata := []struct {
@@ -677,6 +810,12 @@ func TestStringFormatSimple(t *testing.T) {
 		for c <- cc
 			r <- ~"!{c}!"
 		`, "r", Anis("!A!", "!Q!", "!@!", "!λ!", "!Σ!")},
+
+		// fixed spaces in formatting expr
+		{`
+		x = 321
+		r = ~"x1: {x: +08d }"
+		`, "r", "x1: +0000321"},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
