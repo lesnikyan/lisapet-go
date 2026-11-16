@@ -141,7 +141,8 @@ func StrFormNode(node *OperNode) (base.Expression, bool) {
 				form, err := nodes.FormOption(strForm)
 				if err != nil {
 					// fmt.Printf("!! sform case err: %v \n", err)
-					return nil, false
+					panic(err.Error())
+					// return nil, false
 				}
 				fel = form
 			}

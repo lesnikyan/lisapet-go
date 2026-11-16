@@ -188,16 +188,11 @@ next - by dates...
             data types: `s`, `f`, `d`.  
 - -- 14 Done: f-string datatypes: `x`, `b`, `o`, `c`  
 - --14 f-string: Tested and fixed `f`-pattern in f-strings: `{num: >+10.3f}`  
-- --15 F-string: Added `e`- presentation for numric types: `{num: +10.5e}`  
+- --15 F-string: Added `e`- type for numric value: `{num: +10.5e}`  
+- --16 F-String: Added `%`-type pattern for numderic value: `{num : >+10.3%}` 
 
 
 #### next TODO:
-- formatting by expression include: `~"Hello {name}!"`     
-    not sure we need real `~` operator for apply it on any string value.
-    - g
-    - = 
-    - _ ,
-
 - `const`  
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
@@ -207,6 +202,10 @@ next - by dates...
 - grup  
 - regexp operators [ split: `/~`-  thinking]  ??   
 - glif by x-code, u-code: `g'x41'`, `g'u03b3'` ??   
+- f-string  // skip for now.   
+    - type : g
+    - = 
+    - _ ,
 
 
 TO think:  
@@ -214,6 +213,7 @@ TO think:
 - serialize tree for next run  
 - serialize running tree with pre-computed context, for next run from stopped point  
 (own binary format (sounds bad), json, protobuf (maybe both))
+- `~""` not sure we need real `~` operator for apply it on any string value.
 
 
 BUGS:  
