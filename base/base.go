@@ -5,6 +5,7 @@ type Var struct {
 	Name       string
 	Type       *Type
 	StrictType bool
+	Const      bool
 }
 
 type Val struct {
@@ -24,6 +25,7 @@ type Context interface {
 	AddFunc(fn FuncVal)
 	AddType(tp *Type)
 	GetType(name string) *Type
+	GetTypeById(id TypeId) *Type
 	GetElem(name string) *ContextElem
 	DeleteElem(name string) error
 	SubContext() Context

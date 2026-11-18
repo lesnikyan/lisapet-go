@@ -300,6 +300,7 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		ifTree, err := Line2tree(subElems, kwRoot)
 		if err != nil {
 			// do smth
+			return nil, err
 		}
 		if !ifTree.Finished {
 			// unclosed expression, need continue on next line...
@@ -336,6 +337,7 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		forTree, err := Line2tree(subElems[1:], kwRoot)
 		if err != nil {
 			// do smth
+			return nil, err
 		}
 		if !forTree.Finished {
 			// unclosed expression, need continue on next line...
@@ -431,12 +433,34 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		// enum expects 1-line expression in any cases
 		// long enum - block only
 		return CaseEnumDef(elems, kwRoot)
-	case kGrup:
 	case kStruct:
 		// struct StrName(Parent) a, b, c:int
 		return CaseStructDef(elems, kwRoot)
-	case kImport:
 	case kConst:
+		exTree, err := Line2tree(subElems, kwRoot)
+		if err != nil {
+			// do smth
+			return nil, err
+		}
+		if !exTree.Finished {
+			// unclosed expression, need continue on next line...
+			return &SplitState{Done: false, LTree: exTree}, nil
+		}
+		subNode := exTree.Tree
+		// PrintONode(subNode, 0)
+		subExp, ok := OperSub(subNode.rightNode, subNode.rightElems)
+		if !ok {
+			return nil, mockErr
+		}
+		assign, ok := subExp.(*nodes.OperAssign)
+		if !ok {
+			return nil, fmt.Errorf("const keyword can be applyed to assign expression only, but have %T", subExp)
+		}
+		// exp := nodes.NewIf(subExp)
+		exp := &nodes.ConstNode{Assign: assign}
+		return &SplitState{Expr: exp, Done: true}, nil
+	case kImport:
+	case kGrup:
 	case kRun:
 	}
 	return nil, errors.New("keyword not found")

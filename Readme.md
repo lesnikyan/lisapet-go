@@ -192,10 +192,10 @@ next - by dates...
 - --16 F-String: Added `%`-type pattern for numderic value: `{num : >+10.3%}`  
 - --- Fixed trim spaces in format pattern: {num:[ ]+08d[ ]}  
     Added tests for multiline f-strings: `""" {val:format} ... """ `  
+- --17 Added cost keyword:  `const x = 12`  
 
 
 #### next TODO:
-- `const`  
 - string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - CLI runner: lp file.et  
@@ -208,6 +208,10 @@ next - by dates...
     - type : g
     - = 
     - _ ,
+
+
+#### TODO: test of errors:
+    - reassign const
 
 
 TO think:  
