@@ -65,7 +65,11 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 	switch lexp := lexpr.(type) {
 	case *VarExpr:
 		// fmt.Printf("OpAsg=#00 VarExrp: %T %v \n", lexp, lexp)
-		leftObj = GetVar(lexp, cx)
+		varObj := GetVar(lexp, cx)
+		if varObj.Const {
+			return fmt.Errorf("Can't reassign value to const name `%s`", varObj.Name)
+		}
+		leftObj = varObj
 	case *OperColon:
 		xres := lexp.Get()
 		if xres == nil {

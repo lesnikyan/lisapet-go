@@ -60,6 +60,19 @@ func (cx *Context) AddConst(name string, elem base.ConstName) error {
 
 func (cx *Context) AddType(tp *base.Type) {
 	cx.types[tp.Name] = tp
+	cx.typeIds[tp.Id] = tp
+}
+
+func (cx *Context) GetTypeById(id base.TypeId) *base.Type {
+	curCx := cx
+	for curCx != nil {
+		tp, ok := curCx.typeIds[id]
+		if ok {
+			return tp
+		}
+		curCx = curCx.parent
+	}
+	return nil
 }
 
 func (cx *Context) GetType(name string) *base.Type {
@@ -76,7 +89,7 @@ func (cx *Context) GetType(name string) *base.Type {
 }
 
 func (cx *Context) AddVar(vr *base.Var) {
-	// fmt.Printf("o.Ctx.AddVar1 %T, %v \n", vr, vr.Name)
+	// fmt.Printf("o.Ctx.AddVar1 %T, %v ; const: %v \n", vr, vr.Name, vr.Const)
 	if _, ok := cx.vars[vr.Name]; ok {
 		panic("ctx: attempt to add an existing var " + vr.Name)
 	}
@@ -128,6 +141,10 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 		if ok {
 			return NewCxElem(vr)
 		}
+		cnt, ok := curCx.conts[name]
+		if ok {
+			return NewCxElem(cnt)
+		}
 		tp, ok := curCx.types[name]
 		if ok {
 			return NewCxElem(tp)
@@ -135,10 +152,6 @@ func (cx *Context) GetElem(name string) *base.ContextElem {
 		fn, ok := curCx.funcs[name]
 		if ok {
 			return NewCxElem(fn)
-		}
-		cnt, ok := curCx.conts[name]
-		if ok {
-			return NewCxElem(cnt)
 		}
 		curCx = curCx.parent
 	}
@@ -185,6 +198,7 @@ func NewContext(parent base.Context) *Context {
 	funMap := map[string]base.FuncVal{}
 	typeMap := map[string]*base.Type{}
 	conts := map[string]base.ConstName{}
-	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap, conts: conts}
+	typeIds := map[base.TypeId]*base.Type{}
+	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap, conts: conts, typeIds: typeIds}
 	return &c
 }

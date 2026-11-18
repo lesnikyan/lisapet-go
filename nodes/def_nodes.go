@@ -68,6 +68,49 @@ func NewEnumDef(name string, subs []base.Expression) *EnumDef {
 	return &EnumDef{Name: name, Subs: subs}
 }
 
+// ==
+
+type ConstNode struct {
+	Assign *OperAssign
+}
+
+func (cn *ConstNode) Get() *base.Val {
+	return nil
+}
+
+// func (cn *ConstNode) 	HasElem(name string) bool{}
+// func (cn *ConstNode) 	GetElem(name string) *Val{}
+// func (cn *ConstNode) 	GetName() string{}
+
+func (cn *ConstNode) Do(cx base.Context) error {
+	err := cn.Assign.Right.Do(cx)
+	if err != nil {
+		return err
+	}
+	val := GetExprVal(cn.Assign.Right, nil)
+	typeId := objects.TypeIdByVal(val)
+	vtype := cx.GetTypeById(typeId)
+	if vtype == nil {
+		return fmt.Errorf("const val: undefined type")
+	}
+	vname := ""
+	switch lvar := cn.Assign.Left.(type) {
+	case *VarExpr:
+		vname = lvar.name
+	// case *OperColon:
+	//	typed name doesn't make sence for const
+	default:
+		return fmt.Errorf("const: left expression of assign should be a word, %T given", cn.Assign.Left)
+	}
+	// lvar, ok := cn.Assign.Left.(*VarExpr)
+	// if !ok {
+	// 	return fmt.Errorf("const: left expression of assign should be a word, %T given", cn.Assign.Left)
+	// }
+	constElem := &base.Var{Name: vname, Val: val, Type: vtype, Const: true}
+	cx.AddVar(constElem)
+	return nil
+}
+
 // == Grup
 
 type Grup struct {

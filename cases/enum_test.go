@@ -4,6 +4,47 @@ import (
 	"testing"
 )
 
+// TODO: test of error if trying set new value to const
+func TestConstVal(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		const name = 'Vasya'
+		const num = 123
+		r = []
+		r <- num
+		r <- name
+		`, "r", Anis(123, "Vasya")},
+		// tuple can be const
+		{`
+		const x = (1, 2, "3")
+		r = list(x)
+		`, "r", Anis(1, 2, "3")},
+		{`
+		const ONE = 1
+		const TWO = 2
+		const THREE = 3.0
+		func foo()
+			return THREE
+		r = [ONE, TWO, foo()]
+		`, "r", Anis(1, 2, 3.0)},
+		{`
+		const ONE = 1
+		const TWO = 2
+		const THREE = 3.0
+		func foo(x )
+			return THREE * x
+		r = [ONE + 10, TWO * 3, foo(5.7)]
+		`, "r", Anis(11, 6, 17.1)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestEnum(t *testing.T) {
 	tdata := []struct {
 		src   string
