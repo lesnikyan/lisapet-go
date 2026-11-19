@@ -193,10 +193,11 @@ next - by dates...
 - --- Fixed trim spaces in format pattern: {num:[ ]+08d[ ]}  
     Added tests for multiline f-strings: `""" {val:format} ... """ `  
 - --17 Added cost keyword:  `const x = 12`  
+- --19 Added string-comprehension: `~[string|glif ; var <- iter ; cond]`   
+    now it works like join elements of list comprehension result
 
 
 #### next TODO:
-- string-comprehension: `~[string|glif ; iter ; cond]`   
 - byte comprehension: `0x[byte|int ; iter ; cond ]`  
 - CLI runner: lp file.et  
 - func overload  
@@ -224,6 +225,7 @@ extra options:
 console editor with highlighting  
 js-editor with highlighting  
 WASM runner of go-iterpreter for browser    
+TODO: think about refactor from covered list comprehention to special code object 'string comprehension'
 
 
 

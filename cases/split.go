@@ -314,10 +314,6 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		if etp != Lt.Oper {
 			// log.Println("AddRElem:", el.Text, Lt.TName(el.Type))
 			isFstr := cNode.oper == "~" && (el.Type == Lt.Text || el.Type == Lt.Mttext)
-			// if isFstr {
-			// } else if cNode.oper == "~str" {
-			// 	isFstr = true
-			// }
 
 			if isFstr {
 				// log.Println("F-string", el.Text, Lt.TName(el.Type))
@@ -408,6 +404,7 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 		// r = [a, b, c], [a+b, c-2, d+3]
 		// r = {1:11, 2:20+2, 3:3*11}
 		// a=1; b=2; a + b
+		// ~[s ; s <- ss]
 		// 2. brackets after word - the same node
 		// varlist[key]
 		// foo(arg1, arg2)
@@ -468,6 +465,10 @@ func Line2tree(elems []*lang.Elem, prevTree *LineTree) (*LineTree, error) {
 				}
 				parents = parents[:tInd+1] // cut right branch of parent
 			} else {
+				if tx == "[" && cNode.oper == "~" {
+					// println(" --- Square brackets after <~>")
+					cNode.oper = "~gen"
+				}
 				// cNode.rightNode = tNode
 			}
 			fParent.rightNode = tNode

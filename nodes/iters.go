@@ -13,6 +13,8 @@ func MakeIter(src any) SourceIter {
 	switch ss := src.(type) {
 	case *ob.ListVal:
 		iter = NewListIter(ss.Elems)
+	case string:
+		iter = NewListIter(vals2anis([]ob.Glif((ss))))
 	case *ob.TupleVal:
 		iter = NewListIter(ss.Elems)
 	case *ob.DictVal:

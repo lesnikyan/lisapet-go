@@ -170,6 +170,12 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		expr = &nodes.OperBin{Oper: OperByStr(oper)} // Rx opers
 	case "~str":
 		return StrFormNode(rNode)
+	case "~gen":
+		sub, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		if !ok {
+			return nil, false
+		}
+		return &nodes.StrGen{Sub: sub}, true
 	case "?>", "!?>":
 		expr = &nodes.OperIn{Oper: OperByStr(oper)} // Rx opers
 	case "..":

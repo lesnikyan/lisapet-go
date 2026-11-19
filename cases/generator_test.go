@@ -15,6 +15,43 @@ ok 2. dict comprehension
 	4.5 bytes(int|byte|bytes)
 */
 
+func TestGenStrComprh(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// fix iter by string
+		{`
+		r = []
+		for s <- 'Hello'
+			r <- s
+		`, "r", Anis('H', 'e', 'l', 'l', 'o')},
+		// comprehension
+		{`
+		r = [s ; s <- 'Hello2']
+		`, "r", Anis('H', 'e', 'l', 'l', 'o', '2')},
+		{`
+		r = ~[s ; s <- 'Hello']
+		`, "r", "Hello"},
+		{`
+		r = ~[~'{s} ' ; s <- 'Hello']
+		`, "r", "H e l l o "},
+		{`
+		vowels = 'aeiou'
+		r = ~[ c ; s <- 'Hello'; c = vowels.has(s) ? s : ~'<{s}>' ]
+		`, "r", "<H>e<l><l>o"},
+		// filtering
+		{`
+		valid = 'bcdfgjklmnpqrstvwxz '
+		r = ~[s ; s <- 'Lorem ipsum dolor' ; valid.has(s)]
+		`, "r", "rm psm dlr"},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestGenGen(t *testing.T) {
 	tdata := []struct {
 		src   string
