@@ -15,6 +15,96 @@ ok 2. dict comprehension
 	4.5 bytes(int|byte|bytes)
 */
 
+func TestGenBytesComprh(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		bb = [1, 2, 10, 15, 100, 127, 255]
+		r = 0x[b ; b <- bb]
+		`, "r", Bytes{1, 2, 10, 15, 100, 127, 255}},
+		{`
+		bb = 0d[1 2 10 15 100 127 255]
+		r = 0x[b ; b <- bb]
+		`, "r", Bytes{1, 2, 10, 15, 100, 127, 255}},
+		{`
+		bb = 0x[01 05 10 f0 0f ff]
+		r = 0x[b ; b <- bb]
+		`, "r", Bytes{0x1, 0x5, 0x10, 0xf0, 0xf, 0xff}},
+		{`
+		r = 0x[b ; b <- "ABC abc Hello!"]
+		`, "r", Bytes{0x41, 0x42, 0x43, 0x20, 0x61, 0x62, 0x63, 0x20, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}},
+		{`
+		r = 0x[b+c+d+e ; b <- [0x80, 0x90]; c <- [0x40, 0x50]; d <- [1, 2]; e <- [0xa, 0xe]]
+		`, "r", Bytes{0xcb, 0xcf, 0xcc, 0xd0, 0xdb, 0xdf, 0xdc, 0xe0, 0xdb, 0xdf, 0xdc, 0xe0, 0xeb, 0xef, 0xec, 0xf0}},
+		{`
+		r = 0x[b ; b <- [250 .. 260]]
+		`, "r", Bytes{0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, 0x0, 0x1, 0x2, 0x3, 0x4}},
+		{`
+		bb = 'ABCDEF WXYZ'.bytes()
+		b2 = 0x[b + 00x20 ; b <- bb]
+		r = string(b2)
+		`, "r", "abcdef@wxyz"},
+		{`
+		bb = [g'A', g'Q', g'Z', g'a', g'@', g'!']
+		r = 0x[b ; b <- bb]
+		`, "r", Bytes{0x41, 0x51, 0x5a, 0x61, 0x40, 0x21}},
+		{`
+		r = 0x[b ; b <- [1]]
+		`, "r", Bytes{1}},
+		{`
+		r = 0x[b ; b <- []]
+		`, "r", Bytes{}},
+		{`
+		bb = [g'A', g'Q', g'Z', g'a', g'@', g'!']
+		bb = 0x[b ; b <- bb]
+		r = string(bb)
+		`, "r", "AQZa@!"},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
+func TestGenStrComprh(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// fix iter by string
+		{`
+		r = []
+		for s <- 'Hello'
+			r <- s
+		`, "r", Anis('H', 'e', 'l', 'l', 'o')},
+		// comprehension
+		{`
+		r = [s ; s <- 'Hello2']
+		`, "r", Anis('H', 'e', 'l', 'l', 'o', '2')},
+		{`
+		r = ~[s ; s <- 'Hello']
+		`, "r", "Hello"},
+		{`
+		r = ~[~'{s} ' ; s <- 'Hello']
+		`, "r", "H e l l o "},
+		{`
+		vowels = 'aeiou'
+		r = ~[ c ; s <- 'Hello'; c = vowels.has(s) ? s : ~'<{s}>' ]
+		`, "r", "<H>e<l><l>o"},
+		// filtering
+		{`
+		valid = 'bcdfgjklmnpqrstvwxz '
+		r = ~[s ; s <- 'Lorem ipsum dolor' ; valid.has(s)]
+		`, "r", "rm psm dlr"},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestGenGen(t *testing.T) {
 	tdata := []struct {
 		src   string

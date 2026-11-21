@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/lesnikyan/lisapet-go/base"
 	"github.com/lesnikyan/lisapet-go/objects"
@@ -30,7 +31,10 @@ func (op *UnaryLeft) Get() *base.Val {
 
 func (op *UnaryLeft) Do(cx base.Context) error {
 
-	op.right.Do(cx)
+	err := op.right.Do(cx)
+	if err != nil {
+		return err
+	}
 	rvv := GetExprVal(op.right, cx)
 	var res any
 	var ok bool
@@ -39,6 +43,72 @@ func (op *UnaryLeft) Do(cx base.Context) error {
 	if !ok {
 		return errors.New("Error in unary-Left oper") // TODO: add more informative error
 	}
+	op.res = res
+	return nil
+}
+
+// == string comprehension
+
+type StrGen struct {
+	Sub *ListComprh
+
+	res any
+}
+
+func (op *StrGen) SetRight(xp base.Expression) {
+	// op.Sub = xp
+}
+
+func (op *StrGen) SetLeft(xp base.Expression) {
+
+}
+
+func (op *StrGen) Get() *base.Val {
+	return base.NewVal(op.res)
+}
+
+func (op *StrGen) Do(cx base.Context) error {
+	err := op.Sub.Do(cx)
+	if err != nil {
+		return err
+	}
+	// rvv := GetExprVal(op.Sub, cx)
+	var res string
+	// var ok bool
+
+	sres := op.Sub.Get()
+	if sres == nil {
+		return fmt.Errorf("string comprh: wrong result of sub expression")
+	}
+	rvv := sres.V
+	// fmt.Printf("StrGen.Do2: %T, %v \n", sres, sres)
+	// fmt.Printf("StrGen.Do3: %T, %v \n", rvv, rvv)
+	switch vv := rvv.(type) {
+	case *objects.ListVal:
+		elems := vv.Elems
+		// i := 0
+		rr := make([]string, len(elems))
+		var n string
+		for i, s := range elems {
+			switch c := s.(type) {
+			case objects.Glif:
+				n = string(c)
+			case string:
+				n = c
+			case int64:
+				n = string(c)
+			case byte:
+				n = string(c)
+			default:
+				return fmt.Errorf("string comprh: wrong type for string elem: %T", s)
+			}
+			rr[i] = n
+		}
+		res = strings.Join(rr, "")
+	default:
+		return fmt.Errorf("string comprh: wrong or unimplemented type under ~ operator: %T", rvv)
+	}
+
 	op.res = res
 	return nil
 }

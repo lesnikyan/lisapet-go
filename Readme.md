@@ -193,15 +193,18 @@ next - by dates...
 - --- Fixed trim spaces in format pattern: {num:[ ]+08d[ ]}  
     Added tests for multiline f-strings: `""" {val:format} ... """ `  
 - --17 Added cost keyword:  `const x = 12`  
+- --19 Added **string-comprehension**: `~[string|glif ; var <- iter ; cond]`  
+    result of 1-st segment of comprehension expr should be one of: `string`, `glif`, `byte`, `int`  
+    now it works like join elements of list comprehension result  
+- --21 Added **byte-comprehension**: `0x[byte|int ; iter ; cond ]`  
+    result of 1-st segment of comprehension expr sould be one of: `byte`, `int`, `glif`  
 
 
 #### next TODO:
-- string-comprehension: `~[string|glif ; iter ; cond]`   
-- byte comprehension: `0x[byte|int ; iter ; cond ]`  
+- grup  
 - CLI runner: lp file.et  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
-- grup  
 - regexp operators [ split: `/~`-  thinking]  ??   
 - glif by x-code, u-code: `g'x41'`, `g'u03b3'` ??   
 - f-string  // skip for now.   
@@ -224,6 +227,7 @@ extra options:
 console editor with highlighting  
 js-editor with highlighting  
 WASM runner of go-iterpreter for browser    
+TODO: think about refactor from covered list comprehention to special code object 'string comprehension'
 
 
 

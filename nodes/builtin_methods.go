@@ -194,6 +194,7 @@ func stringHas(cx base.Context, inst any, args []any) (any, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("sequence.join: need 1 arg")
 	}
+	// fmt.Printf("string(`%s`).has('%v': %T ) \n", s, args[0], args[0])
 	switch sub := args[0].(type) {
 	case string:
 		res := strings.Contains(s, sub)
