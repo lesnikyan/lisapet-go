@@ -47,14 +47,16 @@ func (op *UnaryLeft) Do(cx base.Context) error {
 	return nil
 }
 
+// == string comprehension
+
 type StrGen struct {
-	Sub base.Expression
+	Sub *ListComprh
 
 	res any
 }
 
 func (op *StrGen) SetRight(xp base.Expression) {
-	op.Sub = xp
+	// op.Sub = xp
 }
 
 func (op *StrGen) SetLeft(xp base.Expression) {
@@ -70,11 +72,17 @@ func (op *StrGen) Do(cx base.Context) error {
 	if err != nil {
 		return err
 	}
-	rvv := GetExprVal(op.Sub, cx)
+	// rvv := GetExprVal(op.Sub, cx)
 	var res string
 	// var ok bool
-	// fmt.Printf("StrGen.Do: %T, %v", rvv, rvv)
 
+	sres := op.Sub.Get()
+	if sres == nil {
+		return fmt.Errorf("string comprh: wrong result of sub expression")
+	}
+	rvv := sres.V
+	// fmt.Printf("StrGen.Do2: %T, %v \n", sres, sres)
+	// fmt.Printf("StrGen.Do3: %T, %v \n", rvv, rvv)
 	switch vv := rvv.(type) {
 	case *objects.ListVal:
 		elems := vv.Elems

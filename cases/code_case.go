@@ -172,10 +172,15 @@ func ProcOperTree(rNode *OperNode) (base.Expression, bool) {
 		return StrFormNode(rNode)
 	case "~gen":
 		sub, ok := OperSub(rNode.rightNode, rNode.rightElems)
+		// fmt.Printf(" str comprh sub: %T \n", sub)
 		if !ok {
 			return nil, false
 		}
-		return &nodes.StrGen{Sub: sub}, true
+		comprh, ok := sub.(*nodes.ListComprh)
+		if !ok {
+			panic(fmt.Sprintf("string comprh case: incorrect sub expression: %T", sub))
+		}
+		return &nodes.StrGen{Sub: comprh}, true
 	case "?>", "!?>":
 		expr = &nodes.OperIn{Oper: OperByStr(oper)} // Rx opers
 	case "..":
@@ -294,10 +299,13 @@ func Comprehension(openBr string, subs *nodes.SequenceSemicolon) (base.Expressio
 		// list comprehension
 		// fstLoop := fstArw.GetIterAssign()
 		return nodes.NewListComprh(resEx, rootGL), true
+	case "0x[":
+		// bytes comprehension
+		return nodes.NewBytesComprh(resEx, rootGL), true
 	case "{":
 		// dict compr
 		return nodes.NewDictComprh(resEx, rootGL), true
-	case "(:":
+		// case "(:":
 	}
 	return nil, false
 }
@@ -372,9 +380,8 @@ func SubSeq(parent string, node base.Expression) (base.Expression, bool) {
 	case *nodes.SequenceSemicolon:
 		// generators, etc
 		switch parent {
-		case "[":
+		case "[", "0x[":
 			// list comprehension
-			// return &nodes.MockExpr{}, false
 			return Comprehension(parent, exx)
 		case "{":
 			// dict compr
@@ -495,12 +502,18 @@ func BracketsExpr(rNode *OperNode) (base.Expression, bool) {
 			if len(rNode.leftElems) > 0 && rNode.leftElems[0].Type == Lt.Num {
 				// Bytes case
 				// fmt.Printf("##00 %s [%T] \n", rNode.leftElems[0].Text, subs)
-				switch subs.(type) {
+				switch subex := subs.(type) {
 				case *nodes.ValExpr, *nodes.VarExpr:
 					// subs = &nodes.ByteLine{Src: rNode.rightElems}
 					subs = nodes.NewByteLine(rNode.rightElems)
 				case *nodes.NumField:
 					// do nothing
+				case *nodes.SequenceSemicolon:
+					// bytes comprehension
+					if oper == "[" && rNode.leftElems[0].Text == "0x" {
+						return SubSeq("0x[", subex)
+					}
+
 				default:
 					// fmt.Printf("##2 %s [%T] \n", rNode.leftElems[0].Text, subs)
 					// subs = &nodes.ByteLine{Src: rNode.rightElems[0].Text}

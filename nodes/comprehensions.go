@@ -145,6 +145,57 @@ func NewListComprh(res base.Expression, loop *GenLoop) *ListComprh {
 	return &ListComprh{ResEx: res, LoopNode: loop}
 }
 
+//===
+
+type BytesComprh struct {
+	ResEx    base.Expression
+	LoopNode *GenLoop
+
+	res objects.Bytes
+}
+
+func (cm *BytesComprh) Get() *base.Val {
+	if cm.res == nil {
+		return nil
+	}
+	return base.NewVal(cm.res)
+}
+
+func (cm *BytesComprh) Do(cx base.Context) error {
+	// fmt.Printf("BytesCOmprh.Do\n")
+	inCx := cx.SubContext()
+	rr := []any{}
+	post := &GenResExpr{Exp: cm.ResEx, res: rr}
+	cm.LoopNode.rex = post
+	err := cm.LoopNode.Do(inCx)
+	if err != nil {
+		// fmt.Printf("!BytesCOmprh.Do err  ( %v)\n", err)
+		return err
+	}
+	bb := make(objects.Bytes, len(post.res))
+	for i, n := range post.res {
+		var nv byte
+		switch num := n.(type) {
+		case byte:
+			nv = num
+		case int64:
+			nv = byte(num)
+		case objects.Glif:
+			nv = byte(num)
+		default:
+			return fmt.Errorf("bytes comprh: bad element type: %T", n)
+		}
+		bb[i] = byte(nv)
+	}
+	// fmt.Printf("BytesComprh.Do rr: %T, bb: %v\n", post.res, bb)
+	cm.res = bb
+	return nil
+}
+
+func NewBytesComprh(res base.Expression, loop *GenLoop) *BytesComprh {
+	return &BytesComprh{ResEx: res, LoopNode: loop}
+}
+
 // ===
 type GenResMap struct {
 	Exp base.Expression
