@@ -296,6 +296,10 @@ type StrMember struct {
 	Method *Method
 }
 
+func (mb *StrMember) GetName() string {
+	return mb.Field
+}
+
 func (mb *StrMember) Get() *base.Val {
 	if mb.Field != "" {
 		return mb.Obj.Get(mb.Field)

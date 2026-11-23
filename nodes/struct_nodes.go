@@ -147,10 +147,11 @@ func (se *StructDefExpr) Do(cx base.Context) error {
 
 // StrName{a:2, b:5}
 type StructConstr struct {
-	Name   string
-	Args   []*OperColon
-	ArgMap map[string]any
-	Subs   []*OperColon
+	// Name   string
+	TypeExpr base.Expression
+	Args     []*OperColon
+	ArgMap   map[string]any
+	Subs     []*OperColon
 
 	res *objects.StructInst
 }
@@ -173,7 +174,22 @@ func (se *StructConstr) Get() *base.Val {
 
 func (se *StructConstr) Do(cx base.Context) error {
 	se.res = nil
-	tel := cx.GetType(se.Name)
+	var tel *base.Type
+	switch tex := se.TypeExpr.(type) {
+	case *VarExpr:
+		tel = cx.GetType(tex.GetName())
+	case *OperDot:
+		tex.Do(cx)
+		tval := GetExprVal(tex, nil)
+		// fmt.Printf("StructConstr.Do1 %T, %v name=`%=s` \n", tval, tval)
+		ttype, ok := tval.(*base.Type)
+		if !ok {
+			return errors.New("struct: type not found")
+		}
+		tel = ttype
+	default:
+		return errors.New("struct: type not found")
+	}
 	// fmt.Printf("StructConstr.Do %T, %v name=`%s` \n", tel, tel, se.Name)
 	if tel == nil {
 		return errors.New("struct: type not found")
@@ -219,6 +235,6 @@ func (se *StructConstr) Do(cx base.Context) error {
 	return nil
 }
 
-func NewStructConstr(name string, args []*OperColon) *StructConstr {
-	return &StructConstr{Name: name, Args: args}
+func NewStructConstr(tex base.Expression, args []*OperColon) *StructConstr {
+	return &StructConstr{TypeExpr: tex, Args: args}
 }

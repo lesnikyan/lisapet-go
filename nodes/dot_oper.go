@@ -34,10 +34,15 @@ func (op *OperDot) Get() *base.Val {
 	return nil
 }
 
-func (op *OperDot) GetMember() *objects.StrMember {
+// obj: struct, grup, enum, module
+func (op *OperDot) GetMember() base.Member {
 	switch mb := op.res.(type) {
 	case *objects.StrMember:
 		// fmt.Printf(" <.> Get mb:(%T, %v) \n", mb, mb)
+		return mb
+	case *GrupMember:
+		return mb
+	case *objects.EnumMember:
 		return mb
 	}
 	return nil
@@ -92,11 +97,20 @@ func (op *OperDot) Do(cx base.Context) error {
 		return fmt.Errorf("OperDot: member `%s` in struct not found", mname)
 
 	case *objects.Enum:
-		val := obj.GetElem(mname)
-		if val == nil {
+		mem := obj.GetMember(mname)
+		if mem == nil {
 			return fmt.Errorf("enum `%s` doesn't have name `%s` ", obj.GetName(), mname)
 		}
-		op.res = val
+		op.res = mem
+		return nil
+	case *Grup:
+		mem := obj.GetMember(mname)
+		if mem == nil {
+			return fmt.Errorf("grup `%s` doesn't have name `%s` ", obj.GetName(), mname)
+		}
+
+		// fmt.Printf("dot. Grup.(%s) val: %T, %v \n", mname, mem.Target, mem.Target)
+		op.res = mem
 		return nil
 	default:
 		tInf := objects.TypeByVal(obj)

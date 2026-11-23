@@ -2,6 +2,7 @@ package objects
 
 import (
 	"errors"
+	"fmt"
 
 	// "fmt"
 
@@ -161,11 +162,6 @@ type Enum struct {
 	Vals map[string]int64
 }
 
-// StaticName:
-// GetElem(name string) *Val
-// HasElem(name string) bool
-// GetName() string
-
 func (en *Enum) GetElem(name string) *base.Val {
 	val, ok := en.Vals[name]
 	if !ok {
@@ -182,3 +178,39 @@ func (en *Enum) HasElem(name string) bool {
 func (en *Enum) GetName() string {
 	return en.Name
 }
+
+func (en *Enum) GetMember(name string) *EnumMember {
+	val := en.GetElem(name)
+	if val == nil {
+		return nil
+	}
+	return &EnumMember{Name: name, Val: val}
+}
+
+// --
+
+type EnumMember struct {
+	Enum *Enum
+	Name string
+
+	Val *base.Val
+}
+
+func (em *EnumMember) GetName() string {
+	return em.Name
+}
+
+func (em *EnumMember) Get() *base.Val {
+	if em.Val == nil {
+		return nil
+	}
+	return em.Val
+}
+
+func (em *EnumMember) Set(val any) error {
+	return fmt.Errorf("enum element cant be changed")
+}
+
+// GetName() string
+// Get() *Val
+// Set(any) error

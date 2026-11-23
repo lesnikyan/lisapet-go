@@ -198,10 +198,12 @@ next - by dates...
     now it works like join elements of list comprehension result  
 - --21 Added **byte-comprehension**: `0x[byte|int ; iter ; cond ]`  
     result of 1-st segment of comprehension expr sould be one of: `byte`, `int`, `glif`  
+- -- 23 Added subspace of code blocks **grup** : `grup Names`   
+    Implemented grup subelements: `var`, `const`, `enum`, `func`, `struct`, `method` as readable objects.  
 
 
 #### next TODO:
-- grup  
+- grup: set values of: var, struct fields, list, dict elements
 - CLI runner: lp file.et  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
@@ -214,7 +216,7 @@ next - by dates...
 
 
 #### TODO: test of errors:
-    - reassign const
+- reassign const
 
 
 TO think:  

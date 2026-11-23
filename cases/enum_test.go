@@ -5,6 +5,275 @@ import (
 )
 
 // TODO: test of error if trying set new value to const
+
+func TestGrupDefStruct(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		r = []
+		grup Abc
+			num = 1
+			struct Q a: int
+		#
+		a1 = Abc.Q{a:1}
+		r = [a1]
+		`, "r", Anis(
+			Stf("Q", dk{"a": 1}),
+		)},
+		{`
+		r = []
+		grup Abc
+			num = 1
+			struct Q a: int
+		#
+		a1 = Abc.Q{}
+		r = [a1]
+		`, "r", Anis(
+			Stf("Q", dk{"a": 0}),
+		)},
+		{`
+		grup Abc
+			struct Q a: int, b: string
+		#
+		r = []
+		a1 = Abc.Q{}
+		r <- a1
+		r <- Abc.Q{a:12, b:'b-val'}
+		r <- Abc.Q(13, 'c-val')
+		`, "r", Anis(
+			Stf("Q", dk{"a": 0, "b": ""}),
+			Stf("Q", dk{"a": 12, "b": "b-val"}),
+			Stf("Q", dk{"a": 13, "b": "c-val"}),
+		)},
+		{`
+		r = []
+		grup Abc
+			num = 1
+			struct Q nn: list
+		#
+		a1 = Abc.Q{nn:[11,22,33]}
+		r = [a1]
+		`, "r", Anis(
+			Stf("Q", dk{"nn": Anis(11, 22, 33)}),
+		)},
+		// method in grup
+		{`
+		r = []
+		grup Abc
+			num = 100
+			struct Q a: int
+			func q:Q foo(x)
+				x * q.a
+		#
+		a1 = Abc.Q{a: 3}
+		r = [a1.foo(2), a1.foo(5)]
+		`, "r", Anis(6, 15)},
+		// grup var in method
+		{`
+		r = []
+		grup Abc
+			num = 100
+			struct Q a: int
+			func q:Q foo(x)
+				x * q.a + num
+		#
+		a1 = Abc.Q{a: 2}
+		r = [a1.foo(2), a1.foo(5)]
+		`, "r", Anis(104, 110)},
+		// 2 methods
+		{`
+		r = []
+		grup Abc
+			num = 100
+			struct Q a: int
+			#
+			func q:Q foo(x)
+				x * q.a + num
+			#
+			func q:Q bar(s: string)
+				[ ~"{s}-{n}";  n <- [1 .. q.a]]
+		#
+		a1 = Abc.Q{a: 3}
+		r = [a1.bar('Ago'), a1.bar('Before')]
+		`, "r", Anis(
+			Anis("Ago-1", "Ago-2", "Ago-3"),
+			Anis("Before-1", "Before-2", "Before-3"),
+		)},
+		// enum val in method
+		{`
+		r = []
+		grup Abc
+			enum N
+				a = 100
+			struct Q a: int
+			func q:Q foo(x)
+				x * q.a + N.a
+		#
+		a1 = Abc.Q{a: 3}
+		r = [a1.foo(2), a1.foo(7)]
+		`, "r", Anis(106, 121)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+func TestGrupDef(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		{`
+		grup Abc
+			name = 'Vasya'
+			num = 123
+		#r = []
+		#print('>>1 ', Abc.name)
+		r = [Abc.name, Abc.num]
+		`, "r", Anis("Vasya", 123)},
+		// func in grup
+		{`
+		grup Abc
+			func foo(x)
+				x * 10
+		
+		r = [Abc.foo(3), Abc.foo(5)]
+		`, "r", Anis(30, 50)},
+		{`
+		grup Abc
+			func foo(x)
+				x * 10
+			Num = 7
+		
+		r = [Abc.foo(Abc.Num), Abc.foo(Abc.Num + 2)]
+		`, "r", Anis(70, 90)},
+		// func uses grup var
+		{`
+		grup Abc
+			func foo(x)
+				x * Num
+			Num = 7
+		
+		r = [Abc.foo(2), Abc.foo(3)]
+		`, "r", Anis(14, 21)},
+		{`
+		grup Abc
+			func foo(x)
+				x * Abc.Num
+			Num = 7
+		
+		r = [Abc.foo(2), Abc.foo(4)]
+		`, "r", Anis(14, 28)},
+		{`
+		grup Abc
+			Num = 7
+			func foo(x)
+				x * Num
+		
+		r = [Abc.foo(2), Abc.foo(5)]
+		`, "r", Anis(14, 35)},
+		// enum in grup
+		{`
+		grup Abc
+			enum N
+				a = 1
+				b = 2
+				c = 3
+		#
+		r = [Abc.N.b, Abc.N.c * 100]
+		`, "r", Anis(2, 300)},
+		{`
+		grup Abc
+			Num = 5
+			Num2 = 50
+			enum N
+				a = 1
+				b = 2
+				c = 3
+			func foo(x)
+				x * Num
+		#
+		r = [Abc.foo(Abc.N.b) + 1000, 2000 + Abc.foo(Abc.N.c + Abc.Num2)]
+		`, "r", Anis(1010, 2265)},
+		{`
+		grup Abc
+			Num = 100
+			enum N
+				a = 1
+				c = 3
+			func foo(x)
+				x * N.c + Num
+		#
+		r = [Abc.foo(3), Abc.foo(7), ]
+		`, "r", Anis(109, 121)},
+		// const in grup
+		{`
+		grup Abc
+			const A = 11
+			const B = 12
+		#
+		r = [Abc.A, Abc.B + 100]
+		`, "r", Anis(11, 112)},
+		// prevent reassign var in upper context
+		{`
+		r = [1]
+		grup Abc
+			const A = 11
+			const B = 12
+			r = [123]
+		#
+		r  <- Abc.A
+		`, "r", Anis(1, 11)},
+		// grup const, same name var upper
+		{`
+		r = [1]
+		A = 2
+		grup Abc
+			const A = 11
+			const B = 12
+			r = [123]
+		#
+		r <- A
+		r  <- Abc.A
+		`, "r", Anis(1, 2, 11)},
+		// list
+		{`
+		grup Abc
+			nn = [11,22,33]
+		#
+		r = [Abc.nn[0]]
+		r <- Abc.nn[2]
+		`, "r", Anis(11, 33)},
+		// tuple
+		{`
+		grup Abc
+			nn = (10, 20, 'Cucumber')
+		#
+		r = [Abc.nn[0]]
+		r <- Abc.nn[2]
+		`, "r", Anis(10, "Cucumber")},
+		// dict
+		{`
+		grup Abc
+			cc = {'red':0xff0000, 'green':0x00ff00, 'blue':0x0000ff}
+			days = {4:'Thu', 5:'Fri', 6:'Sat', 7:'Sun'}
+				1: 'Mon'
+				2: 'Tue'
+				3: 'Wed'
+		#
+		r = [Abc.cc['red']]
+		r <- Abc.days[2]
+		r <- Abc.days[7]
+		`, "r", Anis(0xff0000, "Tue", "Sun")},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestConstVal(t *testing.T) {
 	tdata := []struct {
 		src   string

@@ -16,6 +16,12 @@ func NewVal(v any) *Val {
 	return &Val{V: v}
 }
 
+type Member interface {
+	GetName() string
+	Get() *Val
+	Set(any) error
+}
+
 // L : R
 type Pair [2]any
 
@@ -27,6 +33,7 @@ type Context interface {
 	GetType(name string) *Type
 	GetTypeById(id TypeId) *Type
 	GetElem(name string) *ContextElem
+	GetLvlElem(name string) *ContextElem
 	DeleteElem(name string) error
 	SubContext() Context
 	GetRoot() Context
