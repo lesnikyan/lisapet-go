@@ -364,6 +364,17 @@ func TestGrupDef(t *testing.T) {
 		r <- Abc.days[2]
 		r <- Abc.days[7]
 		`, "r", Anis(0xff0000, "Tue", "Sun")},
+		// maybe
+		{`
+		r = []
+		grup Abc
+			A = some(12)
+			B = none
+		r = [Abc.A, Abc.B]
+		r <- Abc.A.get()
+		r <- Abc.A.map(\x -> 100 + x)
+		r <- Abc.B.map(\x -> x)
+		`, "r", Anis(Tmay(12), Tmay(nil), 12, Tmay(112), Tmay(nil))},
 	}
 	for i, tt := range tdata {
 		RunTCodeVarExp(t, i, tt)
