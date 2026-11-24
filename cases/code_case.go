@@ -431,14 +431,14 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 			return &nodes.ColElemExpr{Col: lexp, Key: subs}, true
 		}
 	case "{":
-		// fmt.Printf("BWL#4 struct %s  %T %v\n", oper, lexp, lok)
+		// fmt.Printf("BWL#4 struct %s  %T %v\n", oper, lexp, lexp)
 		var args []*nodes.OperColon
-		var name string
-		nexp, ok := lexp.(*nodes.VarExpr)
-		if !ok {
-			return nil, false
-		}
-		name = nexp.GetName()
+		// var name string
+		// nexp, ok := lexp.(*nodes.VarExpr)
+		// if !ok {
+		// 	return nil, false
+		// }
+		// name = nexp.GetName()
 
 		switch subex := subs.(type) {
 		case *nodes.OperColon:
@@ -468,7 +468,7 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 			args = []*nodes.OperColon{}
 			// return nil, false
 		}
-		return nodes.NewStructConstr(name, args), true
+		return nodes.NewStructConstr(lexp, args), true
 	}
 	return nil, false
 }

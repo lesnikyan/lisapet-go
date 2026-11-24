@@ -86,6 +86,7 @@ func (nf *NumField) Get() *base.Val {
 type VarExpr struct {
 	name    string
 	vr      *base.Var
+	Local   bool // should be found in current context only
 	TypeExp base.Expression
 	IsVar   bool
 	// StrictType bool
@@ -117,9 +118,13 @@ func (ex *VarExpr) Do(cx base.Context) error {
 	ex.IsVar = false
 	ex.vr = nil
 	ex.cxEl = nil
-
-	elem := cx.GetElem(ex.name)
-	// fmt.Printf("Var.Do#0 VarExrp: %T %v %v \n", elem, elem, elem == nil)
+	var elem *base.ContextElem
+	if ex.Local {
+		elem = cx.GetLvlElem(ex.name)
+	} else {
+		elem = cx.GetElem(ex.name)
+	}
+	// fmt.Printf("Var.Do#0 VarExrp(%s): %T %v %v \n", ex.name, elem, elem, elem == nil)
 	if elem == nil {
 		return nil
 	}
@@ -252,7 +257,7 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 			return el
 		case *objects.Function, *NFunc:
 			return el
-		case *objects.Enum:
+		case *objects.Enum, *Grup:
 			return el
 		default:
 			panic(fmt.Sprintf("Not a valid element found by word-lexem: %T", el))
@@ -292,35 +297,96 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 		return &objects.EmptyVal{}
 	case *OperDot:
 		// fmt.Printf("GetExprVal# operDot: %T, %v\n", vv, vv)
+		// fmt.Printf("GetExprVal# operDot.left: %T, %v\n", vv.left, vv.left)
 		// fmt.Printf("GetExprVal# `a.b` : %T, %v\n", vv.Get(), vv.Get())
 		// fmt.Printf("GetExprVal#  member: %T, %v\n", vv.GetMember(), vv.GetMember())
-		member := vv.GetMember()
-		var mval *base.Val
-		if member == nil {
-			// fmt.Printf("GetExprVal# no member %v\n", member)
-			mres := vv.Get()
-			if mres == nil {
+		xmember := vv.GetMember()
+		// fmt.Printf("GetExprVal#  member: %T, %v\n", xmember, xmember)
+		switch member := xmember.(type) {
+		case *objects.StrMember:
+			var mval *base.Val
+			if member == nil {
+				// fmt.Printf("GetExprVal# no member %v\n", member)
+				// mres := vv.Get()
+				// if mres == nil {
+				// 	return nil
+				// }
+				// mval = mres
+			} else {
+				mval = member.Get()
+			}
+
+			if mval == nil {
+				// fmt.Printf("GetExprVal# no member value %v\n", mval)
 				return nil
 			}
-			mval = mres
-		} else {
-			mval = member.Get()
-		}
+			// fmt.Printf("GetExprVal# memVal: %T, %v\n", mval.V, mval.V)
+			switch val := mval.V.(type) {
+			case *objects.Method:
+				val.Inst = member.Obj
+				return val
+			// case *MFunc:
+			// 	// val.Inst
+			// 	return val
 
-		if mval == nil {
-			// fmt.Printf("GetExprVal# no member value %v\n", mval)
-			return nil
-		}
-		// fmt.Printf("GetExprVal# memVal: %T, %v\n", mval.V, mval.V)
-		switch val := mval.V.(type) {
-		case *objects.Method:
-			val.Inst = member.Obj
-			return val
-		case *MFunc:
-			// val.Inst
-			return val
+			default:
+				return val
+			}
+
+		case *GrupMember:
+			// fmt.Printf("GetExprVal# Dot Grup mem (%s): %T, %v\n", member.Name, member, member)
+			if member == nil {
+				panic("grup member: is nil")
+			}
+			mval := member.Get()
+			// fmt.Printf("GetExprVal# Dot Grup mem val: %T, %v\n", mval.V, mval.V)
+			if mval == nil {
+				panic("grup member val: is nil")
+			}
+			switch mv := mval.V.(type) {
+			case *base.Var:
+				// var value
+				// println("-- Var", mv.Val)
+				return mv.Val
+			case *objects.Function:
+				return mv
+			case *objects.Enum:
+				return mv
+			case *base.Type:
+				return mv
+			default:
+				panic(fmt.Sprintf("grup member: incorrect type %T", mval))
+			}
+		case *objects.EnumMember:
+			// fmt.Printf("GetExprVal# Dot Enum mem (%s): %T, %v\n", member.Name, member, member)
+			mval := member.Get()
+			if mval == nil {
+				panic(fmt.Sprintf("enum member: no such element (%s) in enum %s ", member.Name, member.Enum.Name))
+			}
+			return mval.V
 		default:
-			return val
+			// fmt.Printf("GetExprVal# Dot. def: %T:  %v ; %T:  %v\n", vv, vv, member, member)
+			var mval *base.Val
+			if member == nil {
+				// fmt.Printf("GetExprVal# no member %v\n", member)
+				mres := vv.Get()
+				if mres == nil {
+					return nil
+				}
+				mval = mres
+			}
+			if mval == nil {
+				// fmt.Printf("GetExprVal# no member value %v\n", mval)
+				return nil
+			}
+			// fmt.Printf("GetExprVal# memVal: %T, %v\n", mval.V, mval.V)
+			switch val := mval.V.(type) {
+			case *MFunc:
+				// val.Inst
+				return val
+				// default:
+				// 	return val
+			}
 		}
 
 	default:
@@ -335,5 +401,9 @@ func GetExprVal(v base.Expression, cx base.Context) any {
 	if eVal != nil {
 		return eVal.V
 	}
+	return nil
+}
+
+func GrupMemVal(elem any) any {
 	return nil
 }

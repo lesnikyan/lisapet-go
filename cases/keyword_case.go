@@ -459,8 +459,18 @@ func KWordExp(elems []*lang.Elem, prevTree *LineTree) (*SplitState, error) {
 		// exp := nodes.NewIf(subExp)
 		exp := &nodes.ConstNode{Assign: assign}
 		return &SplitState{Expr: exp, Done: true}, nil
-	case kImport:
 	case kGrup:
+		// &GrupDef
+		elems = SkipSpaces(elems)
+		eln := elems[1]
+		if eln.Type != Lt.Word {
+			return nil, fmt.Errorf("bad lexem of name of enum: %s: %s ", Lt.TName(eln.Type), eln.Text)
+		}
+		name := eln.Text
+
+		exp := nodes.NewGrupDef(name)
+		return &SplitState{Expr: exp, Done: true}, nil
+	case kImport:
 	case kRun:
 	}
 	return nil, errors.New("keyword not found")
@@ -472,8 +482,8 @@ func CaseEnumDef(elems []*lang.Elem, ltree *LineTree) (*SplitState, error) {
 	if eln.Type != Lt.Word {
 		return nil, fmt.Errorf("bad lexem of name of enum: %s: %s ", Lt.TName(eln.Type), eln.Text)
 	}
-	ltree.ExprContext = base.TypeEnum
 	name := eln.Text
+	ltree.ExprContext = base.TypeEnum
 	subs := []base.Expression{} // if block enum subs can be empty
 	enTree, err := Line2tree(elems[2:], ltree)
 	if err != nil {

@@ -186,7 +186,7 @@ next - by dates...
             zero-leading on numbers, size of including: `08`   
             shifting (and align) inside sized place: `<` `>` `^`.  
             data types: `s`, `f`, `d`.  
-- -- 14 Done: f-string datatypes: `x`, `b`, `o`, `c`  
+- --14 Done: f-string datatypes: `x`, `b`, `o`, `c`  
 - --14 f-string: Tested and fixed `f`-pattern in f-strings: `{num: >+10.3f}`  
 - --15 F-string: Added `e`- type for numeric value: `{num: +10.5e}`  
 - --16 F-String: Added `%`-type pattern for numderic value: `{num : >+10.3%}`  
@@ -198,13 +198,19 @@ next - by dates...
     now it works like join elements of list comprehension result  
 - --21 Added **byte-comprehension**: `0x[byte|int ; iter ; cond ]`  
     result of 1-st segment of comprehension expr sould be one of: `byte`, `int`, `glif`  
+- --23 Added subspace of code blocks **grup** : `grup Names`   
+    Implemented grup subelements: `var`, `const`, `enum`, `func`, `struct`, `method` as readable objects.  
+- --24 Fixed and tested features of `grup`: set values of: var, struct fields, list and dict elements  
+    Fixed negative index for `list - [index]` expression.  
 
 
 #### next TODO:
-- grup  
+- grup > grup
 - CLI runner: lp file.et  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
+- module
+- import
 - regexp operators [ split: `/~`-  thinking]  ??   
 - glif by x-code, u-code: `g'x41'`, `g'u03b3'` ??   
 - f-string  // skip for now.   
@@ -214,7 +220,7 @@ next - by dates...
 
 
 #### TODO: test of errors:
-    - reassign const
+- reassign const
 
 
 TO think:  

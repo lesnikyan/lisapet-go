@@ -24,7 +24,10 @@ type FuncDom interface {
 
 // type MethMap map[string]base.FuncVal
 
+var _cxGuid = 100
+
 type Context struct {
+	Id     int
 	parent *Context
 	vars   map[string]*base.Var
 	funcs  map[string]base.FuncVal
@@ -50,6 +53,7 @@ func (cx *Context) SubContext() base.Context {
 
 // add: enum, grup, ?-const
 func (cx *Context) AddConst(name string, elem base.ConstName) error {
+	// fmt.Printf(" >> Cx(%d).AddConst(%s) \n", cx.Id, name)
 	_, ok := cx.conts[name]
 	if ok {
 		return fmt.Errorf("context add: such const name already exist: %s", name)
@@ -89,7 +93,8 @@ func (cx *Context) GetType(name string) *base.Type {
 }
 
 func (cx *Context) AddVar(vr *base.Var) {
-	// fmt.Printf("o.Ctx.AddVar1 %T, %v ; const: %v \n", vr, vr.Name, vr.Const)
+	// fmt.Printf(" >> Cx(%d).AddVar(%s) \n", cx.Id, vr.Name)
+	// fmt.Printf("o.Ctx.AddVar1 %T, %v ; const: %v, val: %v \n", vr, vr.Name, vr.Const, vr.Val)
 	if _, ok := cx.vars[vr.Name]; ok {
 		panic("ctx: attempt to add an existing var " + vr.Name)
 	}
@@ -123,6 +128,29 @@ func (cx *Context) GetFunc(name string) base.FuncVal {
 			return vr
 		}
 		curCx = curCx.parent
+	}
+	return nil
+}
+
+// 1-level internal search
+func (curCx *Context) GetLvlElem(name string) *base.ContextElem {
+	var ok bool
+	vr, ok := curCx.vars[name]
+	if ok {
+		// fmt.Printf(" == cx LvLElem %T, %T \n", vr, vr.Val)
+		return NewCxElem(vr)
+	}
+	cnt, ok := curCx.conts[name]
+	if ok {
+		return NewCxElem(cnt)
+	}
+	tp, ok := curCx.types[name]
+	if ok {
+		return NewCxElem(tp)
+	}
+	fn, ok := curCx.funcs[name]
+	if ok {
+		return NewCxElem(fn)
 	}
 	return nil
 }
@@ -194,11 +222,13 @@ func NewContext(parent base.Context) *Context {
 		// return nil
 		octx = nil
 	}
+	guid := _cxGuid
+	_cxGuid++
 	varMap := map[string]*base.Var{}
 	funMap := map[string]base.FuncVal{}
 	typeMap := map[string]*base.Type{}
 	conts := map[string]base.ConstName{}
 	typeIds := map[base.TypeId]*base.Type{}
-	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap, conts: conts, typeIds: typeIds}
+	c := Context{parent: octx, vars: varMap, funcs: funMap, types: typeMap, conts: conts, typeIds: typeIds, Id: guid}
 	return &c
 }

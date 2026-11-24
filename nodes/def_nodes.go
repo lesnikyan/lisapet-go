@@ -114,7 +114,72 @@ func (cn *ConstNode) Do(cx base.Context) error {
 // == Grup
 
 type Grup struct {
-	Name string
+	Name    string
+	Names   map[string]any
+	Context base.Context // internal context
+}
+
+func (gg *Grup) HasElem(name string) bool {
+	_, ok := gg.Names[name]
+	return ok
+}
+
+func (gg *Grup) GetElem(name string) *base.Val {
+	r := gg.Context.GetLvlElem(name)
+	if r == nil {
+		return nil
+	}
+	// fmt.Printf("Grup.GetElem %T, %v\n", r.V, r.V)
+	return base.NewVal(r.V)
+}
+
+func (gg *Grup) GetMember(name string) *GrupMember {
+	elem := gg.GetElem(name)
+	if elem == nil {
+		return nil
+	}
+	tmem := elem.V
+	mem := &GrupMember{Grup: gg, Name: name, Target: tmem}
+	return mem
+}
+
+func (gg *Grup) GetName() string {
+	return gg.Name
+}
+
+func NewGrup(name string, subCx base.Context) *Grup {
+	return &Grup{Name: name, Names: make(map[string]any), Context: subCx}
+}
+
+// --
+
+type GrupMember struct {
+	Grup   *Grup
+	Name   string
+	Target any // var, func, struct def, enum,
+}
+
+func (gm *GrupMember) GetName() string {
+	return gm.Name
+}
+
+func (gm *GrupMember) Get() *base.Val {
+	if gm.Target == nil {
+		return nil
+	}
+	return base.NewVal(gm.Target)
+}
+
+func (gm *GrupMember) Set(val any) error {
+	// ?
+	switch tt := gm.Target.(type) {
+	case *base.Var:
+		// type ?
+		tt.Val = val
+	default:
+		return fmt.Errorf("grup.member: can't set new value to %T", gm.Target)
+	}
+	return nil
 }
 
 // --
@@ -122,4 +187,53 @@ type Grup struct {
 type GrupDef struct {
 	Name string
 	Subs []base.Expression
+	Res  *Grup
+
+	// do we need returning result of grup definition?
+	// look like no,  because it make sense for func def,
+	// but not for struct, vars, consts or enum - they should be accessible by defined names.
+}
+
+func (gg *GrupDef) Get() *base.Val {
+	return nil
+}
+
+func (gg *GrupDef) IsParent() bool {
+	return true
+}
+
+func (gg *GrupDef) Add(exp base.Expression) {
+	if gg.Subs == nil {
+		gg.Subs = []base.Expression{}
+	}
+	gg.Subs = append(gg.Subs, exp)
+}
+
+func (gg *GrupDef) Do(cx base.Context) error {
+	// define Grup in paren context
+	name := gg.Name
+	gcx := cx.SubContext()
+	grup := NewGrup(name, gcx)
+	cx.AddConst(name, grup)
+
+	// defina internal things in grups context
+	for _, sub := range gg.Subs {
+		// do sub definition, declaration or assignment
+		if aop, ok := sub.(*OperAssign); ok {
+			// assigning var or const,
+			// prevent reassign var in upper context
+			if gvar, ok := aop.Left.(*VarExpr); ok {
+				gvar.Local = true
+			}
+		}
+		err := sub.Do(gcx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func NewGrupDef(name string) *GrupDef {
+	return &GrupDef{Name: name}
 }

@@ -2,6 +2,7 @@ package objects
 
 import (
 	"errors"
+	"fmt"
 
 	// "fmt"
 
@@ -14,17 +15,33 @@ type ListVal struct {
 	Elems []any
 }
 
-func (v *ListVal) Set(key int64, elem any) error {
-	if key >= int64(len(v.Elems)) {
+func (v *ListVal) posid(id int) int {
+	if id < 0 {
+		id = len(v.Elems) + id
+	}
+	return id
+}
+
+func (v *ListVal) Set(ikey int64, elem any) error {
+	key := v.posid(int(ikey))
+	// if key < 0 {
+	// 	key = len(v.Elems) + key
+	// }
+	if key >= (len(v.Elems)) {
 		// return ErrorBadKey
 		panic("list: set elem: index out of range")
 	}
 	v.Elems[int(key)] = elem
 	return nil
 }
-func (v *ListVal) GetElem(key int64) (*base.Val, error) {
-	if key >= int64(len(v.Elems)) {
-		return nil, errors.New("list: get elem: index out of range")
+func (v *ListVal) GetElem(ikey int64) (*base.Val, error) {
+	// key := int(ikey)
+	// if key < 0 {
+	// 	key = len(v.Elems) + key
+	// }
+	key := v.posid(int(ikey))
+	if int(key) >= len(v.Elems) {
+		return nil, fmt.Errorf("list: get elem: index %d out of range, len = %d ", key, len(v.Elems))
 		// return nil, ErrorBadKey
 	}
 	return &base.Val{V: v.Elems[key]}, nil
@@ -35,11 +52,12 @@ func (v *ListVal) Add(elem any) {
 }
 
 func (v *ListVal) Delete(index int64) (*base.Val, error) {
+	key := v.posid(int(index))
 	elem, err := v.GetElem(index)
 	if err != nil {
 		return nil, err
 	}
-	v.Elems = append(v.Elems[:index], v.Elems[index+1:]...)
+	v.Elems = append(v.Elems[:key], v.Elems[key+1:]...)
 	return elem, nil
 }
 
@@ -161,11 +179,6 @@ type Enum struct {
 	Vals map[string]int64
 }
 
-// StaticName:
-// GetElem(name string) *Val
-// HasElem(name string) bool
-// GetName() string
-
 func (en *Enum) GetElem(name string) *base.Val {
 	val, ok := en.Vals[name]
 	if !ok {
@@ -182,3 +195,39 @@ func (en *Enum) HasElem(name string) bool {
 func (en *Enum) GetName() string {
 	return en.Name
 }
+
+func (en *Enum) GetMember(name string) *EnumMember {
+	val := en.GetElem(name)
+	if val == nil {
+		return nil
+	}
+	return &EnumMember{Name: name, Val: val}
+}
+
+// --
+
+type EnumMember struct {
+	Enum *Enum
+	Name string
+
+	Val *base.Val
+}
+
+func (em *EnumMember) GetName() string {
+	return em.Name
+}
+
+func (em *EnumMember) Get() *base.Val {
+	if em.Val == nil {
+		return nil
+	}
+	return em.Val
+}
+
+func (em *EnumMember) Set(val any) error {
+	return fmt.Errorf("enum element cant be changed")
+}
+
+// GetName() string
+// Get() *Val
+// Set(any) error

@@ -73,7 +73,3 @@ func TestMaybeMethods(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
-
-/*
-
- */
