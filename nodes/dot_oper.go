@@ -115,13 +115,13 @@ func (op *OperDot) Do(cx base.Context) error {
 	default:
 		tInf := objects.TypeByVal(obj)
 		if tInf.Id == base.TypeUndefined {
-			return fmt.Errorf("Undefined type of instance in method call: %T", obj)
+			return fmt.Errorf("Undefined type of instance in access to member: %T", obj)
 		}
 		tp := cx.GetType(tInf.Name)
 
 		// fmt.Printf("OperDot3: instType `%s` : %T \n", mname, tp)
 		if tp == nil {
-			return fmt.Errorf("Undefined type `%T` in method call", obj)
+			return fmt.Errorf("Undefined type `%T` in access to member", obj)
 		}
 		fn, ok := tp.GetMethod(mname)
 		if !ok {

@@ -6,6 +6,101 @@ import (
 
 // TODO: test of error if trying set new value to const
 
+func TestGrupSet(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// set to var
+		{`
+		r = []
+		grup Abc
+			Name = "Abel"
+			Num = 3.14
+		r = [Abc.Name, Abc.Num]
+		Abc.Name = 'Euler'
+		Abc.Num = 2.71
+		r <- Abc.Name
+		r <- Abc.Num
+		`, "r", Anis("Abel", 3.14, "Euler", 2.71)},
+		// set to array, dict
+		{`
+		r = []
+		grup Abc
+			Names = ['Anna', 'Bob']
+			Colors = {'red': 0xff0000, 'green':0x00ff00}
+		#
+		r = [Abc.Names[0], Abc.Colors['red']]
+		#r = [Abc.Names[0]]
+		Abc.Names[0] = 'Adam'
+		Abc.Names <- 'Coco'
+		Abc.Colors['yellow'] = 0xffff00
+		r <- Abc.Names[0]
+		r <- Abc.Names[2]
+		r <- Abc.Colors['yellow']
+		`, "r", Anis("Anna", 0xff0000, "Adam", "Coco", 0xffff00)},
+		// delete list elem
+		{`
+		r = []
+		grup Abc
+			Names = ['Anna', 'Bob', 'Chuck', 'Don']
+		#
+		r = [Abc.Names[0], Abc.Names[-1], ]
+		Abc.Names - [-1]
+		Abc.Names <- 'Duke'
+		r <- Abc.Names[0]
+		r <- Abc.Names[-1]
+		`, "r", Anis("Anna", "Don", "Anna", "Duke")},
+		// set struct field
+		{`
+		r = []
+		struct S1 a: int, b: string
+		grup Abc
+			struct S2 c: int, d: list
+			#
+			ss1 = S1{a: 1, b: 'a1'}
+			ss2 = S2{c: 2, d: [11]}
+		#
+		r = [Abc.ss1.a, Abc.ss1.b, Abc.ss2.c, Abc.ss2.d[0], ]
+		Abc.ss1.a = 10
+		Abc.ss1.b = 'A2'
+		Abc.ss2.c = 22
+		Abc.ss2.d[0] = 111
+		Abc.ss2.d <- 222
+		Abc.ss2.d <- 333
+		Abc.ss2.d <- 444
+		r <- Abc.ss1.a
+		r <- Abc.ss1.b
+		r <- Abc.ss2.c
+		r <- Abc.ss2.d[0]
+		Abc.ss2.d[0] = 109
+		for i, n <- Abc.ss2.d
+			r <- i * 1000 + n
+		`, "r", Anis(1, "a1", 2, 11, 10, "A2", 22, 111, 109, 1222, 2333, 3444)},
+		// change by func call
+		{`
+		r = []
+		grup Abc
+			Name:string = "Abel"
+			Num:float = 3.14
+			func foo(n)
+				Num = n
+			func bar(s)
+				Name = s
+		#
+		r = [Abc.Name, Abc.Num]
+		Abc.bar('Euler2')
+		Abc.foo(2.7182)
+		r <- Abc.Name
+		r <- Abc.Num
+		`, "r", Anis("Abel", 3.14, "Euler2", 2.7182)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestGrupDefStruct(t *testing.T) {
 	tdata := []struct {
 		src   string
@@ -120,6 +215,7 @@ func TestGrupDefStruct(t *testing.T) {
 		RunTCodeVarExp(t, i, tt)
 	}
 }
+
 func TestGrupDef(t *testing.T) {
 	tdata := []struct {
 		src   string

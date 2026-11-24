@@ -15,17 +15,33 @@ type ListVal struct {
 	Elems []any
 }
 
-func (v *ListVal) Set(key int64, elem any) error {
-	if key >= int64(len(v.Elems)) {
+func (v *ListVal) posid(id int) int {
+	if id < 0 {
+		id = len(v.Elems) + id
+	}
+	return id
+}
+
+func (v *ListVal) Set(ikey int64, elem any) error {
+	key := v.posid(int(ikey))
+	// if key < 0 {
+	// 	key = len(v.Elems) + key
+	// }
+	if key >= (len(v.Elems)) {
 		// return ErrorBadKey
 		panic("list: set elem: index out of range")
 	}
 	v.Elems[int(key)] = elem
 	return nil
 }
-func (v *ListVal) GetElem(key int64) (*base.Val, error) {
-	if key >= int64(len(v.Elems)) {
-		return nil, errors.New("list: get elem: index out of range")
+func (v *ListVal) GetElem(ikey int64) (*base.Val, error) {
+	// key := int(ikey)
+	// if key < 0 {
+	// 	key = len(v.Elems) + key
+	// }
+	key := v.posid(int(ikey))
+	if int(key) >= len(v.Elems) {
+		return nil, fmt.Errorf("list: get elem: index %d out of range, len = %d ", key, len(v.Elems))
 		// return nil, ErrorBadKey
 	}
 	return &base.Val{V: v.Elems[key]}, nil
@@ -36,11 +52,12 @@ func (v *ListVal) Add(elem any) {
 }
 
 func (v *ListVal) Delete(index int64) (*base.Val, error) {
+	key := v.posid(int(index))
 	elem, err := v.GetElem(index)
 	if err != nil {
 		return nil, err
 	}
-	v.Elems = append(v.Elems[:index], v.Elems[index+1:]...)
+	v.Elems = append(v.Elems[:key], v.Elems[key+1:]...)
 	return elem, nil
 }
 

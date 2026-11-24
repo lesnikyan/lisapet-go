@@ -103,7 +103,7 @@ func AssignVal(cx base.Context, lexpr base.Expression, rval any) error {
 }
 
 func SetValTo(leftObj any, rval any) error {
-	// fmt.Printf("SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
+	// fmt.Printf(" === SetValTo L: %T, %v = R: %T, %v \n", leftObj, leftObj, rval, rval)
 	switch target := leftObj.(type) {
 	// TODO: col[key] = val
 	case *ColElem:
@@ -111,6 +111,8 @@ func SetValTo(leftObj any, rval any) error {
 		target.Set(rval)
 		// TODO: obj.member = val
 	case *objects.StrMember:
+		return target.Set(rval)
+	case *GrupMember:
 		return target.Set(rval)
 	case *base.Var:
 		return objects.SetVarVal(target, rval)
