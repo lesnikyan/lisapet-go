@@ -433,12 +433,6 @@ func BracketsWithLeft(oper string, lexp base.Expression, subs base.Expression) (
 	case "{":
 		// fmt.Printf("BWL#4 struct %s  %T %v\n", oper, lexp, lexp)
 		var args []*nodes.OperColon
-		// var name string
-		// nexp, ok := lexp.(*nodes.VarExpr)
-		// if !ok {
-		// 	return nil, false
-		// }
-		// name = nexp.GetName()
 
 		switch subex := subs.(type) {
 		case *nodes.OperColon:

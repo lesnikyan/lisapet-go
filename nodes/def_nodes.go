@@ -78,10 +78,6 @@ func (cn *ConstNode) Get() *base.Val {
 	return nil
 }
 
-// func (cn *ConstNode) 	HasElem(name string) bool{}
-// func (cn *ConstNode) 	GetElem(name string) *Val{}
-// func (cn *ConstNode) 	GetName() string{}
-
 func (cn *ConstNode) Do(cx base.Context) error {
 	err := cn.Assign.Right.Do(cx)
 	if err != nil {
@@ -97,15 +93,10 @@ func (cn *ConstNode) Do(cx base.Context) error {
 	switch lvar := cn.Assign.Left.(type) {
 	case *VarExpr:
 		vname = lvar.name
-	// case *OperColon:
-	//	typed name doesn't make sence for const
 	default:
 		return fmt.Errorf("const: left expression of assign should be a word, %T given", cn.Assign.Left)
 	}
-	// lvar, ok := cn.Assign.Left.(*VarExpr)
-	// if !ok {
-	// 	return fmt.Errorf("const: left expression of assign should be a word, %T given", cn.Assign.Left)
-	// }
+
 	constElem := &base.Var{Name: vname, Val: val, Type: vtype, Const: true}
 	cx.AddVar(constElem)
 	return nil
@@ -190,7 +181,7 @@ type GrupDef struct {
 	Res  *Grup
 
 	// do we need returning result of grup definition?
-	// look like no,  because it make sense for func def,
+	// looks like no,  because it make sense for func def,
 	// but not for struct, vars, consts or enum - they should be accessible by defined names.
 }
 
