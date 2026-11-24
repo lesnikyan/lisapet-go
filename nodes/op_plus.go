@@ -375,17 +375,11 @@ func binOperList(opid Opid, a *ob.ListVal, b any) (any, bool) {
 			if !ok {
 				return nil, false
 			}
-			// ii := int(id)
-			// if ii >= len(a.Elems) {
-			// 	return nil, false
-			// }
 			val, err := a.GetElem(id)
 			if err != nil {
 				panic(err.Error())
 			}
 			// fmt.Printf("rem val: (%T, %v) \n", val, val)
-			// rem := slices.Delete(a.Elems, ii, ii+1)
-			// a.Elems = rem
 			val, err = a.Delete(id)
 			if val == nil {
 				return nil, false

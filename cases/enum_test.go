@@ -6,6 +6,98 @@ import (
 
 // TODO: test of error if trying set new value to const
 
+func TestGrupGrup(t *testing.T) {
+	tdata := []struct {
+		src   string
+		vname string
+		res   any
+	}{
+		// grup >> grup
+		{`
+		r = []
+		grup Abc
+			grup Boom
+				Name = "Abel"
+				Num = 3.1415
+		r = [Abc.Boom.Name, Abc.Boom.Num]
+		Abc.Boom.Name = 'Euler'
+		r <- Abc.Boom.Name
+		`, "r", Anis("Abel", 3.1415, "Euler")},
+		{`
+		r = []
+		grup Abc
+			grup Boom
+				Name = "Abel"
+				Num = 3.1415
+				func setName(name)
+					Name = name
+				func getName()
+					return Name
+		r = [Abc.Boom.Name, Abc.Boom.Num]
+		Abc.Boom.setName('Euler3')
+		r <- Abc.Boom.getName()
+		`, "r", Anis("Abel", 3.1415, "Euler3")},
+		// grup >> grup >> grup
+		{`
+		r = []
+		grup Abc
+			a1 = 1
+			grup Boom
+				a1 = 2
+				grup Cuper
+					Name = "Abel"
+					Num = 3.1415
+		r = [Abc.Boom.Cuper.Name, Abc.Boom.Cuper.Num]
+		Abc.Boom.Cuper.Name = 'Euler4'
+		r <- Abc.Boom.Cuper.Name
+		`, "r", Anis("Abel", 3.1415, "Euler4")},
+		{`
+		r = []
+		grup Abc
+			grup Boom
+				grup Cuper
+					Name = "Abel"
+					Num = 3.1415
+					func setName(name)
+						Name = name
+					func getName()
+						return Name
+		r = [Abc.Boom.Cuper.Name, Abc.Boom.Cuper.Num]
+		Abc.Boom.Cuper.setName('Euler5')
+		r <- Abc.Boom.Cuper.getName()
+		`, "r", Anis("Abel", 3.1415, "Euler5")},
+		// 5 levels
+		{`
+		r = []
+		grup A
+			grup B
+				grup C
+					grup D
+						grup E
+							Name = "Abel"
+							Num = 3.1415
+		r = [A.B.C.D.E.Name, A.B.C.D.E.Num]
+		A.B.C.D.E.Name = 'Euler64'
+		r <- A.B.C.D.E.Name
+		`, "r", Anis("Abel", 3.1415, "Euler64")},
+		{`
+		r = []
+		grup A
+			grup B
+				grup C
+					grup D
+						grup E
+							struct S1 a: int
+		a1 = A.B.C.D.E.S1{}
+		r = [a1.a , A.B.C.D.E.S1{a:1}.a]
+		r <- A.B.C.D.E.S1{a:3}.a
+		`, "r", Anis(0, 1, 3)},
+	}
+	for i, tt := range tdata {
+		RunTCodeVarExp(t, i, tt)
+	}
+}
+
 func TestGrupSet(t *testing.T) {
 	tdata := []struct {
 		src   string

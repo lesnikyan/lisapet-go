@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	// "fmt"
-
 	"github.com/lesnikyan/lisapet-go/base"
 )
 
@@ -24,21 +22,14 @@ func (v *ListVal) posid(id int) int {
 
 func (v *ListVal) Set(ikey int64, elem any) error {
 	key := v.posid(int(ikey))
-	// if key < 0 {
-	// 	key = len(v.Elems) + key
-	// }
 	if key >= (len(v.Elems)) {
-		// return ErrorBadKey
-		panic("list: set elem: index out of range")
+		// panic("list: set elem: index out of range")
+		return fmt.Errorf("list: set elem: index %d out of range, len = %d ", key, len(v.Elems))
 	}
 	v.Elems[int(key)] = elem
 	return nil
 }
 func (v *ListVal) GetElem(ikey int64) (*base.Val, error) {
-	// key := int(ikey)
-	// if key < 0 {
-	// 	key = len(v.Elems) + key
-	// }
 	key := v.posid(int(ikey))
 	if int(key) >= len(v.Elems) {
 		return nil, fmt.Errorf("list: get elem: index %d out of range, len = %d ", key, len(v.Elems))
@@ -227,7 +218,3 @@ func (em *EnumMember) Get() *base.Val {
 func (em *EnumMember) Set(val any) error {
 	return fmt.Errorf("enum element cant be changed")
 }
-
-// GetName() string
-// Get() *Val
-// Set(any) error

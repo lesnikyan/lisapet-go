@@ -202,10 +202,10 @@ next - by dates...
     Implemented grup subelements: `var`, `const`, `enum`, `func`, `struct`, `method` as readable objects.  
 - --24 Fixed and tested features of `grup`: set values of: var, struct fields, list and dict elements  
     Fixed negative index for `list - [index]` expression.  
+- --25 Implemented `grup` in `grup` with several levels.  
 
 
 #### next TODO:
-- grup > grup
 - CLI runner: lp file.et  
 - func overload  
 - user-defined constructor of struct is a regular function: postpone after func overloading  
